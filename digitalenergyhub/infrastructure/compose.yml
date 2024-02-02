@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  # Middleware messaging using NATS.io
+  middleware_messaging:
+    image: nats:latest
+    container_name: nats-server
+    restart: on-failure
+    # Enable JetStream, configure the HTTP management port.
+    command: --jetstream --store_dir /data/jetstream --http_port 8222 -c /container/nats.conf
+    ports:
+      - "4222:4222" # For clients
+      - "6222:6222" # HTTP management port for information reporting.
+      - "8222:8222" # Routing port for clustering
+      - "8080:8080" # NATS over WebSockets
+    volumes:
+      - ./nats.conf:/container/nats.conf
+    networks:
+      - nats_network
+
+  middleware_messaging_inspector:
+    image: ulexxander/nats-inspector:latest
+    container_name: nats-inspector
+    restart: on-failure
+    ports:
+      - "6223:80" # HTTP management port for information reporting.
+    networks:
+      - nats_network
+    depends_on:
+      - middleware_messaging
+
+
+networks:
+  nats_network:
+
+volumes:
+  nats-data:
+
