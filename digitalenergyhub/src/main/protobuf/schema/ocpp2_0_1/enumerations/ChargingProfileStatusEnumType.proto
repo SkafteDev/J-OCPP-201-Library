@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations;
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations";
+
+/*
+Status returned in response to SetChargingProfileRequest.
+ChargingProfileStatusEnumType is used by: setChargingProfile:SetChargingProfileResponse
+ */
+enum ChargingProfileStatusEnumType {
+  /*
+  Request has been accepted and will be executed.
+   */
+  Accepted = 0;
+
+  /*
+  Request has not been accepted and will not be executed.
+   */
+  Rejected = 1;
+}

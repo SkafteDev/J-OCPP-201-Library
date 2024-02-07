@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes;
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes";
+
+import "google/protobuf/timestamp.proto";
+import "schema/ocpp2_0_1/enumerations/ChargingProfilePurposeEnumType.proto";
+import "schema/ocpp2_0_1/enumerations/ChargingProfileKindEnumType.proto";
+import "schema/ocpp2_0_1/enumerations/RecurrencyKindEnumType.proto";
+import "schema/ocpp2_0_1/datatypes/ChargingScheduleType.proto";
+
+/*
+A ChargingProfile consists of ChargingSchedule, describing the amount of power or current that can be delivered per time interval.
+ChargingProfileType is used by: RequestStartTransactionRequest , SetChargingProfileRequest , ReportChargingProfilesRequest
+ */
+message ChargingProfileType {
+  // Required. Id of ChargingProfile.
+  int32 id = 1;
+
+  /*
+  Required. Value determining level in hierarchy stack of
+  profiles. Higher values have precedence over lower
+  values. Lowest level is 0.
+   */
+  int32 stackLevel = 2;
+
+  /*
+  Required. Defines the purpose of the schedule
+  transferred by this profile
+   */
+  enumerations.ChargingProfilePurposeEnumType chargingProfilePurpose = 3;
+
+  // Required. Indicates the kind of schedule.
+  enumerations.ChargingProfileKindEnumType chargingProfileKind = 4;
+
+  // Optional. Indicates the start point of a recurrence.
+  oneof optional_recurrencyKind {
+    enumerations.RecurrencyKindEnumType recurrencyKind = 5;
+  }
+
+  /*
+  Optional. Point in time at which the profile starts to be
+  valid. If absent, the profile is valid as soon as it is
+  received by the Charging Station.
+   */
+  oneof optional_validFrom {
+    google.protobuf.Timestamp validFrom = 6;
+  }
+
+  /*
+  Optional. Point in time at which the profile stops to be
+  valid. If absent, the profile is valid until it is replaced by
+  another profile.
+   */
+  oneof optional_validTo {
+    google.protobuf.Timestamp validTo = 7;
+  }
+
+  /*
+  Optional. SHALL only be included when
+  ChargingProfilePurpose is set to TxProfile in a
+  SetChargingProfileRequest. The transactionId is used to
+  match the profile to a specific transaction.
+
+  Length: [0..36]
+   */
+  oneof optional_transactionId {
+    string transactionId = 8;
+  }
+
+  /*
+  Required. Schedule that contains limits for the available
+  power or current over time. In order to support ISO 15118
+  schedule negotiation, it supports at most three schedules
+  with associated tariff to choose from.
+
+  Cardinality: 1..3
+   */
+  repeated ChargingScheduleType chargingSchedule = 9;
+}

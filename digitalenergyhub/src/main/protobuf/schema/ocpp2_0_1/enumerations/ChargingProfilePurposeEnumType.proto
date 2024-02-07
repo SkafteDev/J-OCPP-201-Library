@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations;
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations";
+
+/*
+Purpose of the charging profile.
+ChargingProfilePurposeEnumType is used by: Common:ChargingProfileType ,
+clearChargingProfile:ClearChargingProfileRequest.ClearChargingProfileType ,
+getChargingProfiles:GetChargingProfilesRequest.ChargingProfileCriterionType
+ */
+enum ChargingProfilePurposeEnumType {
+
+  /*
+  Additional constraints that will be incorporated into a local power schedule. Only valid for a Charging Station.
+  Therefore evse.Id MUST be 0 in the SetChargingProfileRequest message.
+   */
+  ChargingStationExternalConstraints = 0;
+
+  // Configuration for the maximum power or current available for an entire Charging Station.
+  ChargingStationMaxProfile = 1;
+
+  /*
+  Default profile that can be configured in the Charging Station. When a new transaction is started, this profile
+  SHALL be used, unless it was a transaction that was started by a RequestStartTransactionRequest with a
+  ChargingProfile that is accepted by the Charging Station.
+   */
+  TxDefaultProfile = 2;
+
+  /*
+  Profile with constraints to be imposed by the Charging Station on the current transaction, or on a new
+  transaction when this is started via a RequestStartTransactionRequest with a ChargingProfile. A profile with
+  this purpose SHALL cease to be valid when the transaction terminates.
+   */
+  TxProfile = 3;
+}

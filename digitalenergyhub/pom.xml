@@ -57,9 +57,16 @@
                             <includeMavenTypes>direct</includeMavenTypes>
                             <includeDirectories>
                                 <include>src/main/protobuf</include>
+                                <include>src/main/protobuf/schema</include>
+                                <include>src/main/protobuf/schema/ocpp2_0_1/datatypes</include>
+                                <include>src/main/protobuf/schema/ocpp2_0_1/enumerations</include>
+                                <include>src/main/protobuf/schema/ocpp2_0_1/messages</include>
                             </includeDirectories>
                             <inputDirectories>
-                                <include>src/main/protobuf</include>
+                                <include>src/main/protobuf/schema</include>
+                                <include>src/main/protobuf/schema/ocpp2_0_1/datatypes</include>
+                                <include>src/main/protobuf/schema/ocpp2_0_1/enumerations</include>
+                                <include>src/main/protobuf/schema/ocpp2_0_1/messages</include>
                             </inputDirectories>
                         </configuration>
                     </execution>

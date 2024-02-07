@@ -1,0 +1,32 @@
+syntax = "proto3";
+import "CostKindEnumType.proto";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes;
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes";
+
+/*
+CostType is used by: Common:ConsumptionCostType
+ */
+message CostType {
+
+  /*
+  Required. The kind of cost referred to in the message element amount
+   */
+  enumerations.CostKindEnumType costKind = 1;
+
+  /*
+  Required. The estimated or actual cost per kWh
+   */
+  int32 amount = 2;
+
+  /*
+  Optional. Values: -3..3, The amountMultiplier defines the
+  exponent to base 10 (dec). The final value is determined
+  by: amount * 10 ^ amountMultiplier
+   */
+  oneof optional_amountMultiplier {
+    int32 amountMultiplier = 3;
+  }
+}

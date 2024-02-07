@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations;
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations";
+
+/*
+CostKindEnumType is used by: Common:CostType
+ */
+enum CostKindEnumType {
+  /*
+  Absolute value. Carbon Dioxide emissions, in grams per kWh.
+   */
+  CarbonDioxideEmission = 0;
+
+  /*
+   Relative value. Price per kWh, as percentage relative to the maximum price stated in any of all tariffs
+   indicated to the EV.
+   */
+    RelativePricePercentage = 1;
+
+    /*
+    Relative value. Percentage of renewable generation within total generation.
+     */
+    RenewableGeneratioPercentage = 2;
+}

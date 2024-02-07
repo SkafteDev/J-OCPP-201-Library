@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.messages;
+
+import "ConnectorStatusEnumType.proto";
+import "ChargingProfileStatusEnumType.proto";
+import "StatusInfoType.proto";
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.messages";
+
+/*
+This contains the field definition of the SetChargingProfileResponse PDU sent by the Charging Station to the CSMS in response to
+SetChargingProfileRequest PDU.
+ */
+message SetChargingProfileResponse {
+  /*
+  Required. Returns whether the Charging Station has been
+  able to process the message successfully. This does not
+  guarantee the schedule will be followed to the letter.
+  There might be other constraints the Charging Station
+  may need to take into account.
+   */
+  enumerations.ChargingProfileStatusEnumType status = 1;
+
+  // Optional. Detailed status information.
+  oneof optional_statusInfo {
+    datatypes.StatusInfoType statusInfo = 2;
+  }
+}
