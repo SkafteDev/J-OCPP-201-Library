@@ -1,12 +1,12 @@
 package dk.sdu.mmmi.digitalenergyhub;
 
 import com.google.protobuf.Timestamp;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IClient;
+import dk.sdu.mmmi.digitalenergyhub.interfaces.ISubscriber;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
 import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
 import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessage;
 import dk.sdu.mmmi.digitalenergyhub.protobuff.Meta;
-import dk.sdu.mmmi.digitalenergyhub.subscribers.JsonMessageSubscriber;
+import dk.sdu.mmmi.digitalenergyhub.subscribers.JsonMessageMessageHandler;
 import io.nats.client.Message;
 import io.nats.client.impl.NatsMessage;
 
@@ -18,7 +18,7 @@ public class Main {
     private static final String SUBJECT = "my_topic";
 
     public static void main(String[] args) {
-        IClient<Message> natsClient = new NatsClient("nats://localhost:4222");
+        ISubscriber<Message> natsClient = new NatsClient("nats://localhost:4222");
         startConsumer(natsClient);
 
         //startProducer();
@@ -46,8 +46,8 @@ public class Main {
         }).start();
     }
 
-    private static void startConsumer(IClient<Message> natsClient) {
-        natsClient.addSubscriber(SUBJECT, new JsonMessageSubscriber());
+    private static void startConsumer(ISubscriber<Message> natsClient) {
+        natsClient.addSubscriber(SUBJECT, new JsonMessageMessageHandler());
 
         new Thread(natsClient::startConsume).start();
     }

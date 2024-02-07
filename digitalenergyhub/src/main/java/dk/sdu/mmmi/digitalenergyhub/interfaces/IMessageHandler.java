@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.interfaces;
 
-public interface ISubscriber<T> {
+public interface IMessageHandler<T> {
 
     void onMessageReceived(String subject, T msg, Object connection);
 }

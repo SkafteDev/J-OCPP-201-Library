@@ -17,18 +17,18 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-public class NatsSubscriber implements ISubscriber<Message>, IPublisher<Message> {
+public class NatsClient implements ISubscriber<Message>, IPublisher<Message> {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     private Connection natsConnection;
 
-    private final Map<String, List<IMessageHandler<Message>>> internalSubscribers; // Key = subject, Value = list of subscribers.
+    private final Map<String, List<IMessageHandler<Message>>> messageHandlers; // Key = subject, Value = list of handlers for that subject.
 
     private final Map<String, Subscription> natsSubscriptions; // Key = subject, value = list of nats subscriptions.
 
-    public NatsSubscriber(String connectionString) {
+    public NatsClient(String connectionString) {
         connectToBroker(connectionString);
-        internalSubscribers = new HashMap<>();
+        messageHandlers = new HashMap<>();
         natsSubscriptions = new HashMap<>();
     }
 
@@ -55,7 +55,7 @@ public class NatsSubscriber implements ISubscriber<Message>, IPublisher<Message>
     }
 
     private void notifySubscribers(String subject, Message message) {
-        var subscribers = internalSubscribers.get(subject);
+        var subscribers = messageHandlers.get(subject);
 
         for (var subscriber : subscribers) {
             subscriber.onMessageReceived(subject, message, this.natsConnection);
@@ -64,8 +64,8 @@ public class NatsSubscriber implements ISubscriber<Message>, IPublisher<Message>
 
     @Override
     public void addSubscriber(String subject, IMessageHandler<Message> s) {
-        if (!internalSubscribers.containsKey(subject)) {
-            internalSubscribers.put(subject, new LinkedList<>());
+        if (!messageHandlers.containsKey(subject)) {
+            messageHandlers.put(subject, new LinkedList<>());
         }
 
         if (!natsSubscriptions.containsKey(subject)) {
@@ -73,20 +73,20 @@ public class NatsSubscriber implements ISubscriber<Message>, IPublisher<Message>
             natsSubscriptions.put(subject, subscription);
         }
 
-        internalSubscribers.get(subject).add(s);
+        messageHandlers.get(subject).add(s);
     }
 
     @Override
     public void removeSubscriber(String subject, IMessageHandler<Message> s) {
-        if (!internalSubscribers.containsKey(subject)) {
+        if (!messageHandlers.containsKey(subject)) {
             return;
         }
 
-        internalSubscribers.get(subject).remove(s);
+        messageHandlers.get(subject).remove(s);
     }
 
     @Override
-    public boolean publish(Message msg) {
+    public boolean publish(String subject, Message msg) {
         try {
             natsConnection.publish(msg);
             natsConnection.flush(Duration.ZERO);
@@ -96,10 +96,5 @@ public class NatsSubscriber implements ISubscriber<Message>, IPublisher<Message>
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean publish(String subject, Message msg) {
-        return publish(msg);
     }
 }
