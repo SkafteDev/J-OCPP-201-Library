@@ -1,13 +1,12 @@
 package dk.sdu.mmmi.digitalenergyhub.nats;
 
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IClient;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.ISubscriber;
+import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
+import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
 import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.Nats;
 import io.nats.client.Subscription;
-import io.nats.client.impl.NatsMessage;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -18,16 +17,16 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-public class NatsClient implements IClient<Message>, IPublisher<Message> {
+public class NatsSubscriber implements ISubscriber<Message>, IPublisher<Message> {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     private Connection natsConnection;
 
-    private final Map<String, List<ISubscriber<Message>>> internalSubscribers; // Key = subject, Value = list of subscribers.
+    private final Map<String, List<IMessageHandler<Message>>> internalSubscribers; // Key = subject, Value = list of subscribers.
 
     private final Map<String, Subscription> natsSubscriptions; // Key = subject, value = list of nats subscriptions.
 
-    public NatsClient(String connectionString) {
+    public NatsSubscriber(String connectionString) {
         connectToBroker(connectionString);
         internalSubscribers = new HashMap<>();
         natsSubscriptions = new HashMap<>();
@@ -64,7 +63,7 @@ public class NatsClient implements IClient<Message>, IPublisher<Message> {
     }
 
     @Override
-    public void addSubscriber(String subject, ISubscriber<Message> s) {
+    public void addSubscriber(String subject, IMessageHandler<Message> s) {
         if (!internalSubscribers.containsKey(subject)) {
             internalSubscribers.put(subject, new LinkedList<>());
         }
@@ -78,7 +77,7 @@ public class NatsClient implements IClient<Message>, IPublisher<Message> {
     }
 
     @Override
-    public void removeSubscriber(String subject, ISubscriber<Message> s) {
+    public void removeSubscriber(String subject, IMessageHandler<Message> s) {
         if (!internalSubscribers.containsKey(subject)) {
             return;
         }
