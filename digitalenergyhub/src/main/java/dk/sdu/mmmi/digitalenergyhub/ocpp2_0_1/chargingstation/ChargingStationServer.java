@@ -14,7 +14,6 @@ public class ChargingStationServer implements IChargingStationServer<Message> {
     private final String csId;
     private final String natsConnectionString;
     private final NatsClient natsClient;
-    private final Thread natsClientThread;
 
     public ChargingStationServer(String operatorId, String csmsId, String csId, String natsConnectionString) {
         this.operatorId = sanitise(operatorId);
@@ -22,10 +21,6 @@ public class ChargingStationServer implements IChargingStationServer<Message> {
         this.csId = sanitise(csId);
         this.natsConnectionString = natsConnectionString;
         this.natsClient = new NatsClient(natsConnectionString);
-
-        // Start the NATS.io client on a new thread and start listening for incoming messages.
-        this.natsClientThread = new Thread(natsClient::startConsume);
-        this.natsClientThread.start();
     }
 
     public String getOperatorId() {
