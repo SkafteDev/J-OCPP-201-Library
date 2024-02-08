@@ -29,7 +29,6 @@ public class ChargingStationManagementSystem {
     private final String csmsId;
     private final String natsConnectionString;
     private final NatsClient natsClient;
-    private Thread natsClientThread;
 
     private final Map<String, IChargingStationServer<Message>> chargingStationProxies = new HashMap<>();
 
@@ -38,17 +37,13 @@ public class ChargingStationManagementSystem {
         this.csmsId = sanitise(csmsId);
         this.natsConnectionString = natsConnectionString;
         this.natsClient = new NatsClient(natsConnectionString);
-
-        // Start the NATS.io client on a new thread and start listening for incoming messages.
-        this.natsClientThread = new Thread(natsClient::startConsume);
-        this.natsClientThread.start();
     }
 
     private String sanitise(String in) {
         return in.replace(" ", "").toLowerCase();
     }
 
-    public void addChargingStationProxy(String chargingStationId) {
+    public void addChargingStation(String chargingStationId) {
         chargingStationId = sanitise(chargingStationId);
         // Guard. Do not add existing charging station.
         if (chargingStationProxies.containsKey(chargingStationId)) return;
@@ -280,31 +275,23 @@ public class ChargingStationManagementSystem {
     }
 
     private void publishSetChargingProfileRequest(SetChargingProfileRequest request, String chargingStationId) {
-        String fqnRequestSubject = String.format("%s.%s.%s.%s",
-                this.operatorId,
-                this.csmsId,
-                chargingStationId,
-                OCPPMessageType.SetChargingProfileRequest);
+        IChargingStationServer<Message> csProxy = this.chargingStationProxies.get(chargingStationId);
 
-        String fqnResponseSubject = String.format("%s.%s.%s.%s",
-                this.operatorId,
-                this.csmsId,
-                chargingStationId,
-                OCPPMessageType.SetChargingProfileResponse);
+        String requestChannel = csProxy.getRequestChannel(OCPPMessageType.SetChargingProfileRequest);
+        String responseChannel = csProxy.getResponseChannel(OCPPMessageType.SetChargingProfileResponse);
 
         Message natsMessage = NatsMessage.builder()
-                .subject(fqnRequestSubject)
-                .replyTo(fqnResponseSubject)
+                .subject(requestChannel)
+                .replyTo(responseChannel)
                 .data(request.toByteArray())
                 .build();
 
-        this.natsClient.publish(fqnRequestSubject, natsMessage);
+        this.natsClient.publish(requestChannel, natsMessage);
     }
 
     private void addMessageHandlers(IChargingStationServer<Message> chargingStationServerProxyObject) {
         natsClient.addSubscriber(chargingStationServerProxyObject.getRequestChannel(OCPPMessageType.StatusNotificationRequest),
                 new StatusNotificationRequestHandler());
-
         natsClient.addSubscriber(chargingStationServerProxyObject.getResponseChannel(OCPPMessageType.SetChargingProfileResponse),
                 new SetChargingProfileResponseHandler());
 
