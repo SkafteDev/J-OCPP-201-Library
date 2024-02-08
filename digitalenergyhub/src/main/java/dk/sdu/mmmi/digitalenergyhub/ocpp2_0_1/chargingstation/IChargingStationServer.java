@@ -58,6 +58,7 @@ public interface IChargingStationServer<T> {
                 .append("cs").append(".")
                 .append(getCsId()).append(".")
                 .append("responses")
+                .append(".")
                 .append(msgType.toString().toLowerCase());
 
         return sb.toString();
@@ -85,6 +86,7 @@ public interface IChargingStationServer<T> {
                 .append("cs").append(".")
                 .append(getCsId()).append(".")
                 .append("requests")
+                .append(".")
                 .append(msgType.toString().toLowerCase());
 
         return sb.toString();
