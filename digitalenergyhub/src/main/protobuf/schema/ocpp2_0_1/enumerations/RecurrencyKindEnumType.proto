@@ -9,9 +9,15 @@ option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations";
 RecurrencyKindEnumType is used by: Common:ChargingProfileType
  */
 enum RecurrencyKindEnumType {
+  /*
+  Default value. Best practice in protobuf, and not part of the OCPP 2.0.1 specification.
+  https://protobuf.dev/programming-guides/dos-donts/
+   */
+  RecurrencyKindEnumType_UNSPECIFIED = 0;
+
   // The schedule restarts at the beginning of the next day.
-  Daily = 0;
+  Daily = 1;
 
   // The schedule restarts at the beginning of the next week (defined as Monday morning)
-  Weekly = 1;
+  Weekly = 2;
 }

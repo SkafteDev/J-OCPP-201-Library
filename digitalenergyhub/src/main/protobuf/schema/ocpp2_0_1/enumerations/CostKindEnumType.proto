@@ -10,18 +10,24 @@ CostKindEnumType is used by: Common:CostType
  */
 enum CostKindEnumType {
   /*
+  Default value. Best practice in protobuf, and not part of the OCPP 2.0.1 specification.
+  https://protobuf.dev/programming-guides/dos-donts/
+   */
+  CostKindEnumType_UNSPECIFIED = 0;
+
+  /*
   Absolute value. Carbon Dioxide emissions, in grams per kWh.
    */
-  CarbonDioxideEmission = 0;
+  CarbonDioxideEmission = 1;
 
   /*
    Relative value. Price per kWh, as percentage relative to the maximum price stated in any of all tariffs
    indicated to the EV.
    */
-    RelativePricePercentage = 1;
+    RelativePricePercentage = 2;
 
     /*
     Relative value. Percentage of renewable generation within total generation.
      */
-    RenewableGeneratioPercentage = 2;
+    RenewableGeneratioPercentage = 3;
 }

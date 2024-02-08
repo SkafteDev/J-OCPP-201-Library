@@ -12,6 +12,12 @@ Common:CompositeScheduleType , getCompositeSchedule:GetCompositeScheduleRequest
  */
 enum ChargingRateUnitEnumType {
   /*
+  Default value. Best practice in protobuf, and not part of the OCPP 2.0.1 specification.
+  https://protobuf.dev/programming-guides/dos-donts/
+   */
+  ChargingRateUnitEnumType_UNSPECIFIED = 0;
+
+  /*
   Watts (power). This is the TOTAL allowed charging power. If used for AC Charging, the phase current should
   be calculated via: Current per phase = Power / (Line Voltage * Number of Phases). The "Line Voltage" used in
   the calculation is not the measured voltage, but the set voltage for the area (hence, 230 of 110 volt). The
@@ -19,11 +25,11 @@ enum ChargingRateUnitEnumType {
   use this for DC charging. Note that if numberPhases in a ChargingSchedulePeriod is absent, 3 SHALL be
   assumed.
    */
-  W = 0;
+  W = 1;
 
   /*
   Amperes (current). The amount of Ampere per phase, not the sum of all phases. It is usually more
   convenient to use this for AC charging.
    */
-  A = 1;
+  A = 2;
 }

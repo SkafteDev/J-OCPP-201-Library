@@ -11,12 +11,18 @@ ChargingProfileStatusEnumType is used by: setChargingProfile:SetChargingProfileR
  */
 enum ChargingProfileStatusEnumType {
   /*
+  Default value. Best practice in protobuf, and not part of the OCPP 2.0.1 specification.
+  https://protobuf.dev/programming-guides/dos-donts/
+   */
+  ChargingProfileStatusEnumType_UNSPECIFIED = 0;
+
+  /*
   Request has been accepted and will be executed.
    */
-  Accepted = 0;
+  Accepted = 1;
 
   /*
   Request has not been accepted and will not be executed.
    */
-  Rejected = 1;
+  Rejected = 2;
 }

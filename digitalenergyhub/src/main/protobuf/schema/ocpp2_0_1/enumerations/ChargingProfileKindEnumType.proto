@@ -10,17 +10,24 @@ Kind of charging profile.
 ChargingProfileKindEnumType is used by: Common:ChargingProfileType
  */
 enum ChargingProfileKindEnumType {
+
+  /*
+  Default value. Best practice in protobuf, and not part of the OCPP 2.0.1 specification.
+  https://protobuf.dev/programming-guides/dos-donts/
+   */
+  ChargingProfileKindEnumType_UNSPECIFIED = 0;
+
   /*
   Schedule periods are relative to a fixed point in time defined in the schedule. This requires that startSchedule
   is set to a starting point in time.
    */
-  Absolute = 0;
+  Absolute = 1;
 
   /*
   The schedule restarts periodically at the first schedule period. To be most useful, this requires that
   startSchedule is set to a starting point in time.
    */
-  Recurring = 1;
+  Recurring = 2;
 
   /*
   Charging schedule periods should start when the EVSE is ready to deliver energy. i.e. when the EV driver is
@@ -28,6 +35,6 @@ enum ChargingProfileKindEnumType {
   charging, then the charging schedule periods should remain relative to the PowerPathClosed moment.
   No value for startSchedule should be supplied.
    */
-  Relative = 2;
+  Relative = 3;
 
 }
