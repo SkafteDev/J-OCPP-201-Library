@@ -4,10 +4,7 @@ import dk.sdu.mmmi.digitalenergyhub.interfaces.IRequester;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.ISubscriber;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
-import io.nats.client.Connection;
-import io.nats.client.Message;
-import io.nats.client.Nats;
-import io.nats.client.Subscription;
+import io.nats.client.*;
 import io.nats.client.impl.NatsMessage;
 
 import java.io.IOException;
@@ -71,7 +68,10 @@ public class NatsClient implements ISubscriber<Message>, IPublisher<Message>, IR
         }
 
         if (!natsSubscriptions.containsKey(subject)) {
-            Subscription subscription = natsConnection.subscribe(subject);
+            Dispatcher dispatcher = natsConnection.createDispatcher();
+            Subscription subscription = dispatcher.subscribe(subject, message -> {
+                s.onMessageReceived(subject, message, natsConnection);
+            });
             natsSubscriptions.put(subject, subscription);
         }
 
