@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.nats;
 
+import dk.sdu.mmmi.digitalenergyhub.interfaces.IRequester;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.ISubscriber;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
@@ -7,6 +8,7 @@ import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.Nats;
 import io.nats.client.Subscription;
+import io.nats.client.impl.NatsMessage;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -17,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-public class NatsClient implements ISubscriber<Message>, IPublisher<Message> {
+public class NatsClient implements ISubscriber<Message>, IPublisher<Message>, IRequester<Message> {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     private Connection natsConnection;
@@ -88,7 +90,13 @@ public class NatsClient implements ISubscriber<Message>, IPublisher<Message> {
     @Override
     public boolean publish(String subject, Message msg) {
         try {
-            natsConnection.publish(msg);
+            NatsMessage overridenMsg = NatsMessage.builder()
+                    .subject(subject)
+                    .replyTo(msg.getReplyTo())
+                    .headers(msg.getHeaders())
+                    .data(msg.getData())
+                    .build();
+            natsConnection.publish(overridenMsg);
             natsConnection.flush(Duration.ZERO);
 
         } catch (TimeoutException | InterruptedException e) {
@@ -96,5 +104,15 @@ public class NatsClient implements ISubscriber<Message>, IPublisher<Message> {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public Message request(Message request, Duration timeout) {
+        try {
+            return natsConnection.request(request, timeout);
+        } catch (InterruptedException e) {
+            logger.warning(e.getMessage());
+            return null;
+        }
     }
 }
