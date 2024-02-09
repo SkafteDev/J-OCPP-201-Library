@@ -159,7 +159,7 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
 						<Type><![CDATA[String]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA["my_topic"]]></Code>
+							<Code><![CDATA["anylogic.model.discrepancy"]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -480,7 +480,12 @@ natsPublisher.publish(natsMessage);
 		<ActiveObjectClass>
 			<Id>1707303257789</Id>
 			<Name><![CDATA[ChargingStation]]></Name>
-			<Import><![CDATA[import java.time.LocalDateTime;]]></Import>
+			<Import><![CDATA[import java.time.LocalDateTime;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.IChargingStationServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.ChargingStationServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.handlers.SetChargingProfileRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.handlers.StatusNotificationResponseHandler;
+import io.nats.client.Message;]]></Import>
 			<StartupCode><![CDATA[initDefaultChargingProfile();]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
@@ -574,6 +579,66 @@ natsPublisher.publish(natsMessage);
 			<CurrentLevel>1707303257796</CurrentLevel>
 			<ConnectionsId>1707303257790</ConnectionsId>
 			<Variables>
+				<Variable Class="PlainVariable">
+					<Id>1707471856520</Id>
+					<Name><![CDATA[chargingStationServer]]></Name>
+					<X>40</X><Y>470</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[IChargingStationServer<Message>]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[new ChargingStationServer()]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1707472050416</Id>
+					<Name><![CDATA[operatorId]]></Name>
+					<X>40</X><Y>500</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["clever"]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1707472089116</Id>
+					<Name><![CDATA[csmsId]]></Name>
+					<X>40</X><Y>540</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["clevercentralcsms"]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1707472123277</Id>
+					<Name><![CDATA[natsConnectionString]]></Name>
+					<X>40</X><Y>570</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["nats://localhost:4222"]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 				<Variable Class="Parameter">
 					<Id>1707321528361</Id>
 					<Name><![CDATA[chargingStationID]]></Name>
@@ -931,142 +996,6 @@ for (int hour = 0; hour < 24; hour++) {
 			</Presentation>
 
 		</ActiveObjectClass>
-		<!--   =========   Active Object Class   ========  -->
-		<ActiveObjectClass>
-			<Id>1707304710998</Id>
-			<Name><![CDATA[ElectricVehicle]]></Name>
-			<Generic>false</Generic>
-			<GenericParameter>
-				<Id>1707304711004</Id>
-				<Name><![CDATA[1707304711004]]></Name>
-				<GenericParameterValue Class="CodeValue">
-					<Code><![CDATA[T extends Agent]]></Code>
-				</GenericParameterValue>
-				<GenericParameterLabel><![CDATA[Generic parameter:]]></GenericParameterLabel>
-			</GenericParameter>
-			<FlowChartsUsage>ENTITY</FlowChartsUsage>
-			<SamplesToKeep>100</SamplesToKeep>
-			<LimitNumberOfArrayElements>false</LimitNumberOfArrayElements>
-			<ElementsLimitValue>100</ElementsLimitValue>
-			<MakeDefaultViewArea>true</MakeDefaultViewArea>
-			<SceneGridColor/>
-			<SceneBackgroundColor/>
-			<SceneSkybox>null</SceneSkybox>
-			<AgentProperties>
-				<EnvironmentDefinesInitialLocation>true</EnvironmentDefinesInitialLocation>
-				<RotateAnimationTowardsMovement>true</RotateAnimationTowardsMovement>
-				<RotateAnimationVertically>false</RotateAnimationVertically>
-				<VelocityCode Class="CodeUnitValue">
-					<Code><![CDATA[10]]></Code>
-					<Unit Class="SpeedUnits"><![CDATA[MPS]]></Unit>
-				</VelocityCode>
-				<PhysicalLength Class="CodeUnitValue">
-					<Code><![CDATA[1]]></Code>
-					<Unit Class="LengthUnits"><![CDATA[METER]]></Unit>
-				</PhysicalLength>
-				<PhysicalWidth Class="CodeUnitValue">
-					<Code><![CDATA[1]]></Code>
-					<Unit Class="LengthUnits"><![CDATA[METER]]></Unit>
-				</PhysicalWidth>
-				<PhysicalHeight Class="CodeUnitValue">
-					<Code><![CDATA[1]]></Code>
-					<Unit Class="LengthUnits"><![CDATA[METER]]></Unit>
-				</PhysicalHeight>
-			</AgentProperties>
-			<EnvironmentProperties>
-					<EnableSteps>false</EnableSteps>
-					<StepDurationCode Class="CodeUnitValue">
-						<Code><![CDATA[1.0]]></Code>
-						<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
-					</StepDurationCode>
-					<SpaceType>CONTINUOUS</SpaceType>
-					<WidthCode><![CDATA[500]]></WidthCode>
-					<HeightCode><![CDATA[500]]></HeightCode>
-					<ZHeightCode><![CDATA[0]]></ZHeightCode>
-					<ColumnsCountCode><![CDATA[100]]></ColumnsCountCode>
-					<RowsCountCode><![CDATA[100]]></RowsCountCode>
-					<NeigborhoodType>MOORE</NeigborhoodType>
-					<LayoutType>USER_DEF</LayoutType>
-					<LayoutTypeApplyOnStartup>true</LayoutTypeApplyOnStartup>
-					<NetworkType>USER_DEF</NetworkType>
-					<NetworkTypeApplyOnStartup>true</NetworkTypeApplyOnStartup>
-					<ConnectionsPerAgentCode><![CDATA[2]]></ConnectionsPerAgentCode>
-					<ConnectionsRangeCode><![CDATA[50]]></ConnectionsRangeCode>
-					<NeighborLinkFractionCode><![CDATA[0.95]]></NeighborLinkFractionCode>
-					<MCode><![CDATA[10]]></MCode>
-			</EnvironmentProperties>
-			<DatasetsCreationProperties>
-				<AutoCreate>true</AutoCreate>
-					<OccurrenceAtTime>true</OccurrenceAtTime>
-					<OccurrenceDate>1707379200000</OccurrenceDate>
-					<OccurrenceTime Class="CodeUnitValue">
-						<Code><![CDATA[0]]></Code>
-						<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
-					</OccurrenceTime>
-					<RecurrenceCode Class="CodeUnitValue">
-						<Code><![CDATA[1]]></Code>
-						<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
-					</RecurrenceCode>
-			</DatasetsCreationProperties>
-			<ScaleRuler>
-				<Id>1707304711001</Id>
-				<Name><![CDATA[scale]]></Name>
-				<X>0</X><Y>-150</Y>
-				<PublicFlag>false</PublicFlag>
-				<PresentationFlag>false</PresentationFlag>
-				<ShowLabel>false</ShowLabel>
-				<DrawMode>SHAPE_DRAW_2D3D</DrawMode>
-				<Length>100</Length>
-				<Rotation>0</Rotation>
-				<ScaleType>BASED_ON_LENGTH</ScaleType>
-				<ModelLength>10</ModelLength>
-				<LengthUnits>METER</LengthUnits>
-				<Scale>10</Scale>
-				<InheritedFromParentAgentType>true</InheritedFromParentAgentType>
-			</ScaleRuler>
-			<CurrentLevel>1707304711005</CurrentLevel>
-			<ConnectionsId>1707304710999</ConnectionsId>
-			<AgentLinks>
-				<AgentLink>
-					<Id>1707304710999</Id>
-					<Name><![CDATA[connections]]></Name>
-					<X>50</X><Y>-50</Y>
-					<Label><X>15</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<HandleReceiveInConnections>false</HandleReceiveInConnections>
-					<AgentLinkType>COLLECTION_OF_LINKS</AgentLinkType>
-					<AgentLinkBidirectional>true</AgentLinkBidirectional>
-					<MessageType><![CDATA[Object]]></MessageType>
-					<LineStyle>SOLID</LineStyle>
-					<LineWidth>1</LineWidth>
-					<LineColor>-16777216</LineColor>
-					<LineZOrder>UNDER_AGENTS</LineZOrder>
-					<LineArrow>NONE</LineArrow>
-					<LineArrowPosition>END</LineArrowPosition>
-				</AgentLink>
-			</AgentLinks>
-
-
-			<Presentation>
-				<Level>
-					<Id>1707304711005</Id>
-					<Name><![CDATA[level]]></Name>
-					<X>0</X><Y>0</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>true</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>false</ShowLabel>
-					<DrawMode>SHAPE_DRAW_2D3D</DrawMode>
-					<Z>0</Z>
-					<LevelVisibility>DIM_NON_CURRENT</LevelVisibility>
-
-
-				</Level>
-			</Presentation>
-
-		</ActiveObjectClass>
 	</ActiveObjectClasses>	
 	<DifferentialEquationsMethod>EULER</DifferentialEquationsMethod>
 	<MixedEquationsMethod>RK45_NEWTON</MixedEquationsMethod>
@@ -1192,9 +1121,6 @@ import static com.google.protobuf.util.Timestamps.fromMillis;
  */	
 public class NatsUtil implements Serializable {
 	
-	private static 
-	
-
     /**
      * Default constructor
      */
@@ -1265,12 +1191,12 @@ public class Logger implements Serializable {
 	</JavaClasses>
 	<ModelResources>
 		<Resource>
-			<Path><![CDATA[../digitalenergyhub/target/digitalenergyhub-1.0-SNAPSHOT-jar-with-dependencies.jar]]></Path>
+			<Path><![CDATA[image1.png]]></Path>
 			<ReferencedFromUserCode>false</ReferencedFromUserCode>
 			<Location>FILE_SYSTEM</Location>
 		</Resource>
 		<Resource>
-			<Path><![CDATA[image1.png]]></Path>
+			<Path><![CDATA[digitalenergyhub-1.0-SNAPSHOT-jar-with-dependencies.jar]]></Path>
 			<ReferencedFromUserCode>false</ReferencedFromUserCode>
 			<Location>FILE_SYSTEM</Location>
 		</Resource>
@@ -1284,9 +1210,9 @@ public class Logger implements Serializable {
 	<ClassPathEntry>
 		<ResourceReference>
 			<PackageName><![CDATA[realtimemodel]]></PackageName>
-			<ClassName><![CDATA[../digitalenergyhub/target/digitalenergyhub-1.0-SNAPSHOT-jar-with-dependencies.jar]]></ClassName>
+			<ClassName><![CDATA[digitalenergyhub-1.0-SNAPSHOT-jar-with-dependencies.jar]]></ClassName>
 		</ResourceReference>
-		<Imported>false</Imported>
+		<Imported>true</Imported>
 		<Folder>false</Folder>
 	</ClassPathEntry>
 </Model>

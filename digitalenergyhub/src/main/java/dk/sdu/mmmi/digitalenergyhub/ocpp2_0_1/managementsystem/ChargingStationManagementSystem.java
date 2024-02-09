@@ -76,7 +76,7 @@ public class ChargingStationManagementSystem {
             }
 
             @Override
-            public void emitResponse(OCPPMessageType ocppMessageType, Message response) {
+            public void emitMessage(OCPPMessageType ocppMessageType, Message message) {
                 throw new UnsupportedOperationException("Not supported on proxy object.");
             }
         };

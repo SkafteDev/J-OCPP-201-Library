@@ -34,7 +34,7 @@ public interface IChargingStationServer<T> {
 
     void addRequestHandler(OCPPMessageType ocppMessageType, IMessageHandler<T> handler);
 
-    void emitResponse(OCPPMessageType ocppMessageType, T response);
+    void emitMessage(OCPPMessageType ocppMessageType, T message);
 
     default String getResponsesChannel() {
         StringBuilder sb = new StringBuilder();

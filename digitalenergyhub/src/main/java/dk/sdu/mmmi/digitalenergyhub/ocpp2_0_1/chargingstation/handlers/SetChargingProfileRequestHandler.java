@@ -4,7 +4,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.messagetypes.OCPPMessageToSubjectMapping;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.IChargingStationServer;
-import dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes.StatusInfoType;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ChargingProfileStatusEnumType;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.SetChargingProfileRequest;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.SetChargingProfileResponse;
@@ -53,7 +52,7 @@ public class SetChargingProfileRequestHandler implements IMessageHandler<Message
                     .data(responsePayload.toByteArray())
                     .build();
 
-            receiver.emitResponse(OCPPMessageType.SetChargingProfileResponse, responseNatsMsg);
+            receiver.emitMessage(OCPPMessageType.SetChargingProfileResponse, responseNatsMsg);
 
         } catch (InvalidProtocolBufferException e) {
             logger.warning(e.getMessage());
