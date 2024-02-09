@@ -21,7 +21,6 @@ import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessage;
 import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessageOrBuilder;
 import dk.sdu.mmmi.digitalenergyhub.protobuff.Meta;
 import dk.sdu.mmmi.digitalenergyhub.protobuff.MetaOrBuilder;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IClient;
 import io.nats.client.Message;
 import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
@@ -142,7 +141,7 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[IClient<Message>]]></Type>        
+						<Type><![CDATA[NatsClient]]></Type>        
 						<InitialValue Class="CodeValue">
 							<Code><![CDATA[new NatsClient("nats://localhost:4222");]]></Code>
 						</InitialValue>
@@ -237,7 +236,7 @@ Message natsMessage = NatsMessage.builder()
         .data(protoPayload.toByteArray())
         .subject(natsSubject)
         .build();
-natsPublisher.publish(natsMessage);
+natsPublisher.publish(natsSubject, natsMessage);
 //traceln(String.format("Published: %s", protoPayload));
 
 ]]></Action>
@@ -485,8 +484,15 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.IChargingStationSe
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.ChargingStationServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.handlers.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.handlers.StatusNotificationResponseHandler;
-import io.nats.client.Message;]]></Import>
-			<StartupCode><![CDATA[initDefaultChargingProfile();]]></StartupCode>
+import io.nats.client.Message;
+import io.nats.client.impl.NatsMessage;
+import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.messagetypes.OCPPMessageToSubjectMapping.OCPPMessageType;
+import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationRequest;
+import com.google.protobuf.Timestamp;
+import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ConnectorStatusEnumType;]]></Import>
+			<StartupCode><![CDATA[initDefaultChargingProfile();
+initChargingStationMessageHandlers();]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1707303257795</Id>
@@ -582,7 +588,7 @@ import io.nats.client.Message;]]></Import>
 				<Variable Class="PlainVariable">
 					<Id>1707471856520</Id>
 					<Name><![CDATA[chargingStationServer]]></Name>
-					<X>40</X><Y>470</Y>
+					<X>40</X><Y>630</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -590,14 +596,14 @@ import io.nats.client.Message;]]></Import>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
 						<Type><![CDATA[IChargingStationServer<Message>]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA[new ChargingStationServer()]]></Code>
+							<Code><![CDATA[new ChargingStationServer(operatorId, csmsId, chargingStationId, natsConnectionString);]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
 					<Id>1707472050416</Id>
 					<Name><![CDATA[operatorId]]></Name>
-					<X>40</X><Y>500</Y>
+					<X>40</X><Y>660</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -612,7 +618,7 @@ import io.nats.client.Message;]]></Import>
 				<Variable Class="PlainVariable">
 					<Id>1707472089116</Id>
 					<Name><![CDATA[csmsId]]></Name>
-					<X>40</X><Y>540</Y>
+					<X>40</X><Y>690</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -627,7 +633,7 @@ import io.nats.client.Message;]]></Import>
 				<Variable Class="PlainVariable">
 					<Id>1707472123277</Id>
 					<Name><![CDATA[natsConnectionString]]></Name>
-					<X>40</X><Y>570</Y>
+					<X>40</X><Y>750</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -636,6 +642,21 @@ import io.nats.client.Message;]]></Import>
 						<Type><![CDATA[String]]></Type>        
 						<InitialValue Class="CodeValue">
 							<Code><![CDATA["nats://localhost:4222"]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1707472313004</Id>
+					<Name><![CDATA[chargingStationId]]></Name>
+					<X>40</X><Y>720</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["denmark_odense_m_draejebaenken_sta1"]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -781,7 +802,27 @@ Example:
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1707303298674" Target="1707309548981" Trigger="message">
-						<Action><![CDATA[Logger.log(date(), chargingStationID, "Cable plugged in.");]]></Action>
+						<Action><![CDATA[Logger.log(date(), chargingStationID, "Cable plugged in.");
+
+
+StatusNotificationRequest payload = StatusNotificationRequest.newBuilder()
+.setConnectorId(1)
+.setEvseId(1)
+.setTimestamp(Timestamp.newBuilder()
+.setSeconds(date().toInstant().getEpochSecond())
+.build())
+.setConnectorStatus(ConnectorStatusEnumType.Occupied)
+.build();
+
+String eventChannel = chargingStationServer.getEventsChannel(OCPPMessageType.StatusNotificationRequest);
+
+Message natsMessage = NatsMessage.builder()
+                .subject(eventChannel)
+                .data(payload.toByteArray())
+                .build();
+
+chargingStationServer.emitMessage(OCPPMessageType.StatusNotificationRequest, natsMessage);
+]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
@@ -830,7 +871,27 @@ Example:
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1707309548981" Target="1707303298674" Trigger="timeout">
-						<Action><![CDATA[Logger.log(date(), chargingStationID, "Cable plugged out.");]]></Action>
+						<Action><![CDATA[Logger.log(date(), chargingStationID, "Cable plugged out.");
+
+
+StatusNotificationRequest payload = StatusNotificationRequest.newBuilder()
+.setConnectorId(1)
+.setEvseId(1)
+.setTimestamp(Timestamp.newBuilder()
+.setSeconds(date().toInstant().getEpochSecond())
+.build())
+.setConnectorStatus(ConnectorStatusEnumType.Available)
+.build();
+
+String eventChannel = chargingStationServer.getEventsChannel(OCPPMessageType.StatusNotificationRequest);
+
+Message natsMessage = NatsMessage.builder()
+                .subject(eventChannel)
+                .data(payload.toByteArray())
+                .build();
+
+chargingStationServer.emitMessage(OCPPMessageType.StatusNotificationRequest, natsMessage);
+]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[10]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -909,6 +970,19 @@ for (int hour = 0; hour < 24; hour++) {
     chargingProfile.put(LocalDateTime.of(year, month, day, hour, 0),
             hourLimitKW);
 }]]></Body>
+				</Function>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>VOID</ReturnModificator>
+					<ReturnType><![CDATA[double]]></ReturnType>
+					<Id>1707472949302</Id>
+					<Name><![CDATA[initChargingStationMessageHandlers]]></Name>
+					<X>50</X><Y>120</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[chargingStationServer.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
+                new SetChargingProfileRequestHandler(chargingStationServer));]]></Body>
 				</Function>
 			</Functions>
 			<AgentLinks>
@@ -1093,7 +1167,7 @@ for (int hour = 0; hour < 24; hour++) {
 			</PresentationProperties>
 			<ModelTimeProperties>
 				<StopOption><![CDATA[Never]]></StopOption>
-				<InitialDate><![CDATA[1706832000000]]></InitialDate>	
+				<InitialDate><![CDATA[1706745600000]]></InitialDate>	
 				<InitialTime><![CDATA[0.0]]></InitialTime>	
 				<FinalDate><![CDATA[1709337600000]]></FinalDate>	
 				<FinalTime><![CDATA[100.0]]></FinalTime>	

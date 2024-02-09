@@ -104,4 +104,19 @@ public interface IChargingStationServer<T> {
 
         return sb.toString();
     }
+
+    default String getEventsChannel(OCPPMessageType msgType) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("operators").append(".")
+                .append(getOperatorId()).append(".")
+                .append("csms").append(".")
+                .append(getCsmsId()).append(".")
+                .append("cs").append(".")
+                .append(getCsId()).append(".")
+                .append("events")
+                .append(".")
+                .append(msgType.toString().toLowerCase());
+
+        return sb.toString();
+    }
 }

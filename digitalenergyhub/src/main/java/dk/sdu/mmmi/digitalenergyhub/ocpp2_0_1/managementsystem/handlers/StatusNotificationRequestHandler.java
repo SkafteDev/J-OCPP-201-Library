@@ -1,6 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.managementsystem.handlers;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.messagetypes.OCPPMessageToSubjectMapping;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationRequest;
@@ -25,7 +26,7 @@ public class StatusNotificationRequestHandler implements IMessageHandler<Message
                     ldt,
                     ocppMessageType,
                     subject,
-                    statusNotificationRequest);
+                    JsonFormat.printer().print(statusNotificationRequest));
             logger.info(logMsg);
 
             // TODO: Handle the message and act accordingly to the OCPP 2.0.1 protocol.

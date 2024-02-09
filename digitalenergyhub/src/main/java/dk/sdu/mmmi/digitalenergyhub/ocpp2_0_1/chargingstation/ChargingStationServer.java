@@ -47,7 +47,7 @@ public class ChargingStationServer implements IChargingStationServer<Message> {
 
     @Override
     public void emitMessage(OCPPMessageType ocppMessageType, Message message) {
-        String channelName = this.getResponseChannel(ocppMessageType);
+        String channelName = this.getEventsChannel(ocppMessageType);
         natsClient.publish(channelName, message);
     }
 }

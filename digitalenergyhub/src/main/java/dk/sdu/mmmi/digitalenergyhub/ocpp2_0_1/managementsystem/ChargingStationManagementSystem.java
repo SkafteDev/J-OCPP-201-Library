@@ -1,6 +1,8 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.managementsystem;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.JsonFormat;
 import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
 import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.IChargingStationServer;
@@ -14,6 +16,7 @@ import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ChargingProfileKindEnumType;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ChargingProfilePurposeEnumType;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ChargingRateUnitEnumType;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.SetChargingProfileRequest;
+import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationRequest;
 import io.nats.client.Message;
 import io.nats.client.impl.NatsMessage;
 
@@ -287,10 +290,18 @@ public class ChargingStationManagementSystem {
                 .build();
 
         this.natsClient.publish(requestChannel, natsMessage);
+
+        LocalDateTime ldt = LocalDateTime.now();
+        String logMsg = String.format("%s sent message type %s on subject %s:%n%s",
+                ldt,
+                OCPPMessageType.SetChargingProfileRequest,
+                requestChannel,
+                natsMessage);
+        logger.info(logMsg);
     }
 
     private void addMessageHandlers(IChargingStationServer<Message> chargingStationServerProxyObject) {
-        natsClient.addSubscriber(chargingStationServerProxyObject.getRequestChannel(OCPPMessageType.StatusNotificationRequest),
+        natsClient.addSubscriber(chargingStationServerProxyObject.getEventsChannel() + "." + OCPPMessageType.StatusNotificationRequest,
                 new StatusNotificationRequestHandler());
         natsClient.addSubscriber(chargingStationServerProxyObject.getResponseChannel(OCPPMessageType.SetChargingProfileResponse),
                 new SetChargingProfileResponseHandler());
