@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes;
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.datatypes";
+
+import "google/protobuf/timestamp.proto";
+import "ChargingRateUnitEnumType.proto";
+import "ChargingSchedulePeriodType.proto";
+import "SalesTariffType.proto";
+
+/*
+Charging schedule structure defines a list of charging periods, as used in: GetCompositeSchedule.conf and ChargingProfile.
+ChargingScheduleType is used by: Common:ChargingProfileType , NotifyChargingLimitRequest ,
+NotifyEVChargingScheduleRequest
+ */
+message ChargingScheduleType {
+
+  // Required. Identifies the ChargingSchedule.
+  int32 id = 1;
+
+  // Optional. Starting point of an absolute or recurring schedule.
+  oneof optional_start_schedule {
+    google.protobuf.Timestamp startSchedule = 2;
+  }
+
+  /*
+  Optional. Duration of the charging schedule in seconds. If
+  the duration is left empty, the last period will continue
+  indefinitely or until end of the transaction if
+  chargingProfilePurpose = TxProfile.
+   */
+  oneof optional_duration {
+    int32 duration = 3;
+  }
+
+  // Required. The unit of measure Limit is expressed in.
+  enumerations.ChargingRateUnitEnumType chargingRateUnit = 4;
+
+  /*
+  Optional. Minimum charging rate supported by the EV.
+  The unit of measure is defined by the chargingRateUnit.
+  This parameter is intended to be used by a local smart
+  charging algorithm to optimize the power allocation for in
+  the case a charging process is inefficient at lower
+  charging rates. Accepts at most one digit fraction (e.g.
+  8.1)
+   */
+  oneof optional_minChargingRate {
+    double minChargingRate = 5;
+  }
+
+  /*
+  Required. List of ChargingSchedulePeriod elements
+  defining maximum power or current usage over time. The
+  maximum number of periods, that is supported by the
+  Charging Station, if less than 1024, is set by device model
+  variable SmartChargingCtrlr.PeriodsPerSchedule.
+
+  Cardinality: [1..1024]
+   */
+  repeated ChargingSchedulePeriodType chargingSchedulePeriod = 6;
+
+  // Optional. Sales tariff associated with this charging schedule.
+  oneof optional_salesTariff{
+    SalesTariffType salesTariff = 7;
+  }
+}

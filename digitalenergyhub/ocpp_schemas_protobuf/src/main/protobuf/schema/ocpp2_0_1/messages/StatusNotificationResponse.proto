@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package dk.sdu.mmmi.protobuf.ocpp2_0_1.messages;
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "dk.sdu.mmmi.protobuf.ocpp2_0_1.messages";
+
+/**
+This contains the field definition of StatusNotificationResponse sent by the CSMS to the Charging Station in response
+to a StatusNotificationRequest.
+This message might be removed in a future version of OCPP. It will be replaced by Device Management Monitoring events.
+
+No fields are defined.
+ */
+message StatusNotificationResponse {
+  // Optional. The time for which the status is reported.
+  oneof optional_timestamp {
+    google.protobuf.Timestamp timestamp = 1;
+  }
+}
