@@ -36,6 +36,8 @@
                 <configuration>
                     <sourceDirectory>${basedir}/src/main/resources/ocpp-2.0.1/schemas</sourceDirectory>
                     <targetPackage>dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json</targetPackage>
+                    <generateBuilders>true</generateBuilders>
+                    <useInnerClassBuilders>true</useInnerClassBuilders>
                 </configuration>
                 <executions>
                     <execution>

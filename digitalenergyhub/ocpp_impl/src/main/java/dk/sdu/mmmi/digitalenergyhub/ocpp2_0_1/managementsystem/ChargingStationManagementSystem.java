@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.managementsystem;
 
+import com.google.protobuf.DoubleValue;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.JsonFormat;
