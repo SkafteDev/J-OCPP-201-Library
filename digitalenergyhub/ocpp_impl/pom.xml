@@ -11,6 +11,11 @@
 
     <artifactId>ocpp_impl</artifactId>
 
+    <properties>
+        <jackson.version>2.15.1</jackson.version>
+        <junit.version>5.10.0</junit.version>
+    </properties>
+
     <dependencies>
         <!-- https://mvnrepository.com/artifact/io.nats/jnats -->
         <dependency>
@@ -47,10 +52,26 @@
             <version>0.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- JSON Serialization/Deserialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Other dependencies -->
         <dependency>
             <groupId>dk.sdu.mmmi</groupId>
             <artifactId>decouplink</artifactId>
             <version>0.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Unit test framework -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

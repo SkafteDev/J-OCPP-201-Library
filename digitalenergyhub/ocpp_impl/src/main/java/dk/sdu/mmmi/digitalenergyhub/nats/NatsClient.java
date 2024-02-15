@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-public class NatsClient implements ISubscriber<Message>, IPublisher<Message>, IRequester<Message> {
+public class NatsClient implements ISubscriber<Message>, IPublisher<Message>, IRequester<Message, Connection> {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     private Connection natsConnection;
@@ -107,9 +107,9 @@ public class NatsClient implements ISubscriber<Message>, IPublisher<Message>, IR
     }
 
     @Override
-    public Message request(Message request, Duration timeout) {
+    public Message request(Message request, Duration timeout, Connection conn) {
         try {
-            return natsConnection.request(request, timeout);
+            return conn.request(request, timeout);
         } catch (InterruptedException e) {
             logger.warning(e.getMessage());
             return null;
