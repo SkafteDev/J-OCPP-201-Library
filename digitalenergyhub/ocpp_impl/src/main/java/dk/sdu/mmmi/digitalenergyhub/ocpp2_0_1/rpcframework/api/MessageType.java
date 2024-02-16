@@ -14,4 +14,13 @@ public enum MessageType {
     public int getValue() {
         return value;
     }
+
+    public static MessageType valueOf(int value) {
+        for (MessageType enumValue : values()) {
+            if (enumValue.getValue() == value) {
+                return enumValue;
+            }
+        }
+        throw new IllegalArgumentException("No enum for 'MessageType' with the with value " + value);
+    }
 }

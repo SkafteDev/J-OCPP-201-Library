@@ -1,6 +1,6 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.chargingstation;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.provisioning.IChargingStationProvisioningApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.IChargingStationProvisioningApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;

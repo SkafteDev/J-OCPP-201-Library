@@ -1,6 +1,6 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.provisioning.IChargingStationProvisioningApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.IChargingStationProvisioningApi;
 
 /**
  * This interface represents a Charging Station API in its entirety.

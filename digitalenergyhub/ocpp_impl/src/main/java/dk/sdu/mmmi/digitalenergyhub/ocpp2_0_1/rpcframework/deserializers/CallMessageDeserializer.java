@@ -7,51 +7,35 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-
-import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.MessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
-
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootNotificationRequest;
 
 import java.io.IOException;
 
 public class CallMessageDeserializer<T> extends StdDeserializer<ICallMessage<T>> {
-
-    protected CallMessageDeserializer(Class<?> vc) {
+    public CallMessageDeserializer(Class<?> vc) {
         super(vc);
     }
 
-    public static <T> ICallMessage<T> deserialize(String json, Class<T> payloadType) throws JsonProcessingException {
-        /*
-        try {
-            SimpleModule module = new SimpleModule();
-            module.addDeserializer(payloadType,new CallMessageDeserializer<T>((Class<ICallMessage<T>>) type.getClass()))
-
-
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(module);
-
-            return mapper.writeValueAsString(callMessage);
-        } catch (JsonProcessingException e) {
-            throw e;
-        }
-        */
-
-        return null;
+    public CallMessageDeserializer() {
+        this(null);
     }
 
     @Override
     public ICallMessage<T> deserialize(JsonParser jp, DeserializationContext deserializationContext) throws IOException, JacksonException {
-
         JsonNode node = jp.getCodec().readTree(jp);
 
-        MessageType messageTypeId = MessageType.values()[(Integer) node.get(0).numberValue()];
+        MessageType messageTypeId = MessageType.valueOf((Integer) node.get(0).numberValue());
         String messageId = node.get(1).textValue();
         String action = node.get(2).textValue();
-        String payload = node.get(3).textValue();
+        String payload = node.get(3).toString();
 
-        T payloadObj = new ObjectMapper().readValue(payload, T.class);
+        Class<T> payloadType = (Class<T>) determineClass(action);
+
+        T payloadObj = new ObjectMapper().readValue(payload, payloadType);
 
         ICallMessage<T> result = CallMessageImpl.<T>newBuilder()
                 .withMessageId(messageId)
@@ -60,5 +44,29 @@ public class CallMessageDeserializer<T> extends StdDeserializer<ICallMessage<T>>
                 .build();
 
         return result;
+    }
+
+    /**
+     * Custom logic to determine the concrete payload class based on the action string.
+     */
+    private Class<?> determineClass(String action) {
+        action = action.toLowerCase();
+
+        if (action.equals("bootnotification")) {
+            return BootNotificationRequest.class;
+        } else {
+            throw new IllegalArgumentException("Action not supported.");
+        }
+    }
+
+    public static <T> ICallMessage<T> deserialize(String jsonInput, Class<T> payloadType) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(ICallMessage.class, new CallMessageDeserializer());
+        mapper.registerModule(module);
+
+        ICallMessage<T> callMessage = mapper.readValue(jsonInput, ICallMessage.class);
+
+        return callMessage;
     }
 }

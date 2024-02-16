@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.provisioning.ICSManagementSystemProvisioning;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.ICSManagementSystemProvisioning;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingProfile;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation;
 

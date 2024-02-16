@@ -1,6 +1,6 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.provisioning.ICSManagementSystemProvisioning;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.ICSManagementSystemProvisioning;
 
 /**
  * This interface represents a Charging Station Management System API in its entirety.

@@ -1,13 +1,11 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.managementsystem;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.provisioning.ICSManagementSystemProvisioning;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.ICSManagementSystemProvisioning;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
-import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationResponse;
 import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.impl.NatsMessage;

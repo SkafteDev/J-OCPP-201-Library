@@ -1,9 +1,8 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.provisioning;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
-import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationResponse;
 
 /**
  * This interface is part of the functional block B. Provisioning.
