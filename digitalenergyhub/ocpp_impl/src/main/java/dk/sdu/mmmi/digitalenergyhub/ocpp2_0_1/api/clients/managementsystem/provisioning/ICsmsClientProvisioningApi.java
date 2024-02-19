@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.provisioning;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -10,7 +10,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
  * This interface is intended to be used by a Charging Station Management System to
  * interoperate with a Charging Station through request/response messages.
  */
-public interface IChargingStationProvisioningApi {
+public interface ICsmsClientProvisioningApi {
     ICallResultMessage<GetVariablesResponse> sendGetVariablesRequest(ICallMessage<GetVariablesRequest> req);
 
     ICallResultMessage<SetVariablesResponse> sendSetVariablesRequest(ICallMessage<SetVariablesRequest> req);

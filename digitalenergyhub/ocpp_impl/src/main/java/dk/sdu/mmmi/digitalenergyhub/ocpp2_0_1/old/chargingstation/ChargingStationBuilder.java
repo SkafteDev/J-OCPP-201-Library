@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.ICSManagementSystemProvisioning;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.provisioning.IChargingStationProvisioningClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingProfile;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation;
 
@@ -8,7 +8,7 @@ public class ChargingStationBuilder {
     private final ChargingStationImpl csInstance = new ChargingStationImpl();
     private final ChargingStation chargingStationData = new ChargingStation();
     private ChargingProfile defaultChargingProfile = null;
-    private ICSManagementSystemProvisioning provisioner;
+    private IChargingStationProvisioningClientApi provisioner;
 
     private ChargingStationBuilder() { }
 
@@ -41,7 +41,7 @@ public class ChargingStationBuilder {
         return this;
     }
 
-    public ChargingStationBuilder connectTo(ICSManagementSystemProvisioning provisioner) {
+    public ChargingStationBuilder connectTo(IChargingStationProvisioningClientApi provisioner) {
         this.provisioner = provisioner;
         return this;
     }
@@ -49,7 +49,7 @@ public class ChargingStationBuilder {
     public ChargingStationImpl build() {
         csInstance.addComponent(ChargingStation.class, chargingStationData);
         csInstance.addComponent(ChargingProfile.class, defaultChargingProfile);
-        csInstance.addComponent(ICSManagementSystemProvisioning.class, provisioner);
+        csInstance.addComponent(IChargingStationProvisioningClientApi.class, provisioner);
 
         return csInstance;
     }

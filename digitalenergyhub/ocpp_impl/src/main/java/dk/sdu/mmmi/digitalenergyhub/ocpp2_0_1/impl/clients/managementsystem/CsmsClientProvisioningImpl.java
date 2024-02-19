@@ -1,16 +1,16 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.provisioning.IChargingStationProvisioningApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.provisioning.ICsmsClientProvisioningApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
 
-public class ChargingStationProvisioningImpl implements IChargingStationProvisioningApi {
+public class CsmsClientProvisioningImpl implements ICsmsClientProvisioningApi {
 
     private final Connection natsConnection;
 
-    public ChargingStationProvisioningImpl(Connection natsConnection) {
+    public CsmsClientProvisioningImpl(Connection natsConnection) {
         this.natsConnection = natsConnection;
     }
 
