@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.provisioning.IChargingStationProvisioningClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingProfile;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation;
 
@@ -8,7 +8,7 @@ public class ChargingStationBuilder {
     private final ChargingStationImpl csInstance = new ChargingStationImpl();
     private final ChargingStation chargingStationData = new ChargingStation();
     private ChargingProfile defaultChargingProfile = null;
-    private IChargingStationProvisioningClientApi provisioner;
+    private IChargingStationClientApi api;
 
     private ChargingStationBuilder() { }
 
@@ -41,15 +41,15 @@ public class ChargingStationBuilder {
         return this;
     }
 
-    public ChargingStationBuilder connectTo(IChargingStationProvisioningClientApi provisioner) {
-        this.provisioner = provisioner;
+    public ChargingStationBuilder connectTo(IChargingStationClientApi api) {
+        this.api = api;
         return this;
     }
 
     public ChargingStationImpl build() {
         csInstance.addComponent(ChargingStation.class, chargingStationData);
         csInstance.addComponent(ChargingProfile.class, defaultChargingProfile);
-        csInstance.addComponent(IChargingStationProvisioningClientApi.class, provisioner);
+        csInstance.addComponent(IChargingStationClientApi.class, api);
 
         return csInstance;
     }
