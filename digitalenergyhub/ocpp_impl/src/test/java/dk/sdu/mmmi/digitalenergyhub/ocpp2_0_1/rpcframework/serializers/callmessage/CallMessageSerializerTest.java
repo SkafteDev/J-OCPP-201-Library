@@ -1,8 +1,9 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.callmessage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootNotificationRequest;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootReasonEnum;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation;

@@ -13,6 +13,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessag
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.MessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessageImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.RFC3339DateFormat;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootNotificationRequest;
 
 import java.io.IOException;
@@ -34,9 +35,9 @@ public class CallResultMessageDeserializer<T> extends StdDeserializer<ICallResul
         String messageId = node.get(1).textValue();
         String payload = node.get(2).toString();
 
-        Class<T> payloadType = (Class<T>) String.class;
+        Class<T> payloadType = (Class<T>) _valueClass;
 
-        T payloadObj = (T) payload;
+        T payloadObj = new ObjectMapper().readValue(payload, payloadType);
 
         ICallResultMessage<T> result = CallResultMessageImpl.<T>newBuilder()
                 .withMessageId(messageId)
@@ -50,8 +51,9 @@ public class CallResultMessageDeserializer<T> extends StdDeserializer<ICallResul
     public static <T> ICallResultMessage<T> deserialize(String jsonInput, Class<T> payloadType) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(ICallResultMessage.class, new CallResultMessageDeserializer());
+        module.addDeserializer(ICallResultMessage.class, new CallResultMessageDeserializer<T>(payloadType));
         mapper.registerModule(module);
+        mapper.setDateFormat(RFC3339DateFormat.getDateFormat());
 
         ICallResultMessage<T> callResultMessage = mapper.readValue(jsonInput, ICallResultMessage.class);
 

@@ -10,6 +10,10 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 
 import java.io.IOException;
 
+/**
+ * NB! Only works for complex data types. Does not work for primitives like String, Integer, etc.
+ * @param <T>
+ */
 public class CallMessageSerializer<T> extends StdSerializer<ICallMessage<T>> {
 
 
@@ -31,6 +35,13 @@ public class CallMessageSerializer<T> extends StdSerializer<ICallMessage<T>> {
         jsonGenerator.writeEndArray();
     }
 
+    /**
+     * NB! Only works for complex data types. Does not work for primitives like String, Integer, etc.
+     * @param callMessage
+     * @return
+     * @param <T>
+     * @throws JsonProcessingException
+     */
     public static <T> String serialize(ICallMessage<T> callMessage) throws JsonProcessingException {
         try {
             SimpleModule module = new SimpleModule();
@@ -38,6 +49,7 @@ public class CallMessageSerializer<T> extends StdSerializer<ICallMessage<T>> {
 
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(module);
+            mapper.setDateFormat(RFC3339DateFormat.getDateFormat());
 
             return mapper.writeValueAsString(callMessage);
         } catch (JsonProcessingException e) {

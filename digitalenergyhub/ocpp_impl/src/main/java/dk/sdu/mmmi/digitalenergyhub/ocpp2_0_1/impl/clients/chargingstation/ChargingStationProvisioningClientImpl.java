@@ -2,7 +2,8 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.provisioning.IChargingStationProvisioningClientApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.MessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
@@ -14,7 +15,6 @@ import io.nats.client.impl.NatsMessage;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -27,17 +27,17 @@ public class ChargingStationProvisioningClientImpl implements IChargingStationPr
     private final Connection natsConnection;
     private final Duration defaultTimeout = Duration.ofSeconds(30);
 
-    private final MessageRoutingMap messageRoutingMap;
+    private final IMessageRoutingMap messageRoutingMap;
 
-    public ChargingStationProvisioningClientImpl(Connection natsConnection, MessageRoutingMap routingMap) {
+    public ChargingStationProvisioningClientImpl(Connection natsConnection, IMessageRoutingMap routingMap) {
         this.natsConnection = natsConnection;
         this.messageRoutingMap = routingMap;
     }
 
     @Override
     public ICallResultMessage<BootNotificationResponse> sendBootNotificationRequest(ICallMessage<BootNotificationRequest> req) {
-        String subject = messageRoutingMap.getRoute(MessageRoutingMap.OCPPMessageType.BootNotificationRequest);
-        String replyTo = messageRoutingMap.getRoute(MessageRoutingMap.OCPPMessageType.BootNotificationResponse);
+        String subject = messageRoutingMap.getRoute(IMessageRoutingMap.OCPPMessageType.BootNotificationRequest);
+        String replyTo = messageRoutingMap.getRoute(IMessageRoutingMap.OCPPMessageType.BootNotificationResponse);
 
         String jsonPayload = null;
 
@@ -62,24 +62,25 @@ public class ChargingStationProvisioningClientImpl implements IChargingStationPr
             // TODO: Handle the deserialization of the CallResult
             String rawData = new String (message.getData(), StandardCharsets.UTF_8);
 
-            ICallResultMessage<String> ocppResult = CallResultMessageDeserializer.deserialize(rawData, String.class);
+            ICallResultMessage<BootNotificationResponse> callResult = CallResultMessageDeserializer.deserialize(rawData,
+                    BootNotificationResponse.class);
+
+            return callResult;
         } catch (InterruptedException | ExecutionException e) {
             // TODO: Handle if the CompletableFuture is interrupted or fails.
             logger.severe(e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage(), e.getCause());
         } catch (JsonProcessingException e) {
             // TODO: Handle if the deserialization fails for CallResult, try and deserialize to CallError
             logger.severe(e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage(), e.getCause());
         } catch (CancellationException e) {
             // TODO: Handle if the CompletableFuture got cancelled. This can happen if there are no subscribers to
             //  handle the request.
             logger.severe("The request got cancelled. This exception may happen if there are no subscribers to handle" +
                     " the request.");
-            return null;
+            throw new RuntimeException(e.getMessage(), e.getCause());
         }
-
-        return null;
     }
 
     @Override
@@ -98,7 +99,7 @@ public class ChargingStationProvisioningClientImpl implements IChargingStationPr
     }
 
     @Override
-    public MessageRoutingMap getMessageRoutingMap() {
+    public MessageRoutingMapImpl getMessageRoutingMap() {
         return null;
     }
 }

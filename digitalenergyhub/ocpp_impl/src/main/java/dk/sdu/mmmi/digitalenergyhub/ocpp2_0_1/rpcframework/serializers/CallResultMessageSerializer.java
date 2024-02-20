@@ -10,6 +10,10 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessag
 
 import java.io.IOException;
 
+/**
+ * NB! Only works for complex data types. Does not work for primitives like String, Integer, etc.
+ * @param <T>
+ */
 public class CallResultMessageSerializer<T> extends StdSerializer<ICallResultMessage<T>> {
 
 
@@ -25,12 +29,18 @@ public class CallResultMessageSerializer<T> extends StdSerializer<ICallResultMes
 
         jsonGenerator.writeNumber(callResultMessage.getMessageTypeId().getValue());
         jsonGenerator.writeString(callResultMessage.getMessageId());
-        jsonGenerator.writeRaw(",");
-        jsonGenerator.writeRaw(callResultMessage.getPayload().toString());
+        jsonGenerator.writeObject(callResultMessage.getPayload());
 
         jsonGenerator.writeEndArray();
     }
 
+    /**
+     * NB! Only works for complex data types. Does not work for primitives like String, Integer, etc.
+     * @param callResult
+     * @return
+     * @param <T>
+     * @throws JsonProcessingException
+     */
     public static <T> String serialize(ICallResultMessage<T> callResult) throws JsonProcessingException {
         try {
             SimpleModule module = new SimpleModule();
@@ -38,6 +48,7 @@ public class CallResultMessageSerializer<T> extends StdSerializer<ICallResultMes
 
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(module);
+            mapper.setDateFormat(RFC3339DateFormat.getDateFormat());
 
             return mapper.writeValueAsString(callResult);
         } catch (JsonProcessingException e) {

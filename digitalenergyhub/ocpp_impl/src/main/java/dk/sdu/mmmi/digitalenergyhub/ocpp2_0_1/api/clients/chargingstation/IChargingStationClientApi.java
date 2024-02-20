@@ -1,6 +1,7 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.provisioning;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.MessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.provisioning.IChargingStationProvisioningClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
 
 /**
  * This interface defines the Charging Station Client API.
@@ -24,5 +25,5 @@ public interface IChargingStationClientApi {
      */
     IChargingStationProvisioningClientApi getProvisioningAPI();
 
-    MessageRoutingMap getMessageRoutingMap();
+    MessageRoutingMapImpl getMessageRoutingMap();
 }
