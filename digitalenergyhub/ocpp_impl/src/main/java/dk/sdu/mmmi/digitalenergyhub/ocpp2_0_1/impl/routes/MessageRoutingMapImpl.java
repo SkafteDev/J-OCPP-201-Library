@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes;
 
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
 
 import java.util.HashMap;

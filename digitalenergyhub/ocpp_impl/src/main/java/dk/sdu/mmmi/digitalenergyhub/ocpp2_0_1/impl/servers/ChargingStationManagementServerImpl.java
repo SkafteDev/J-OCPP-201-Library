@@ -1,6 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
@@ -98,6 +99,6 @@ public class ChargingStationManagementServerImpl {
                 throw new RuntimeException(e);
             }
         });
-        dispatcher.subscribe(routingMap.getRoute(IMessageRoutingMap.OCPPMessageType.BootNotificationRequest));
+        dispatcher.subscribe(routingMap.getRoute(OCPPMessageType.BootNotificationRequest));
     }
 }

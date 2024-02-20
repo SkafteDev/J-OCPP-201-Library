@@ -1,6 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
@@ -41,8 +42,8 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
 
     @Override
     public ICallResultMessage<BootNotificationResponse> sendBootNotificationRequest(ICallMessage<BootNotificationRequest> req) {
-        String subject = messageRoutingMap.getRoute(IMessageRoutingMap.OCPPMessageType.BootNotificationRequest);
-        String replyTo = messageRoutingMap.getRoute(IMessageRoutingMap.OCPPMessageType.BootNotificationResponse);
+        String subject = messageRoutingMap.getRoute(OCPPMessageType.BootNotificationRequest);
+        String replyTo = messageRoutingMap.getRoute(OCPPMessageType.BootNotificationResponse);
 
         String jsonPayloadRequest = null;
 
