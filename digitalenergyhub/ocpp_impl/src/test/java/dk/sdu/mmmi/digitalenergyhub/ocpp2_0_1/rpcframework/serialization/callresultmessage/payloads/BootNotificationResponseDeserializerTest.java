@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.callresultmessages;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serialization.callresultmessage.payloads;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CallResultMessageDeserializerTest {
+public class BootNotificationResponseDeserializerTest {
 
     @Test
     void unit_deserialize_CallResultMessage_of_type_BootNotificationResponse() {

@@ -1,5 +1,6 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.dateformatters;
 
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.RFC3339DateFormat;
 import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;

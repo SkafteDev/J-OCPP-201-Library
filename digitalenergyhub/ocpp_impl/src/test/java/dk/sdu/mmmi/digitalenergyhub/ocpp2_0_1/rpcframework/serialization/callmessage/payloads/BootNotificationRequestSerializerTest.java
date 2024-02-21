@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.callmessage;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serialization.callmessage.payloads;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CallMessageSerializerTest {
+class BootNotificationRequestSerializerTest {
     @Test
     void unit_serialize_CallMessage_of_type_BootNotificationRequest() {
         BootNotificationRequest bootNotificationRequest = new BootNotificationRequest.BootNotificationRequestBuilder()
