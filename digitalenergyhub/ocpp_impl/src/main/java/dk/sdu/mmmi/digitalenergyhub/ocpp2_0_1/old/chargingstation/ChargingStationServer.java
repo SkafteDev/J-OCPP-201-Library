@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
-import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.IMessageHandler;
+import dk.sdu.mmmi.digitalenergyhub.old.nats.NatsClient;
 import io.nats.client.Message;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.messagetypes.OCPPMessageToSubjectMapping.OCPPMessageType;
 

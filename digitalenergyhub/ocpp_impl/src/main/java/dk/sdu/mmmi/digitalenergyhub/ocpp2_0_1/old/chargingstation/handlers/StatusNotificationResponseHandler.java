@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation.handlers;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.IMessageHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.messagetypes.OCPPMessageToSubjectMapping;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationResponse;
 import io.nats.client.Message;

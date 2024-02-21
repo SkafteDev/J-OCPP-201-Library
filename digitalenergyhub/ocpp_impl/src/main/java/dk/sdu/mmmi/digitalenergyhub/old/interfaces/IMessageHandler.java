@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.interfaces;
+package dk.sdu.mmmi.digitalenergyhub.old.interfaces;
 
 public interface IMessageHandler<T> {
 

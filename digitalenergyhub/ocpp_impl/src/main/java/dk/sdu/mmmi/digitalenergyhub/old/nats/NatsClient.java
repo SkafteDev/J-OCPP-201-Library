@@ -1,9 +1,9 @@
-package dk.sdu.mmmi.digitalenergyhub.nats;
+package dk.sdu.mmmi.digitalenergyhub.old.nats;
 
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IRequester;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.ISubscriber;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.IRequester;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.ISubscriber;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.IPublisher;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.IMessageHandler;
 import io.nats.client.*;
 import io.nats.client.impl.NatsMessage;
 

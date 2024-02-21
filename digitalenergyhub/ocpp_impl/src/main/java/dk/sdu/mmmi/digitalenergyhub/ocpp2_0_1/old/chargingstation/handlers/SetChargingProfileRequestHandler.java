@@ -2,7 +2,7 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation.handlers;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IMessageHandler;
+import dk.sdu.mmmi.digitalenergyhub.old.interfaces.IMessageHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.messagetypes.OCPPMessageToSubjectMapping;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.old.chargingstation.IChargingStationServer;
 import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ChargingProfileStatusEnumType;
