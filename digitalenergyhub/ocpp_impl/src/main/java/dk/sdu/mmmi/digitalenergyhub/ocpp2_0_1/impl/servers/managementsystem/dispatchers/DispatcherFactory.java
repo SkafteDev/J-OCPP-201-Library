@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatchers;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.dispatchers;
 
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;

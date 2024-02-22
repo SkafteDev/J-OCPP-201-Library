@@ -211,7 +211,7 @@ public class MessageRoutingMapImpl implements IMessageRoutingMap {
                 .replace(CSMS_ID_TOKEN, csmsId)
                 .replace(CS_ID_TOKEN, csId);
 
-        return route.toLowerCase();
+        return route.toLowerCase().replace(" ", "");
     }
 
     public String getRoute(OCPPMessageType msgType) {
