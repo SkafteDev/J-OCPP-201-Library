@@ -21,14 +21,17 @@ public class ChargingStationFacade {
     private final IChargingStationClientApi csApi;
     private final IChargingStationServer csServer;
     private final ChargingStationDeviceModel csDeviceModel;
+    private final Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationFacade.class.getName());
 
     public ChargingStationFacade(IChargingStationClientApi clientApi,
                                  IChargingStationServer server,
+                                 Connection natsConnection,
                                  ChargingStationDeviceModel csDeviceModel) {
         this.csApi = clientApi;
         this.csServer = server;
+        this.natsConnection = natsConnection;
         this.csDeviceModel = csDeviceModel;
     }
 
@@ -39,6 +42,10 @@ public class ChargingStationFacade {
 
     public ChargingStationDeviceModel getCsDeviceModel() {
         return csDeviceModel;
+    }
+
+    public Connection getNatsConnection() {
+        return natsConnection;
     }
 
     public IChargingStationClientApi getChargingStationApi() {
@@ -130,7 +137,7 @@ public class ChargingStationFacade {
                 IMessageRoutingMap routingMap = new MessageRoutingMapImpl(operatorId, csmsId, csId);
                 IChargingStationClientApi clientApi = new ChargingStationClientNatsIo(natsClientConnection, routingMap);
 
-                return new ChargingStationFacade(clientApi, server, csDeviceModel);
+                return new ChargingStationFacade(clientApi, server, natsClientConnection, csDeviceModel);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
