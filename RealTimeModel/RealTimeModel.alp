@@ -16,15 +16,10 @@
 		<ActiveObjectClass>
 			<Id>1706878516678</Id>
 			<Name><![CDATA[Main]]></Name>
-			<Import><![CDATA[import java.time.Instant;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessage;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessageOrBuilder;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.Meta;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.MetaOrBuilder;
-import io.nats.client.Message;
-import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
-import io.nats.client.impl.NatsMessage;]]></Import>
+			<Import><![CDATA[import io.nats.client.Message;
+import io.nats.client.impl.NatsMessage;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;]]></Import>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1706878516684</Id>
@@ -133,23 +128,8 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1706893214839</Id>
-					<Name><![CDATA[natsClient]]></Name>
-					<X>150</X><Y>680</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[NatsClient]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA[new NatsClient("nats://localhost:4222");]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
 					<Id>1706893844994</Id>
-					<Name><![CDATA[natsSubject]]></Name>
+					<Name><![CDATA[natsAnylogicSubject]]></Name>
 					<X>150</X><Y>710</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -163,32 +143,36 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1706893923961</Id>
-					<Name><![CDATA[natsPublisher]]></Name>
+					<Id>1708679000011</Id>
+					<Name><![CDATA[natsConnection]]></Name>
+					<X>150</X><Y>680</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[io.nats.client.Connection]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[NatsUtils.createConnection(natsOptions)
+]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708679099478</Id>
+					<Name><![CDATA[natsOptions]]></Name>
 					<X>150</X><Y>740</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[IPublisher<Message>]]></Type>        
+						<Type><![CDATA[io.nats.client.Options]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA[new NatsClient("nats://localhost:4222");]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1706894225943</Id>
-					<Name><![CDATA[natsSenderId]]></Name>
-					<X>150</X><Y>770</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA["AnyLogic simulation model"]]></Code>
+							<Code><![CDATA[io.nats.client.Options.builder()
+    .server("nats://localhost:4222")
+    .connectionTimeout(Duration.ofMinutes(2))
+    .build();]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -224,20 +208,20 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 						<Condition><![CDATA[false]]></Condition>
 					</Properties>
 					<Action><![CDATA[var m = date().toInstant().getNano();
-var s = Instant.now().getNano();
+var s = java.time.Instant.now().getNano();
 var diff = (m-s)/10e9;
 
 dataset.add(time(SECOND), diff);
 plot.refresh();
 
-String payload = String.format("{ diff: %s}", diff);
-JSONMessage protoPayload = NatsUtil.createJSONMessage(natsSenderId, payload);
+String jsonPayload = String.format("{ anylogic_discrepancy: %s}", diff);
 Message natsMessage = NatsMessage.builder()
-        .data(protoPayload.toByteArray())
-        .subject(natsSubject)
+        .data(jsonPayload, StandardCharsets.UTF_8)
+        .subject(natsAnylogicSubject)
         .build();
-natsPublisher.publish(natsSubject, natsMessage);
-//traceln(String.format("Published: %s", protoPayload));
+        
+
+natsConnection.publish(natsMessage);
 
 ]]></Action>
 				</Event>
@@ -341,10 +325,34 @@ natsPublisher.publish(natsSubject, natsMessage);
 					</GenericParameterSubstitute>
 					<Parameters>
 						<Parameter>
-							<Name><![CDATA[chargingStationID]]></Name>
+							<Name><![CDATA[chargingStationId]]></Name>
 							<Value Class="CodeValue">
 								<Code><![CDATA["CLEVER_ODENSE_M_DRAEJEBAENKEN_1"]]></Code>
 							</Value>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[operatorId]]></Name>
+							<Value Class="CodeValue">
+								<Code><![CDATA["Clever";]]></Code>
+							</Value>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[csmsId]]></Name>
+							<Value Class="CodeValue">
+								<Code><![CDATA["Clever Central CSMS";]]></Code>
+							</Value>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[csVendorName]]></Name>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[csSerialNumber]]></Name>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[csModel]]></Name>
+						</Parameter>
+						<Parameter>
+							<Name><![CDATA[csFirmwareVersion]]></Name>
 						</Parameter>
 					</Parameters>
 					<ReplicationFlag>false</ReplicationFlag>
@@ -560,20 +568,30 @@ natsPublisher.publish(natsSubject, natsMessage);
 		<ActiveObjectClass>
 			<Id>1707303257789</Id>
 			<Name><![CDATA[ChargingStation]]></Name>
-			<Import><![CDATA[import java.time.LocalDateTime;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.IChargingStationServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.ChargingStationServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.handlers.SetChargingProfileRequestHandler;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.chargingstation.handlers.StatusNotificationResponseHandler;
-import io.nats.client.Message;
+			<Import><![CDATA[import io.nats.client.Message;
 import io.nats.client.impl.NatsMessage;
-import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.messagetypes.OCPPMessageToSubjectMapping.OCPPMessageType;
-import dk.sdu.mmmi.protobuf.ocpp2_0_1.messages.StatusNotificationRequest;
-import com.google.protobuf.Timestamp;
-import dk.sdu.mmmi.protobuf.ocpp2_0_1.enumerations.ConnectorStatusEnumType;]]></Import>
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.*;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
+import io.nats.client.Options;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationClientNatsIo;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootNotificationRequest;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootReasonEnum;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.BootNotificationResponse;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.StatusNotificationRequest;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ConnectorStatusEnum;]]></Import>
 			<StartupCode><![CDATA[initDefaultChargingProfile();
-initChargingStationMessageHandlers();]]></StartupCode>
+boot();]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1707303257795</Id>
@@ -675,15 +693,12 @@ initChargingStationMessageHandlers();]]></StartupCode>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[IChargingStationServer<Message>]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA[new ChargingStationServer(operatorId, csmsId, chargingStationId, natsConnectionString);]]></Code>
-						</InitialValue>
+						<Type><![CDATA[IChargingStationServer]]></Type>        
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1707472050416</Id>
-					<Name><![CDATA[operatorId]]></Name>
+					<Id>1707472123277</Id>
+					<Name><![CDATA[natsConnectionUrl]]></Name>
 					<X>40</X><Y>660</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -692,52 +707,7 @@ initChargingStationMessageHandlers();]]></StartupCode>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
 						<Type><![CDATA[String]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA["clever"]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1707472089116</Id>
-					<Name><![CDATA[csmsId]]></Name>
-					<X>40</X><Y>690</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA["clevercentralcsms"]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1707472123277</Id>
-					<Name><![CDATA[natsConnectionString]]></Name>
-					<X>40</X><Y>750</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String]]></Type>        
-						<InitialValue Class="CodeValue">
 							<Code><![CDATA["nats://localhost:4222"]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1707472313004</Id>
-					<Name><![CDATA[chargingStationId]]></Name>
-					<X>40</X><Y>720</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA["denmark_odense_m_draejebaenken_sta1"]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -756,9 +726,87 @@ initChargingStationMessageHandlers();]]></StartupCode>
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708677868883</Id>
+					<Name><![CDATA[natsConnection]]></Name>
+					<X>40</X><Y>690</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[io.nats.client.Connection]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708677897206</Id>
+					<Name><![CDATA[natsConnectionOptions]]></Name>
+					<X>40</X><Y>720</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[io.nats.client.Options]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708678093622</Id>
+					<Name><![CDATA[csDeviceModel]]></Name>
+					<X>280</X><Y>630</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[null]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708678239694</Id>
+					<Name><![CDATA[csMetaData]]></Name>
+					<X>280</X><Y>660</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[null]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708681402263</Id>
+					<Name><![CDATA[chargingStationClientApi]]></Name>
+					<X>40</X><Y>790</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[IChargingStationClientApi]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1708681471317</Id>
+					<Name><![CDATA[routingMap]]></Name>
+					<X>40</X><Y>820</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[IMessageRoutingMap]]></Type>        
+					</Properties>
+				</Variable>
 				<Variable Class="Parameter">
 					<Id>1707321528361</Id>
-					<Name><![CDATA[chargingStationID]]></Name>
+					<Name><![CDATA[chargingStationId]]></Name>
 					<X>50</X><Y>20</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -773,6 +821,150 @@ initChargingStationMessageHandlers();]]></StartupCode>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1707321528359</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1708677607047</Id>
+					<Name><![CDATA[operatorId]]></Name>
+					<X>50</X><Y>50</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[String]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[null]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1708677607045</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1708677661755</Id>
+					<Name><![CDATA[csmsId]]></Name>
+					<X>50</X><Y>80</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[String]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[null]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1708677661753</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1708678453478</Id>
+					<Name><![CDATA[csVendorName]]></Name>
+					<X>320</X><Y>20</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[String]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA["ABB"]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1708678453476</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1708678509757</Id>
+					<Name><![CDATA[csSerialNumber]]></Name>
+					<X>320</X><Y>50</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[String]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[java.util.UUID.randomUUID().toString()]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1708678509755</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1708678576815</Id>
+					<Name><![CDATA[csModel]]></Name>
+					<X>320</X><Y>80</Y>
+					<Label><X>15</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[String]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA["ABB TAC-W11-G5-R-0"]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1708678576813</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1708678612739</Id>
+					<Name><![CDATA[csFirmwareVersion]]></Name>
+					<X>320</X><Y>114</Y>
+					<Label><X>15</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[String]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA["3.1.3"]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1708678612737</Id>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
@@ -812,7 +1004,7 @@ Example:
 2024-02-07T21:00=101.0
 2024-02-07T22:00=64.0
 2024-02-07T23:00=105.0]]></Description>
-					<X>50</X><Y>50</Y>
+					<X>-210</X><Y>100</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -838,7 +1030,7 @@ Example:
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="150" Height="70">
-						<EntryAction><![CDATA[Logger.log(date(), chargingStationID, statechart.getState().toString());]]></EntryAction>
+						<EntryAction><![CDATA[Logger.log(date(), chargingStationId, statechart.getState().toString());]]></EntryAction>
 						<FillColor>-16711936</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -863,7 +1055,7 @@ Example:
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="200" Height="30">
-						<EntryAction><![CDATA[Logger.log(date(), chargingStationID, statechart.getState().toString());]]></EntryAction>
+						<EntryAction><![CDATA[Logger.log(date(), chargingStationId, statechart.getState().toString());]]></EntryAction>
 						<FillColor/>
 					</Properties>
 				</StatechartElement>
@@ -898,27 +1090,23 @@ Example:
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1707303298674" Target="1707309548981" Trigger="message">
-						<Action><![CDATA[Logger.log(date(), chargingStationID, "Cable plugged in.");
+						<Action><![CDATA[Logger.log(date(), chargingStationId, "Cable plugged in.");
 
 
-StatusNotificationRequest payload = StatusNotificationRequest.newBuilder()
-.setConnectorId(1)
-.setEvseId(1)
-.setTimestamp(Timestamp.newBuilder()
-.setSeconds(date().toInstant().getEpochSecond())
-.build())
-.setConnectorStatus(ConnectorStatusEnumType.Occupied)
-.build();
-
-String eventChannel = chargingStationServer.getEventsChannel(OCPPMessageType.StatusNotificationRequest);
-
-Message natsMessage = NatsMessage.builder()
-                .subject(eventChannel)
-                .data(payload.toByteArray())
+StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest.StatusNotificationRequestBuilder()
+                .withEvseId(0)
+                .withConnectorId(0)
+                .withTimestamp(DateUtil.now())
+                .withConnectorStatus(ConnectorStatusEnum.OCCUPIED)
                 .build();
 
-chargingStationServer.emitMessage(OCPPMessageType.StatusNotificationRequest, natsMessage);
-]]></Action>
+        ICallMessage<StatusNotificationRequest> callMessage = CallMessageImpl.<StatusNotificationRequest>newBuilder()
+                .withMessageId(java.util.UUID.randomUUID().toString())
+                .asAction(OCPPMessageType.StatusNotificationRequest.getValue())
+                .withPayLoad(statusNotificationRequest)
+                .build();
+                
+chargingStationClientApi.sendStatusNotificationRequest(callMessage);]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
@@ -967,27 +1155,23 @@ chargingStationServer.emitMessage(OCPPMessageType.StatusNotificationRequest, nat
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1707309548981" Target="1707303298674" Trigger="timeout">
-						<Action><![CDATA[Logger.log(date(), chargingStationID, "Cable plugged out.");
+						<Action><![CDATA[Logger.log(date(), chargingStationId, "Cable plugged out.");
 
 
-StatusNotificationRequest payload = StatusNotificationRequest.newBuilder()
-.setConnectorId(1)
-.setEvseId(1)
-.setTimestamp(Timestamp.newBuilder()
-.setSeconds(date().toInstant().getEpochSecond())
-.build())
-.setConnectorStatus(ConnectorStatusEnumType.Available)
-.build();
-
-String eventChannel = chargingStationServer.getEventsChannel(OCPPMessageType.StatusNotificationRequest);
-
-Message natsMessage = NatsMessage.builder()
-                .subject(eventChannel)
-                .data(payload.toByteArray())
+StatusNotificationRequest statusNotificationRequest = new StatusNotificationRequest.StatusNotificationRequestBuilder()
+                .withEvseId(0)
+                .withConnectorId(0)
+                .withTimestamp(DateUtil.now())
+                .withConnectorStatus(ConnectorStatusEnum.AVAILABLE)
                 .build();
 
-chargingStationServer.emitMessage(OCPPMessageType.StatusNotificationRequest, natsMessage);
-]]></Action>
+        ICallMessage<StatusNotificationRequest> callMessage = CallMessageImpl.<StatusNotificationRequest>newBuilder()
+                .withMessageId(java.util.UUID.randomUUID().toString())
+                .asAction(OCPPMessageType.StatusNotificationRequest.getValue())
+                .withPayLoad(statusNotificationRequest)
+                .build();
+                
+chargingStationClientApi.sendStatusNotificationRequest(callMessage);]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[10]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -1022,7 +1206,7 @@ chargingStationServer.emitMessage(OCPPMessageType.StatusNotificationRequest, nat
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1707310356625" Target="1707310356625" Trigger="message">
-						<Action><![CDATA[Logger.log(date(), chargingStationID, "Updated charging profile.");]]></Action>
+						<Action><![CDATA[Logger.log(date(), chargingStationId, "Updated charging profile.");]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
@@ -1089,7 +1273,7 @@ if (statechart.getState() == statechart_state.charging) {
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1707319982344</Id>
 					<Name><![CDATA[initDefaultChargingProfile]]></Name>
-					<X>50</X><Y>80</Y>
+					<X>-210</X><Y>133.793</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1114,14 +1298,59 @@ for (int hour = 0; hour < 24; hour++) {
 					<ReturnModificator>VOID</ReturnModificator>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1707472949302</Id>
-					<Name><![CDATA[initChargingStationMessageHandlers]]></Name>
-					<X>50</X><Y>120</Y>
+					<Name><![CDATA[boot]]></Name>
+					<X>-210</X><Y>160</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
-					<Body><![CDATA[chargingStationServer.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(chargingStationServer));]]></Body>
+					<Body><![CDATA[// Initialize variabels:
+csMetaData = dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation.builder()
+                            .withVendorName(csVendorName)
+                            .withModel(csModel)
+                            .withFirmwareVersion(csFirmwareVersion)
+                            .withSerialNumber(csSerialNumber)
+                            .build();
+csDeviceModel = new dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel(chargingStationId, operatorId, csmsId, csMetaData);
+
+natsConnectionOptions = Options.builder()
+	.server(natsConnectionUrl)
+	.connectionName(String.format("Charging Station Server operatorId=%s csmsId=%s csId=%s",
+	        operatorId, csmsId, chargingStationId))
+	.connectionTimeout(Duration.ofMinutes(2))
+	.build();
+
+natsConnection = NatsUtils.createConnection(natsConnectionOptions);
+
+chargingStationServer = new ChargingStationServerImpl(csDeviceModel, natsConnection);
+
+routingMap = new MessageRoutingMapImpl(operatorId, csmsId, chargingStationId);
+
+chargingStationClientApi = new ChargingStationClientNatsIo(natsConnection, routingMap);
+
+
+
+
+// Send BootNotificationRequest.
+BootNotificationRequest bootNotificationRequest = new BootNotificationRequest.BootNotificationRequestBuilder()
+                .withReason(BootReasonEnum.POWER_UP)
+                .withChargingStation(
+                        new dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation.ChargingStationBuilder()
+                                .withModel(csModel)
+                                .withVendorName(csVendorName)
+                                .build())
+                .build();
+
+        ICallMessage<BootNotificationRequest> callMessage = CallMessageImpl.<BootNotificationRequest>newBuilder()
+                .withMessageId(java.util.UUID.randomUUID().toString())
+                .asAction(OCPPMessageType.BootNotificationRequest.getValue())
+                .withPayLoad(bootNotificationRequest)
+                .build();
+
+ICallResultMessage<BootNotificationResponse> bootNotificationResponse =
+        chargingStationClientApi.sendBootNotificationRequest(callMessage);
+
+]]></Body>
 				</Function>
 			</Functions>
 			<AgentLinks>
@@ -1213,14 +1442,10 @@ for (int hour = 0; hour < 24; hour++) {
 		<ActiveObjectClass>
 			<Id>1707751658904</Id>
 			<Name><![CDATA[Transformer]]></Name>
-			<Import><![CDATA[import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessage;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessageOrBuilder;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.Meta;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.MetaOrBuilder;
-import io.nats.client.Message;
-import dk.sdu.mmmi.digitalenergyhub.nats.NatsClient;
-import dk.sdu.mmmi.digitalenergyhub.interfaces.IPublisher;
-import io.nats.client.impl.NatsMessage;]]></Import>
+			<Import><![CDATA[import io.nats.client.Message;
+import io.nats.client.impl.NatsMessage;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;]]></Import>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1707751658910</Id>
@@ -1344,24 +1569,9 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1707755519179</Id>
-					<Name><![CDATA[natsConnectionString]]></Name>
-					<X>520</X><Y>440</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA["nats://localhost:4222"]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
 					<Id>1707755539813</Id>
 					<Name><![CDATA[natsSubject]]></Name>
-					<X>520</X><Y>470</Y>
+					<X>260</X><Y>430</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1374,32 +1584,36 @@ import io.nats.client.impl.NatsMessage;]]></Import>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1707755539815</Id>
-					<Name><![CDATA[natsPublisher]]></Name>
-					<X>520</X><Y>500</Y>
+					<Id>1708682146340</Id>
+					<Name><![CDATA[natsConnection]]></Name>
+					<X>260</X><Y>400</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[IPublisher<Message>]]></Type>        
+						<Type><![CDATA[io.nats.client.Connection]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA[new NatsClient("nats://localhost:4222");]]></Code>
+							<Code><![CDATA[NatsUtils.createConnection(natsOptions)
+]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1707755539817</Id>
-					<Name><![CDATA[natsSenderId]]></Name>
-					<X>520</X><Y>530</Y>
+					<Id>1708682146342</Id>
+					<Name><![CDATA[natsOptions]]></Name>
+					<X>260</X><Y>460</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[String]]></Type>        
+						<Type><![CDATA[io.nats.client.Options]]></Type>        
 						<InitialValue Class="CodeValue">
-							<Code><![CDATA["AnyLogic simulation model"]]></Code>
+							<Code><![CDATA[io.nats.client.Options.builder()
+    .server("nats://localhost:4222")
+    .connectionTimeout(Duration.ofMinutes(2))
+    .build();]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -1440,13 +1654,14 @@ String msg = String.format("%s Transformer accumulated kWh: %f",
                 modelTime,
                 getAccumulatedKWh());
                 
-String payload = String.format("{ accumulated_kWh: %s}", getAccumulatedKWh());
-JSONMessage protoPayload = NatsUtil.createJSONMessage(natsSenderId, payload);
+String jsonPayload = String.format("{ accumulated_kWh: %s}", getAccumulatedKWh());
 Message natsMessage = NatsMessage.builder()
-        .data(protoPayload.toByteArray())
+        .data(jsonPayload, StandardCharsets.UTF_8)
         .subject(natsSubject)
         .build();
-natsPublisher.publish(natsSubject, natsMessage);
+        
+
+natsConnection.publish(natsMessage);
 
 traceln(msg);]]></Action>
 				</Event>
@@ -1664,60 +1879,6 @@ try {
 	<JavaClasses>
 		<!--   =========   Java Class   ========  -->
 		<JavaClass>
-			<Id>1706893569868</Id>
-			<Name><![CDATA[NatsUtil]]></Name>
-			<Text><![CDATA[import com.google.protobuf.Timestamp;
-import java.util.UUID;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessage;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.JSONMessageOrBuilder;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.Meta;
-import dk.sdu.mmmi.digitalenergyhub.protobuff.MetaOrBuilder;
-
-import static com.google.protobuf.util.Timestamps.fromMillis;
-
-
-/**
- * Util
- */	
-public class NatsUtil implements Serializable {
-	
-    /**
-     * Default constructor
-     */
-    private NatsUtil() {
-    }
-
-	@Override
-	public String toString() {
-		return super.toString();
-	}
-
-	/**
-	 * This number is here for model snapshot storing purpose<br>
-	 * It needs to be changed when this class gets changed
-	 */ 
-	private static final long serialVersionUID = 1L;
-	
-	
-	public static JSONMessage createJSONMessage(String senderId, String payload) {
-        Timestamp timestamp = fromMillis(System.currentTimeMillis());
-        JSONMessage message = JSONMessage.newBuilder()
-                .setMeta(
-                        Meta.newBuilder()
-                                .setMessageId(UUID.randomUUID().toString())
-                                .setSenderId(senderId)
-                                .setTimestamp(timestamp)
-                                .build()
-                )
-                .setJsonPayload(payload)
-                .build();
-        return message;
-    }
-
-}]]></Text>
-		</JavaClass>
-		<!--   =========   Java Class   ========  -->
-		<JavaClass>
 			<Id>1707324466420</Id>
 			<Name><![CDATA[Logger]]></Name>
 			<Text><![CDATA[/**
@@ -1748,15 +1909,42 @@ public class Logger implements Serializable {
 
 }]]></Text>
 		</JavaClass>
+		<!--   =========   Java Class   ========  -->
+		<JavaClass>
+			<Id>1708680634590</Id>
+			<Name><![CDATA[NatsUtils]]></Name>
+			<Text><![CDATA[import java.io.IOException;
+import java.lang.InterruptedException;
+
+import io.nats.client.Options;
+
+/**
+ * NatsUtils
+ */	
+public class NatsUtils implements Serializable {
+
+	/**
+	 * This number is here for model snapshot storing purpose<br>
+	 * It needs to be changed when this class gets changed
+	 */ 
+	private static final long serialVersionUID = 1L;
+	
+	private NatsUtils() { }
+	
+	public static io.nats.client.Connection createConnection(Options options) {
+		try {
+			return io.nats.client.Nats.connect(options);
+		} catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+	}
+
+}]]></Text>
+		</JavaClass>
 	</JavaClasses>
 	<ModelResources>
 		<Resource>
 			<Path><![CDATA[image1.png]]></Path>
-			<ReferencedFromUserCode>false</ReferencedFromUserCode>
-			<Location>FILE_SYSTEM</Location>
-		</Resource>
-		<Resource>
-			<Path><![CDATA[digitalenergyhub-1.0-SNAPSHOT-jar-with-dependencies.jar]]></Path>
 			<ReferencedFromUserCode>false</ReferencedFromUserCode>
 			<Location>FILE_SYSTEM</Location>
 		</Resource>
