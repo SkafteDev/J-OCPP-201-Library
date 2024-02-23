@@ -1323,6 +1323,8 @@ natsConnectionOptions = Options.builder()
 natsConnection = NatsUtils.createConnection(natsConnectionOptions);
 
 chargingStationServer = new ChargingStationServerImpl(csDeviceModel, natsConnection);
+chargingStationServer.connect();
+chargingStationServer.serve();
 
 routingMap = new MessageRoutingMapImpl(operatorId, csmsId, chargingStationId);
 
