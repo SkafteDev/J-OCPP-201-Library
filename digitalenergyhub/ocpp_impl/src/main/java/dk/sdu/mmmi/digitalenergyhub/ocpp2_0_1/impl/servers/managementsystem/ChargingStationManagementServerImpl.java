@@ -56,6 +56,8 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
     public void serve() {
         // TODO: Add dispatchers for all incoming message types.
         addBootNotificationDispatcher(natsConnection);
+        addStatusNotificationDispatcher(natsConnection);
+        //addHeartbeatDispatcher(natsConnection);
     }
 
     @Override
@@ -431,6 +433,72 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                     CallResultMessageImpl.<BootNotificationResponse>newBuilder()
                             .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
                             .withPayLoad(bootNotificationResponse)
+                            .build();
+
+            String jsonResponse = CallResultMessageSerializer.serialize(callResultMessage);
+
+            Message natsResponseMsg = NatsMessage.builder()
+                    .subject(replyTo)
+                    .data(jsonResponse)
+                    .build();
+
+            natsConnection.publish(natsResponseMsg);
+            logger.info(jsonResponse);
+
+        } catch (JsonProcessingException e) {
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void addStatusNotificationDispatcher(Connection natsConnection) {
+        Dispatcher dispatcher = natsConnection.createDispatcher((natsMsg) -> {
+            String jsonPayload = new String(natsMsg.getData(), StandardCharsets.UTF_8);
+            logger.info(String.format("Received 'StatusNotificationRequest' %s on subject %s", jsonPayload,
+                    natsMsg.getSubject()));
+
+            ICallMessage<StatusNotificationRequest> callMessage;
+
+            try {
+                callMessage = CallMessageDeserializer.deserialize(jsonPayload, StatusNotificationRequest.class);
+            } catch (JsonProcessingException e) {
+                logger.severe(e.getMessage());
+                throw new RuntimeException(e);
+            }
+
+            // Register the charging station within the registry.
+            String[] topicLevels = natsMsg.getSubject().split("\\.");
+            String csId = topicLevels[5];
+            String replyTo = natsMsg.getReplyTo();
+            String responseMsgId = callMessage.getMessageId();
+
+            StatusNotificationRequest statusNotificationRequest = callMessage.getPayload();
+
+            logger.info(String.format("Processing '%s' payload='%s' for ChargingStation='%s'",
+                    OCPPMessageType.StatusNotificationRequest,
+                    statusNotificationRequest.toString(),
+                    csId));
+
+            acceptStatusNotificationRequest(natsConnection, replyTo, responseMsgId);
+
+        });
+        String route = routingMap.getRoute(OCPPMessageType.StatusNotificationRequest);
+        logger.info(String.format("Listening for '%s' on subject '%s'",
+                OCPPMessageType.StatusNotificationRequest.getValue().concat("Request"), route));
+        dispatcher.subscribe(route);
+    }
+
+    private void acceptStatusNotificationRequest(Connection natsConnection, String replyTo, String responseMsgId) {
+        try {
+            StatusNotificationResponse statusNotificationResponse = StatusNotificationResponse.builder()
+                    // No fields required as specified in OCPP 2.0.1.
+                    .build();
+
+            ICallResultMessage<StatusNotificationResponse> callResultMessage =
+                    CallResultMessageImpl.<StatusNotificationResponse>newBuilder()
+                            .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                            .withPayLoad(statusNotificationResponse)
                             .build();
 
             String jsonResponse = CallResultMessageSerializer.serialize(callResultMessage);

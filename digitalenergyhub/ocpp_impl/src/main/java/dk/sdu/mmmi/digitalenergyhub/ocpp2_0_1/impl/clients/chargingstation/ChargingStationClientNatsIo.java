@@ -43,7 +43,6 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
     @Override
     public ICallResultMessage<BootNotificationResponse> sendBootNotificationRequest(ICallMessage<BootNotificationRequest> req) {
         String subject = messageRoutingMap.getRoute(OCPPMessageType.BootNotificationRequest);
-        String replyTo = messageRoutingMap.getRoute(OCPPMessageType.BootNotificationResponse);
 
         String jsonPayloadRequest = null;
 
@@ -57,7 +56,6 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
 
         Message natsRequest = NatsMessage.builder()
                 .subject(subject)
-                .replyTo(replyTo)
                 .data(jsonPayloadRequest, StandardCharsets.UTF_8)
                 .build();
 
@@ -110,7 +108,49 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
 
     @Override
     public ICallResultMessage<StatusNotificationResponse> sendStatusNotificationRequest(ICallMessage<StatusNotificationRequest> req) {
-        throw new UnsupportedOperationException("Operation not implemented.");
+        String subject = messageRoutingMap.getRoute(OCPPMessageType.StatusNotificationRequest);
+
+        String jsonPayloadRequest = null;
+
+        try {
+            jsonPayloadRequest = CallMessageSerializer.serialize(req);
+        } catch (JsonProcessingException e) {
+            // TODO: Handle if the serialization fails.
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        Message natsRequest = NatsMessage.builder()
+                .subject(subject)
+                .data(jsonPayloadRequest, StandardCharsets.UTF_8)
+                .build();
+
+        try {
+            CompletableFuture<Message> natsResponse = natsConnection.requestWithTimeout(natsRequest, defaultTimeout);
+            Message message = natsResponse.get();
+
+            String jsonPayloadResponse = new String (message.getData(), StandardCharsets.UTF_8);
+
+            ICallResultMessage<StatusNotificationResponse> callResult =
+                    CallResultMessageDeserializer.deserialize(jsonPayloadResponse,
+                            StatusNotificationResponse.class);
+
+            return callResult;
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO: Handle if the CompletableFuture is interrupted or fails.
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        } catch (JsonProcessingException e) {
+            // TODO: Handle if the deserialization fails for CallResult, try and deserialize to CallError
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        } catch (CancellationException e) {
+            // TODO: Handle if the CompletableFuture got cancelled. This can happen if there are no subscribers to
+            //  handle the request.
+            logger.severe("The request got cancelled. This exception may happen if there are no subscribers to handle" +
+                    " the request.");
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        }
     }
 
     @Override
