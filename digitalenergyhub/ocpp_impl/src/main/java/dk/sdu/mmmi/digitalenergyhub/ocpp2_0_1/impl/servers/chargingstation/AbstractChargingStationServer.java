@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 
 public abstract class AbstractChargingStationServer implements IChargingStationServer {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
-    protected final String natsConnectionUrl;
     protected final IMessageRoutingMap routingMap;
 
     protected ChargingStationDeviceModel chargingStationDeviceModel;
@@ -23,8 +22,8 @@ public abstract class AbstractChargingStationServer implements IChargingStationS
     protected Connection natsConnection;
 
     public AbstractChargingStationServer(ChargingStationDeviceModel csDeviceModel,
-                                         String natsConnectionUrl) {
-        this.natsConnectionUrl = natsConnectionUrl;
+                                         Connection natsConnection) {
+        this.natsConnection = natsConnection;
         this.routingMap = new MessageRoutingMapImpl(csDeviceModel.getOperatorId(),
                 csDeviceModel.getCsmsId(),
                 csDeviceModel.getCsId());
@@ -33,24 +32,6 @@ public abstract class AbstractChargingStationServer implements IChargingStationS
 
     @Override
     public void connect() {
-        Options natsOptions = Options.builder()
-                .server(natsConnectionUrl)
-                .connectionName(String.format("Charging Station Server operatorId=%s csmsId=%s csId=%s",
-                        chargingStationDeviceModel.getOperatorId(), chargingStationDeviceModel.getCsmsId(),
-                        chargingStationDeviceModel.getCsId()))
-                .connectionTimeout(Duration.ofMinutes(2))
-                .connectionListener((connection, eventType) -> {
-                    logger.info(String.format("NATS.io connection event: %s%n", eventType));
-                })
-                .build();
-
-        try {
-            natsConnection = Nats.connect(natsOptions);
-        } catch (IOException e) {
-            logger.severe(e.getMessage());
-        } catch (InterruptedException e) {
-            logger.severe(e.getMessage());
-        }
     }
 
     @Override

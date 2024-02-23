@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.cli.chargingstation;
+package dk.sdu.mmmi.digitalenergyhub.application.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
@@ -11,7 +11,10 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 
-public class Starter {
+/**
+ *
+ */
+public class ExampleApplication {
     private static final String quitToken = "q";
 
     public static void main(String[] args) {

@@ -14,9 +14,11 @@ import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -25,18 +27,38 @@ public class ChargingStationClientTest {
 
     private static final String NATS_CONNECTION_STRING = "nats://localhost:4222";
     private static final String OPERATOR_ID = "Clever";
-    private static final String CSMS_ID = "Csms1";
+    private static final String CSMS_ID = "Clever_Csms1";
     private static final String CS_ID = "DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1";
 
-    private static ChargingStationManagementServerImpl csmsImpl;
+    private ChargingStationManagementServerImpl csmsImpl;
 
-    @BeforeAll
-    static void setup_csms() {
-        // Set up a new management system that can respond to incoming messages.
-        csmsImpl = new ChargingStationManagementServerImpl(OPERATOR_ID, CSMS_ID,
-                NATS_CONNECTION_STRING);
-        csmsImpl.connect();
-        csmsImpl.serve();
+    @BeforeEach
+    void setup_csms() {
+        /*
+         * Set up a new management system that can respond to incoming messages.
+         */
+        try {
+            Options natsOptions = Options.builder()
+                    .server(NATS_CONNECTION_STRING)
+                    .connectionName(String.format("CSMS %s %s", OPERATOR_ID, CSMS_ID))
+                    .connectionTimeout(Duration.ofMinutes(2))
+                    .connectionListener((connection, eventType) -> {
+                        System.out.println(String.format("NATS.io connection event: %s%n", eventType));
+                    })
+                    .build();
+
+            Connection natsConnection = Nats.connect(natsOptions);
+            csmsImpl = new ChargingStationManagementServerImpl(
+                    OPERATOR_ID,
+                    CSMS_ID,
+                    natsConnection);
+
+            csmsImpl.connect();
+            csmsImpl.serve();
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to boot CSMS.", e);
+        }
     }
 
     @Test

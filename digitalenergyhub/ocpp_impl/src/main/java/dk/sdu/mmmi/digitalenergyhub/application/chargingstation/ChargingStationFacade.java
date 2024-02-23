@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.cli.chargingstation;
+package dk.sdu.mmmi.digitalenergyhub.application.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
@@ -113,20 +113,20 @@ public class ChargingStationFacade {
                             .withSerialNumber(serialNumber)
                             .build());
 
-            IChargingStationServer server = new ChargingStationServerImpl(csDeviceModel, natsConnectionUrl);
-
             try {
-                Options natsClientOptions = Options.builder()
+                Options natsOptions = Options.builder()
                         .server(natsConnectionUrl)
-                        .connectionName(String.format("Charging Station Client API operatorId=%s csmsId=%s csId=%s",
+                        .connectionName(String.format("Charging Station Server operatorId=%s csmsId=%s csId=%s",
                                 operatorId, csmsId, csId))
                         .connectionTimeout(Duration.ofMinutes(2))
                         .connectionListener((connection, eventType) -> {
                             logger.info(String.format("NATS.io connection event: %s%n", eventType));
                         })
                         .build();
-                Connection natsClientConnection = Nats.connect(natsClientOptions);
 
+                Connection natsClientConnection = Nats.connect(natsOptions);
+
+                IChargingStationServer server = new ChargingStationServerImpl(csDeviceModel, natsClientConnection);
                 IMessageRoutingMap routingMap = new MessageRoutingMapImpl(operatorId, csmsId, csId);
                 IChargingStationClientApi clientApi = new ChargingStationClientNatsIo(natsClientConnection, routingMap);
 

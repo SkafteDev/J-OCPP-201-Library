@@ -32,38 +32,21 @@ public class ChargingStationManagementServerImpl {
 
     private final String operatorId;
     private final String csmsId;
-    private final String natsConnectionUrl;
     private final IMessageRoutingMap routingMap;
 
     private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
 
-    private Connection natsConnection;
+    private final Connection natsConnection;
 
-    public ChargingStationManagementServerImpl(String operatorId, String csmsId, String natsConnectionUrl) {
+    public ChargingStationManagementServerImpl(String operatorId, String csmsId, Connection natsConnection) {
         this.operatorId = operatorId;
         this.csmsId = csmsId;
-        this.natsConnectionUrl = natsConnectionUrl;
+        this.natsConnection = natsConnection;
         this.routingMap = new MessageRoutingMapImpl(operatorId, csmsId, "*");
         this.chargingStationRegistry = new HashMap<>();
     }
 
     public void connect() {
-        Options natsOptions = Options.builder()
-                .server(natsConnectionUrl)
-                .connectionName(String.format("CSMS %s %s", operatorId, csmsId))
-                .connectionTimeout(Duration.ofMinutes(2))
-                .connectionListener((connection, eventType) -> {
-                    logger.info(String.format("NATS.io connection event: %s%n", eventType));
-                })
-                .build();
-
-        try {
-            natsConnection = Nats.connect(natsOptions);
-        } catch (IOException e) {
-            logger.severe(e.getMessage());
-        } catch (InterruptedException e) {
-            logger.severe(e.getMessage());
-        }
     }
 
     public void serve() {

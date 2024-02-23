@@ -24,8 +24,8 @@ public class ChargingStationServerImpl extends AbstractChargingStationServer {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public ChargingStationServerImpl(ChargingStationDeviceModel csDeviceModel, String natsConnectionUrl) {
-        super(csDeviceModel, natsConnectionUrl);
+    public ChargingStationServerImpl(ChargingStationDeviceModel csDeviceModel, Connection natsConnection) {
+        super(csDeviceModel, natsConnection);
     }
 
     @Override
