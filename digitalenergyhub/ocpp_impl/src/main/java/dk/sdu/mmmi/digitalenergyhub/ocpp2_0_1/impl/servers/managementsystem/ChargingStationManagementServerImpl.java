@@ -3,6 +3,7 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
@@ -15,10 +16,11 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessag
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallResultMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
-import io.nats.client.*;
+import io.nats.client.Connection;
+import io.nats.client.Dispatcher;
+import io.nats.client.Message;
 import io.nats.client.impl.NatsMessage;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
@@ -26,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class ChargingStationManagementServerImpl {
+public class ChargingStationManagementServerImpl implements IChargingStationManagementServer {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -46,14 +48,17 @@ public class ChargingStationManagementServerImpl {
         this.chargingStationRegistry = new HashMap<>();
     }
 
+    @Override
     public void connect() {
     }
 
+    @Override
     public void serve() {
         // TODO: Add dispatchers for all incoming message types.
         addBootNotificationDispatcher(natsConnection);
     }
 
+    @Override
     public void startSmartChargingControlLoop(Duration interval) {
         // Control loop
         while (true) {

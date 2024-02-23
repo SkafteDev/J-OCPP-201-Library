@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.application.csms;
 
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.ChargingStationManagementServerImpl;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
@@ -18,12 +19,12 @@ public class ExampleApplication {
 
     public static void main(String[] args) {
         logger.info("Booting Charging Station Management System...");
-        ChargingStationManagementServerImpl server = boot();
+        IChargingStationManagementServer server = boot();
         logger.info("Booting complete.");
 
         server.connect(); // Connect to broker.
         server.serve();   // Listen to incoming messages.
-        server.startSmartChargingControlLoop(Duration.ofMinutes(1));
+        server.startSmartChargingControlLoop(Duration.ofSeconds(15));
 
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;
@@ -35,7 +36,7 @@ public class ExampleApplication {
         System.exit(0);
     }
 
-    private static ChargingStationManagementServerImpl boot() {
+    private static IChargingStationManagementServer boot() {
         String operatorId = "Clever";
         String csmsId = "Clever Central CSMS";
         String natsConnectionURL = "nats://localhost:4222";
@@ -51,7 +52,7 @@ public class ExampleApplication {
                     .build();
 
             Connection natsConnection = Nats.connect(natsOptions);
-            ChargingStationManagementServerImpl server = new ChargingStationManagementServerImpl(
+            IChargingStationManagementServer server = new ChargingStationManagementServerImpl(
                     "Clever",
                     "Clever Central CSMS",
                     natsConnection);
