@@ -13,9 +13,6 @@
     <modules>
         <module>ocpp_schemas</module>
         <module>ocpp_impl</module>
-        <module>ocpp_schemas_protobuf</module>
-        <module>decouplink</module>
-        <module>dynamic_proxy_example</module>
     </modules>
 
     <!-- Global properties -->
