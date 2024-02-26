@@ -101,4 +101,13 @@ public class CallErrorImpl extends CallResultMessageImpl<Object> implements ICal
             return callError;
         }
     }
+
+    @Override
+    public String toString() {
+        return "CallErrorImpl{" +
+                "errorCode='" + errorCode + '\'' +
+                ", errorDescription='" + errorDescription + '\'' +
+                ", errorDetails='" + errorDetails + '\'' +
+                "} " + super.toString();
+    }
 }

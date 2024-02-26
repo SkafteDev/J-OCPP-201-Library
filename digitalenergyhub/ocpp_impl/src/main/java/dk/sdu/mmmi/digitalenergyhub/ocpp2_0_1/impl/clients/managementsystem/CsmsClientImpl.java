@@ -1,17 +1,32 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
+import io.nats.client.Message;
+import io.nats.client.impl.NatsMessage;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 public class CsmsClientImpl implements ICsmsClientApi {
-
+    private final Logger logger = Logger.getLogger(CsmsClientImpl.class.getName());
     private final Connection natsConnection;
+    private final IMessageRoutingMap routingMap;
 
-    public CsmsClientImpl(Connection natsConnection) {
+    public CsmsClientImpl(Connection natsConnection, IMessageRoutingMap routingMap) {
         this.natsConnection = natsConnection;
+        this.routingMap = routingMap;
     }
 
     @Override
@@ -170,7 +185,34 @@ public class CsmsClientImpl implements ICsmsClientApi {
 
     @Override
     public ICallResultMessage<SetChargingProfileResponse> sendSetChargingProfileRequest(ICallMessage<SetChargingProfileRequest> request) {
-        return null;
+        try {
+            String jsonRequestPayload = CallMessageSerializer.serialize(request);
+            String requestSubject = routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest);
+            Message natsMessage = NatsMessage.builder()
+                    .subject(requestSubject)
+                    .data(jsonRequestPayload, StandardCharsets.UTF_8)
+                    .build();
+
+            logger.info(String.format("Sending request '%s' with payload %s on subject %s",
+                    SetChargingProfileRequest.class.getName(), jsonRequestPayload, requestSubject));
+            CompletableFuture<Message> response = natsConnection.requestWithTimeout(natsMessage, Duration.ofSeconds(30));
+
+            // Blocks until message is received.
+            // TODO: Join all futures and get the result at a later point in time, to avoid blocking.
+            Message message = response.get();
+            String jsonResponsePayload = new String(message.getData(), StandardCharsets.UTF_8);
+            ICallResultMessage<SetChargingProfileResponse> callResult =
+                    CallResultMessageDeserializer.deserialize(jsonResponsePayload, SetChargingProfileResponse.class);
+
+            logger.info(String.format("Received response '%s' with payload %s on subject %s",
+                    SetChargingProfileResponse.class.getName(), callResult.getPayload().toString(),
+                    message.getSubject()));
+
+            return callResult;
+
+        } catch (JsonProcessingException | ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

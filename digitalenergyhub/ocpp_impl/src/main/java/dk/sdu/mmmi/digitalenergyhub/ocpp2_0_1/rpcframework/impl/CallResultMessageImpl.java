@@ -67,4 +67,12 @@ public class CallResultMessageImpl<T> implements ICallResultMessage<T> {
             return new CallResultMessageImpl<>(payload, messageId);
         }
     }
+
+    @Override
+    public String toString() {
+        return "CallResultMessageImpl{" +
+                "payload=" + payload +
+                ", messageId='" + messageId + '\'' +
+                '}';
+    }
 }

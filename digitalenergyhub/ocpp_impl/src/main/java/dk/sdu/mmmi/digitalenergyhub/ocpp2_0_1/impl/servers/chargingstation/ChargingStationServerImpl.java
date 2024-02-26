@@ -3,6 +3,8 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.NatsRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallMessageDeserializer;
@@ -170,46 +172,8 @@ public class ChargingStationServerImpl extends AbstractChargingStationServer {
 
     @Override
     protected void addSetChargingProfileDispatcher(Connection natsConnection) {
-        Dispatcher dispatcher = natsConnection.createDispatcher((natsMsg) -> {
-            String jsonPayload = new String(natsMsg.getData(), StandardCharsets.UTF_8);
-            logger.info(String.format("Received 'SetChargingProfileRequest' %s on subject %s", jsonPayload,
-                    natsMsg.getSubject()));
-
-            ICallMessage<SetChargingProfileRequest> callMessage;
-
-            try {
-                callMessage = CallMessageDeserializer.deserialize(jsonPayload, SetChargingProfileRequest.class);
-
-                // Update the internal state
-                SetChargingProfileRequest requestPayload = callMessage.getPayload();
-                this.chargingStationDeviceModel.setChargingProfile(requestPayload.getChargingProfile());
-
-                // Respond to the replyTo address with the identical messageId
-                SetChargingProfileResponse responsePayload = SetChargingProfileResponse.builder()
-                        .withStatus(ChargingProfileStatusEnum.ACCEPTED)
-                        .build();
-
-                ICallResultMessage<SetChargingProfileResponse> callResult =
-                        CallResultMessageImpl.<SetChargingProfileResponse>newBuilder()
-                                .withMessageId(callMessage.getMessageId()) // MessageId MUST be identical to the call.
-                                .withPayLoad(responsePayload)
-                                .build();
-
-                String jsonResponsePayload = CallResultMessageSerializer.serialize(callResult);
-
-                Message natsResponse = NatsMessage.builder()
-                        .subject(natsMsg.getReplyTo()) // Reply subject must use the call's provided reply subject.
-                        .data(jsonResponsePayload)
-                        .build();
-
-                natsConnection.publish(natsResponse);
-
-            } catch (JsonProcessingException e) {
-                logger.severe(e.getMessage());
-                throw new RuntimeException(e);
-            }
-        });
-        dispatcher.subscribe(super.routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest));
+        var handler = new SetChargingProfileHandler(super.routingMap);
+        handler.registerDispatcher(natsConnection);
     }
 
     @Override
