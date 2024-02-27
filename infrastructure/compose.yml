@@ -13,7 +13,7 @@ services:
       - "8222:8222" # Routing port for clustering
       - "8080:8080" # NATS over WebSockets
     volumes:
-      - ./configs:/container/configs
+      - './configs/nats.conf:/container/configs/nats.conf'
     networks:
       - nats_network
 
@@ -34,4 +34,3 @@ networks:
 
 volumes:
   nats-data:
-
