@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serialization.callresultmessage.payloads;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.unit.rpcframework.serialization.callresultmessage.payloads;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;

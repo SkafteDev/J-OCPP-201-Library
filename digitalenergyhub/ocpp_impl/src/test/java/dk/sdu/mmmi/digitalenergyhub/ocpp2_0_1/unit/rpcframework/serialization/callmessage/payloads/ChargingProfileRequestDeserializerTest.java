@@ -1,74 +1,24 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.integration.natsio;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.unit.rpcframework.serialization.callmessage.payloads;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.CsmsClientImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallMessageDeserializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
-import io.nats.client.Connection;
-import io.nats.client.Dispatcher;
-import io.nats.client.Nats;
-import io.nats.client.Options;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 
-public class ChargingStationServerTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-    private static final String NATS_CONNECTION_STRING = "nats://localhost:4222";
-    private static final String OPERATOR_ID = "Clever";
-    private static final String CSMS_ID = "Clever Central CSMS";
-    private static final String CS_ID = "DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1";
-
-    private IChargingStationServer<Connection, Dispatcher> csServerImpl;
-
-    @BeforeEach
-    void setup_chargingstation_and_connect_to_nats() {
-        Connection natsConnection = getNatsConnection();
-
-        ChargingStation basicCsInfo = ChargingStation.builder()
-                .withVendorName("ABB")
-                .withFirmwareVersion("3.1.2")
-                .withSerialNumber("47888eec-b9e5-4d67-9f36-136126e158c8")
-                .withModel("ABB TAC-W11-G5-R-0")
-                .build();
-        ChargingStationDeviceModel deviceModel = new ChargingStationDeviceModel(CS_ID, OPERATOR_ID, CSMS_ID,
-                basicCsInfo);
-        csServerImpl = new ChargingStationServerImpl(deviceModel, natsConnection);
-        csServerImpl.addDispatcher(OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(csServerImpl.getRoutingMap()));
-    }
-
-    private static Connection getNatsConnection() {
-        Options natsOptions = Options.builder()
-                .server(NATS_CONNECTION_STRING)
-                .connectionTimeout(Duration.ofMinutes(2))
-                .build();
-
-        try {
-            return Nats.connect(natsOptions);
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
+public class ChargingProfileRequestDeserializerTest {
 
     @Test
-    void integration_ChargingStationServer_handle_SetChargingProfileRequest() {
-        IMessageRoutingMap routingMap = new MessageRoutingMapImpl(OPERATOR_ID, CSMS_ID, CS_ID);
-        ICsmsClientApi csmsClientApi = new CsmsClientImpl(getNatsConnection(), routingMap);
-
+    void unit_chargingProfile_deserializer_test() {
         ChargingProfile chargingProfile = getChargingProfile();
 
         SetChargingProfileRequest payload = SetChargingProfileRequest.builder()
@@ -76,16 +26,24 @@ public class ChargingStationServerTest {
                 .withChargingProfile(chargingProfile)
                 .build();
 
-        ICallMessage<SetChargingProfileRequest> call = CallMessageImpl.<SetChargingProfileRequest>newBuilder()
+        ICallMessage<SetChargingProfileRequest> expected = CallMessageImpl.<SetChargingProfileRequest>newBuilder()
                 .asAction(OCPPMessageType.SetChargingProfileRequest.getValue())
                 .withMessageId("xxxyyyzzz123")
                 .withPayLoad(payload)
                 .build();
 
+        try {
+            String jsonCall = "[2,\"xxxyyyzzz123\",\"SetChargingProfile\",{\"evseId\":0,\"chargingProfile\":{\"id\":1,\"stackLevel\":0,\"chargingProfilePurpose\":\"ChargingStationMaxProfile\",\"chargingProfileKind\":\"Absolute\",\"chargingSchedule\":[{\"id\":1,\"startSchedule\":\"2024-01-20T00:00:00Z\",\"chargingRateUnit\":\"W\",\"chargingSchedulePeriod\":[{\"startPeriod\":0,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":3600,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":7200,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":10800,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":14400,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":18000,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":21600,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":25200,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":28800,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":32400,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":36000,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":39600,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":43200,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":46800,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":50400,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":54000,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":57600,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":61200,\"limit\":0.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":64800,\"limit\":0.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":68400,\"limit\":0.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":72000,\"limit\":0.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":75600,\"limit\":0.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":79200,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1},{\"startPeriod\":82800,\"limit\":11000.0,\"numberPhases\":1,\"phaseToUse\":1}]}]}}]";
+            ICallMessage<SetChargingProfileRequest> actual = CallMessageDeserializer.deserialize(jsonCall, SetChargingProfileRequest.class);
 
-        ICallResultMessage<SetChargingProfileResponse> callResultMessage = csmsClientApi.sendSetChargingProfileRequest(call);
+            assertEquals(expected.getMessageId(), actual.getMessageId());
+            assertEquals(expected.getMessageTypeId(), actual.getMessageTypeId());
+            assertEquals(expected.getAction(), actual.getAction());
+            assertEquals(expected.getPayload(), actual.getPayload());
 
-        System.out.println(callResultMessage);
+        } catch (JsonProcessingException e) {
+            fail(e.getMessage());
+        }
     }
 
     private static ChargingProfile getChargingProfile() {
