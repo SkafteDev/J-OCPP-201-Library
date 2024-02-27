@@ -55,7 +55,7 @@ setup_integration_environment:
   before_script:
     - 'cd infrastructure'
     - 'ls -la'
-    - 'la -la ./configs'
+    - 'ls -la ./configs'
   script:
     - 'docker compose version'
     - 'docker compose create --remove-orphans' # Creates the containers and removes orphans (old unused containers).
