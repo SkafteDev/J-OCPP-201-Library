@@ -42,4 +42,4 @@ deploy_to_gitlab:
   script: # gitlab-maven refers to a specific server in the settings.xml
     - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean deploy -DaltDeploymentRepository=gitlab-maven::default::${DEPLOY_URL}'
   only:
-    - master
+    - main
