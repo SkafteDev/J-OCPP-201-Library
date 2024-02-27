@@ -21,7 +21,7 @@ variables:
   MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
   MAVEN_OPTIONS: "--batch-mode -s ../ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
   PROJECT_DIR: "digitalenergyhub"
-  MVN_CMD: "cd ${PROJECT_DIR} && mvn ${MAVEN_M2} ${MAVEN_OPTIONS}" # This is the Maven cmd to be used for every job.
+  MVN_CMD: "cd '${PROJECT_DIR}' && mvn ${MAVEN_M2} ${MAVEN_OPTIONS}" # This is the Maven cmd to be used for every job.
 
 maven_compile:
   stage: Compile
