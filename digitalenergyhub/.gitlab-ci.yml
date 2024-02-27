@@ -1,0 +1,27 @@
+image: maven:3.8.6-openjdk-11
+
+stages:
+  - Compile
+
+# The cache is updated after each step and serves the
+# purpose o data-sharing between steps.
+# For example, the step javadoc-release uses the artifacts generated in
+# the step maven_compile, in order to release them.
+cache:
+  paths:
+    - '.m2'
+    - '*/target'
+    - 'target'
+
+# Environment variables
+variables:
+  MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
+  MAVEN_OPTIONS: "--batch-mode -s ./ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
+
+maven_compile:
+  stage: Compile
+  script:
+    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean compile'
+  except:
+    - /^release/.*$/  # Match release/ branches
+    - tags
