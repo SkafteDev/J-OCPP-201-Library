@@ -2,6 +2,7 @@ image: maven:3.8.6-openjdk-11
 
 stages:
   - Compile
+  - Build
 
 # The cache is updated after each step and serves the
 # purpose o data-sharing between steps.
@@ -17,12 +18,20 @@ cache:
 variables:
   MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
   MAVEN_OPTIONS: "--batch-mode -s ../ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
+  PROJECT_DIR: "digitalenergyhub"
 
 maven_compile:
   stage: Compile
   script:
-    - 'cd digitalenergyhub'
+    - 'cd $PROJECT_DIR'
     - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean compile'
   except:
     - /^release/.*$/  # Match release/ branches
     - tags
+
+maven_install:
+  stage: Build
+  script:
+    - 'cd $PROJECT_DIR'
+    - 'mvn clean install -pl ocpp_schemas'
+    - 'mvn clean install -pl ocpp_impl -DskipTests'
