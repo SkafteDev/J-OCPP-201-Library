@@ -21,12 +21,12 @@ variables:
   MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
   MAVEN_OPTIONS: "--batch-mode -s ../ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
   PROJECT_DIR: "digitalenergyhub"
+  MAVEN_CMD: "cd $PROJECT_DIR && mvn $MAVEN_M2 $MAVEN_OPTIONS"
 
 maven_compile:
   stage: Compile
   script:
-    - 'cd $PROJECT_DIR'
-    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean compile'
+    - '$MAVEN_CMD clean compile'
   except:
     - /^release/.*$/  # Match release/ branches
     - tags
@@ -34,33 +34,29 @@ maven_compile:
 maven_install:
   stage: Build
   script:
-    - 'cd $PROJECT_DIR'
-    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean install -DskipTests'
+    - '$MAVEN_CMD clean install -DskipTests'
 
 unit_tests:
   stage: Tests
   script:
-    - 'cd $PROJECT_DIR'
     # Reference:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/unit/** matches all test classes located within folders named unit.
-    - 'mvn test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
+    - '$MAVEN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
 
 integration_tests:
   stage: Tests
   script:
-    - 'cd $PROJECT_DIR'
     # Reference:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/integration/** matches all test classes located within folders named integration.
-    - 'mvn test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
+    - '$MAVEN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
 
 deploy_to_gitlab:
   stage: Deploy
   script: # gitlab-maven refers to a specific server in the settings.xml
-    - 'cd $PROJECT_DIR'
-    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS deploy -DskipTests'
+    - '$MAVEN_CMD deploy -DskipTests'
   only: # for branch name(s)
     - main
