@@ -27,7 +27,7 @@ import java.util.List;
 
 public class ChargingStationServerTest {
 
-    private static final String NATS_CONNECTION_STRING = "nats://localhost:4222";
+    private static final String NATS_CONNECTION_STRING = "nats://nats-server:4222";
     private static final String OPERATOR_ID = "Clever";
     private static final String CSMS_ID = "Clever Central CSMS";
     private static final String CS_ID = "DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1";
