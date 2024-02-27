@@ -56,7 +56,7 @@ tests:integration:
   services:
     - name: docker:25.0.3
       alias: docker-integration-tests
-      entrypoint: ["/bin/bash"]
+      entrypoint: ["/bin/sh"]
       command: ["docker compose up -f infrastructure/compose-yml --timestamps --wait --wait-timeout 30"]
   before_script:
     - 'docker info'
