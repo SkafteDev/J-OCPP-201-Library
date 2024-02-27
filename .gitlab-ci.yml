@@ -18,7 +18,7 @@ cache:
 # Environment variables
 variables:
   MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
-  MAVEN_OPTIONS: "--batch-mode -s ./ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
+  MAVEN_OPTIONS: "--batch-mode -s ../ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
   PROJECT_DIR: "digitalenergyhub"
 
 maven_compile:
