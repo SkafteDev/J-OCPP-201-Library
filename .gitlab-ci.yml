@@ -52,6 +52,7 @@ tests:unit:
     - 'mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
 
 tests:integration:
+  # Approach like described here: https://kevinareed.com/2021/01/05/how-to-run-dotnet-test-alongside-docker-compose-in-gitlab-ci-cd/
   stage: Tests
   image: docker:25.0.3
   before_script:
