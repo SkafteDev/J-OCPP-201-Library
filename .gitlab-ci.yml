@@ -26,6 +26,7 @@ variables:
 maven_compile:
   stage: Compile
   script:
+    - 'echo $MVN_CMD'
     - '$MVN_CMD clean compile'
   except:
     - /^release/.*$/  # Match release/ branches
