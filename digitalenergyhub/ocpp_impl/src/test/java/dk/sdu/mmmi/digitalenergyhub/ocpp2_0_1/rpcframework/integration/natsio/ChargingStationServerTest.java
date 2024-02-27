@@ -3,16 +3,19 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.integration.natsio;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.CsmsClientImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
+import io.nats.client.Dispatcher;
 import io.nats.client.Nats;
 import io.nats.client.Options;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +32,7 @@ public class ChargingStationServerTest {
     private static final String CSMS_ID = "Clever Central CSMS";
     private static final String CS_ID = "DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1";
 
-    private ChargingStationServerImpl csServerImpl;
+    private IChargingStationServer<Connection, Dispatcher> csServerImpl;
 
     @BeforeEach
     void setup_chargingstation() {
@@ -44,8 +47,8 @@ public class ChargingStationServerTest {
         ChargingStationDeviceModel deviceModel = new ChargingStationDeviceModel(CS_ID, OPERATOR_ID, CSMS_ID,
                 basicCsInfo);
         csServerImpl = new ChargingStationServerImpl(deviceModel, natsConnection);
-        csServerImpl.connect();
-        csServerImpl.serve();
+        csServerImpl.addDispatcher(OCPPMessageType.SetChargingProfileRequest,
+                new SetChargingProfileRequestHandler(csServerImpl.getRoutingMap()));
     }
 
     private static Connection getNatsConnection() {

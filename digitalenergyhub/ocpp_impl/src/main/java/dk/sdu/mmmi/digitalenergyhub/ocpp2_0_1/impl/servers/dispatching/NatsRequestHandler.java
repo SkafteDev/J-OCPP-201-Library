@@ -1,6 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.dispatching.IDispatcher;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallMessageDeserializer;
@@ -13,10 +14,12 @@ import io.nats.client.impl.NatsMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> implements IDispatcher<Connection> {
+public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> implements IDispatcher<Connection, Dispatcher> {
     private final Logger logger = Logger.getLogger(NatsRequestHandler.class.getName());
     private final Class<?> inboundPayloadType;
     private final Class<?> outboundPayloadType;
+
+    private Dispatcher dispatcher;
 
     public NatsRequestHandler(Class<?> inPayloadType, Class<?> outPayloadType) {
         this.inboundPayloadType = inPayloadType;
@@ -24,8 +27,10 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
     }
 
     @Override
-    public void registerDispatcher(Connection natsConnection) {
-        Dispatcher dispatcher = natsConnection.createDispatcher((natsMsg) -> {
+    public Dispatcher register(Connection natsConnection) {
+        if (dispatcher != null) return dispatcher;
+
+        this.dispatcher = natsConnection.createDispatcher((natsMsg) -> {
             String jsonPayload = new String(natsMsg.getData(), StandardCharsets.UTF_8);
             logger.info(String.format("Received request payload='%s' on subject '%s'",
                     jsonPayload,
@@ -34,9 +39,9 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
             IN callMessage = deserialize(jsonPayload);
 
             // Handle the message internally, e.g. update state, store in db, etc.
-            handleInternally(callMessage);
+            process(callMessage);
 
-            OUT callResult = getResponse(callMessage);
+            OUT callResult = generateResponse(callMessage);
 
             String jsonResponsePayload = serialize(callResult);
 
@@ -49,6 +54,17 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
 
         });
         dispatcher.subscribe(getInboundMessageRoute());
+        return dispatcher;
+    }
+
+    @Override
+    public void unregister() {
+        dispatcher.unsubscribe(getInboundMessageRoute());
+    }
+
+    @Override
+    public Dispatcher getDispatcher() {
+        return dispatcher;
     }
 
     public IN deserialize(String rawJsonPayload) {
@@ -62,8 +78,8 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
 
         return (IN) deserialized;
     }
-    public abstract void handleInternally(IN message);
-    public abstract OUT getResponse(IN message);
+    public abstract void process(IN message);
+    public abstract OUT generateResponse(IN message);
 
     public String serialize(OUT message) {
         try {

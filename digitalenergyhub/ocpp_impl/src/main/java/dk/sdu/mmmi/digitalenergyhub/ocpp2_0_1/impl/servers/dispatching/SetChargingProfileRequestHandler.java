@@ -11,21 +11,21 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.SetChargingProfileRes
 
 import java.util.logging.Logger;
 
-public class SetChargingProfileHandler
+public class SetChargingProfileRequestHandler
         extends NatsRequestHandler<ICallMessage<SetChargingProfileRequest>,
         ICallResultMessage<SetChargingProfileResponse>> {
 
-    private final Logger logger = Logger.getLogger(SetChargingProfileHandler.class.getName());
+    private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
 
     private final IMessageRoutingMap routingMap;
 
-    public SetChargingProfileHandler(IMessageRoutingMap routingMap) {
+    public SetChargingProfileRequestHandler(IMessageRoutingMap routingMap) {
         super(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
         this.routingMap = routingMap;
     }
 
     @Override
-    public void handleInternally(ICallMessage<SetChargingProfileRequest> callMessage) {
+    public void process(ICallMessage<SetChargingProfileRequest> callMessage) {
         // Update the internal state
         SetChargingProfileRequest requestPayload = callMessage.getPayload();
         //this.chargingStationDeviceModel.setChargingProfile(requestPayload.getChargingProfile());
@@ -33,7 +33,7 @@ public class SetChargingProfileHandler
     }
 
     @Override
-    public ICallResultMessage<SetChargingProfileResponse> getResponse(ICallMessage<SetChargingProfileRequest> callMessage) {
+    public ICallResultMessage<SetChargingProfileResponse> generateResponse(ICallMessage<SetChargingProfileRequest> callMessage) {
         // TODO: Create response depending on the internal state...
         SetChargingProfileResponse responsePayload = SetChargingProfileResponse.builder()
                 .withStatus(ChargingProfileStatusEnum.ACCEPTED)

@@ -35,11 +35,6 @@ public class ChargingStationFacade {
         this.csDeviceModel = csDeviceModel;
     }
 
-    public void start() {
-        csServer.connect(); // Connect to broker.
-        csServer.serve();   // Listen to incoming messages.
-    }
-
     public ChargingStationDeviceModel getCsDeviceModel() {
         return csDeviceModel;
     }

@@ -29,9 +29,6 @@ public class ExampleApplication {
                 .withNatsConnectionUrl("nats://localhost:4222")
                 .build();
 
-        Thread t = new Thread(csFacade::start);
-        t.start();
-
         BootNotificationRequest bootNotificationRequest = BootNotificationRequest.builder()
                 .withChargingStation(csFacade.getCsDeviceModel().getChargingStationInfo())
                 .build();

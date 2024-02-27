@@ -1,8 +1,17 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation;
 
-public interface IChargingStationServer {
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.dispatching.IDispatcher;
 
-    void connect();
+/**
+ * This interface represents a server that can manage dispatchers.
+ * @param <C> The type of the connection that is used to register the dispatcher.
+ * @param <D> The type of the dispatcher.
+ */
+public interface IChargingStationServer<C, D>  {
 
-    void serve();
+    void addDispatcher(OCPPMessageType msgType, IDispatcher<C, D> dispatcher);
+
+    IMessageRoutingMap getRoutingMap();
 }
