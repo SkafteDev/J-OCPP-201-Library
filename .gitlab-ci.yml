@@ -3,6 +3,7 @@ image: maven:3.8.6-openjdk-11
 stages:
   - Compile
   - Build
+  - Tests_setup_integration_environment
   - Tests
   - Deploy
 
@@ -47,6 +48,17 @@ unit_tests:
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/unit/** matches all test classes located within folders named unit.
     - 'mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
+
+setup_integration_environment:
+  stage: Tests_setup_integration_environment
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - 'cd ../infrastructure'
+  script:
+    - 'docker compose version'
+    - 'docker compose up' # Spin up integration testing environment
 
 integration_tests:
   stage: Tests
