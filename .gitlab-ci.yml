@@ -1,7 +1,8 @@
 default:
   image: maven:3.8.6-openjdk-11
   services:
-    - docker:25.0.3-dind
+    - name: docker:25.0.3-dind
+      alias: docker
   before_script:
     - "cd $PROJECT_DIR"
 
