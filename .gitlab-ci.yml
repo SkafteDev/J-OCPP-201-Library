@@ -53,11 +53,7 @@ tests:unit:
 
 tests:integration:
   stage: Tests
-  services:
-    - name: docker:25.0.3
-      alias: docker-integration-tests
-      entrypoint: ["/bin/sh"]
-      command: ["docker compose up -f infrastructure/compose-yml --timestamps --wait --wait-timeout 30"]
+  image: docker:25.0.3
   before_script:
     - 'docker info'
     - 'docker compose version'
