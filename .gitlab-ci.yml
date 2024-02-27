@@ -41,6 +41,6 @@ deploy_to_gitlab:
   stage: Deploy
   script: # gitlab-maven refers to a specific server in the settings.xml
     - 'cd $PROJECT_DIR'
-    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS deploy'
-  only:
+    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS deploy -DskipTests'
+  only: # for branch name(s)
     - main

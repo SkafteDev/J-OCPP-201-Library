@@ -6,7 +6,7 @@
                 <httpHeaders>
                     <property>
                         <name>Private-Token</name>
-                        <value>${DEPLOY_TOKEN}</value>
+                        <value>${CI_TOKEN}</value>
                     </property>
                 </httpHeaders>
             </configuration>
