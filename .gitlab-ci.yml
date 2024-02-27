@@ -58,7 +58,7 @@ setup_integration_environment:
   script:
     - 'docker compose version'
     - 'docker compose create --remove-orphans' # Creates the containers and removes orphans (old unused containers).
-    - 'docker compose up --timestamps --wait --wait-timeout 30' # Spin up integration testing environment
+    - 'docker compose up'#--timestamps --wait --wait-timeout 30' # Spin up integration testing environment
 
 integration_tests:
   stage: Tests

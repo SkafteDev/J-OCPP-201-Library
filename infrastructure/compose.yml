@@ -13,7 +13,7 @@ services:
       - "8222:8222" # Routing port for clustering
       - "8080:8080" # NATS over WebSockets
     volumes:
-      - '/builds/sdu-cei/external-projects/digital-energy-hub/wp4-software-in-the-loop-testing/anylogic-realtime-demo/infrastructure/configs/nats.conf:/container/configs/nats.conf'
+      - './configs/nats.conf:/container/configs/nats.conf'
     networks:
       - nats_network
 
