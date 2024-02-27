@@ -3,7 +3,6 @@ default:
   services:
     - docker:25.0.3-dind
   before_script:
-    - "docker info"
     - "cd $PROJECT_DIR"
 
 stages:
@@ -56,6 +55,7 @@ setup_integration_environment:
   stage: Tests_setup_integration_environment
   image: docker:latest
   before_script:
+    - 'docker info'
     - 'cd infrastructure'
     - 'ls -la'
     - 'ls -la ./configs'
