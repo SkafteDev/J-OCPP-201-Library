@@ -52,8 +52,6 @@ unit_tests:
 setup_integration_environment:
   stage: Tests_setup_integration_environment
   image: docker:latest
-  services:
-    - docker:dind
   before_script:
     - 'cd infrastructure'
   script:
