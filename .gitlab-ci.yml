@@ -33,5 +33,5 @@ maven_install:
   stage: Build
   script:
     - 'cd $PROJECT_DIR'
-    - 'mvn clean install -pl ocpp_schemas'
-    - 'mvn clean install -pl ocpp_impl -DskipTests'
+    - 'mvn install -pl ocpp_schemas'
+    - 'mvn install -pl ocpp_impl -DskipTests'
