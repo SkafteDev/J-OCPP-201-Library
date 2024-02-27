@@ -21,12 +21,12 @@ variables:
   MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
   MAVEN_OPTIONS: "--batch-mode -s ../ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
   PROJECT_DIR: "digitalenergyhub"
-  MAVEN_CMD: "cd $PROJECT_DIR && mvn $MAVEN_M2 $MAVEN_OPTIONS"
+  MVN_CMD: "cd ${PROJECT_DIR} && mvn ${MAVEN_M2} ${MAVEN_OPTIONS}" # This is the Maven cmd to be used for every job.
 
 maven_compile:
   stage: Compile
   script:
-    - '$MAVEN_CMD clean compile'
+    - '$MVN_CMD clean compile'
   except:
     - /^release/.*$/  # Match release/ branches
     - tags
@@ -34,7 +34,7 @@ maven_compile:
 maven_install:
   stage: Build
   script:
-    - '$MAVEN_CMD clean install -DskipTests'
+    - '$MVN_CMD clean install -DskipTests'
 
 unit_tests:
   stage: Tests
@@ -43,7 +43,7 @@ unit_tests:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/unit/** matches all test classes located within folders named unit.
-    - '$MAVEN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
+    - '$MVN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
 
 integration_tests:
   stage: Tests
@@ -52,11 +52,11 @@ integration_tests:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/integration/** matches all test classes located within folders named integration.
-    - '$MAVEN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
+    - '$MVN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
 
 deploy_to_gitlab:
   stage: Deploy
   script: # gitlab-maven refers to a specific server in the settings.xml
-    - '$MAVEN_CMD deploy -DskipTests'
+    - '$MVN_CMD deploy -DskipTests'
   only: # for branch name(s)
     - main
