@@ -40,6 +40,6 @@ maven_install:
 deploy_to_gitlab:
   stage: Deploy
   script: # gitlab-maven refers to a specific server in the settings.xml
-    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean deploy -DaltDeploymentRepository=gitlab-maven::default::${DEPLOY_URL}'
+    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS deploy'
   only:
     - main
