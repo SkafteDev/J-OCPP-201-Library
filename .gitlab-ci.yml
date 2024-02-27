@@ -6,22 +6,24 @@ stages:
   - Tests
   - Deploy
 
-# The cache is updated after each step and serves the
-# purpose o data-sharing between steps.
-# For example, the step javadoc-release uses the artifacts generated in
-# the step maven_compile, in order to release them.
+# Cache downloaded dependencies and plugins between builds.
+# To keep cache across branches add 'key: "$CI_JOB_NAME"'
 cache:
   paths:
-    - '.m2'
+    - '.m2/repository'
     - '*/target'
     - 'target'
 
+
 # Environment variables
 variables:
-  MAVEN_M2: "-Dmaven.repo.local=.m2" # Instruct maven to use the m2 folder as local repository
-  MAVEN_OPTIONS: "--batch-mode -s ../ci_settings.xml" # Suppress verbose output from the terminal. Provide settings file.
+  # This will provide the ci_setting.xml file which contains maven settings when deploying packages to the repo.
+  # Also, suppress any download for dependencies and plugins or upload messages which would clutter the console log.
+  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
+  # MAVEN_OPTS is automatically used by Maven.
+  MAVEN_OPTS: "-s ../ci_settings.xml -Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
   PROJECT_DIR: "digitalenergyhub"
-  MVN_CMD: "mvn ${MAVEN_M2} ${MAVEN_OPTIONS}" # This is the Maven cmd to be used for every job.
 
 default:
   before_script:
@@ -30,7 +32,7 @@ default:
 maven_compile:
   stage: Compile
   script:
-    - '$MVN_CMD clean compile'
+    - 'mvn $MAVEN_CLI_OPTS clean compile'
   except:
     - /^release/.*$/  # Match release/ branches
     - tags
@@ -38,7 +40,7 @@ maven_compile:
 maven_install:
   stage: Build
   script:
-    - '$MVN_CMD clean install -DskipTests'
+    - 'mvn $MAVEN_CLI_OPTS -DskipTests clean install'
 
 unit_tests:
   stage: Tests
@@ -47,7 +49,7 @@ unit_tests:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/unit/** matches all test classes located within folders named unit.
-    - '$MVN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
+    - 'mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
 
 integration_tests:
   stage: Tests
@@ -56,11 +58,11 @@ integration_tests:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/integration/** matches all test classes located within folders named integration.
-    - '$MVN_CMD test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
+    - 'mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
 
 deploy_to_gitlab:
   stage: Deploy
   script: # gitlab-maven refers to a specific server in the settings.xml
-    - '$MVN_CMD deploy -DskipTests'
+    - 'mvn $MAVEN_CLI_OPTS deploy -DskipTests'
   only: # for branch name(s)
     - main
