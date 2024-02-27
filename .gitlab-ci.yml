@@ -58,6 +58,7 @@ setup_integration_environment:
     - 'cd infrastructure'
   script:
     - 'docker compose version'
+    - 'docker compose create --remove-orphans' # Creates the containers and removes orphans (old unused containers).
     - 'docker compose up' # Spin up integration testing environment
 
 integration_tests:
