@@ -21,6 +21,7 @@ variables:
 maven_compile:
   stage: Compile
   script:
+    - 'cd digitalenergyhub'
     - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean compile'
   except:
     - /^release/.*$/  # Match release/ branches
