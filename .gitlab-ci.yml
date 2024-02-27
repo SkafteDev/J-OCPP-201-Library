@@ -55,7 +55,7 @@ setup_integration_environment:
   services:
     - docker:dind
   before_script:
-    - 'pwd'
+    - 'cd infrastructure'
   script:
     - 'docker compose version'
     - 'docker compose up' # Spin up integration testing environment
