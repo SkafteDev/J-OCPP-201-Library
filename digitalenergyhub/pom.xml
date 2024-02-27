@@ -47,6 +47,7 @@
         <pluginManagement>
             <plugins>
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+                <!-- Surefire is needed to ensure that tests are executed properly in CI/CD -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
