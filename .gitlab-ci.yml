@@ -57,14 +57,16 @@ tests:integration:
   before_script:
     - 'docker info'
     - 'docker compose version'
-    - 'docker compose -f infrastructure/compose-yml create --remove-orphans' # Creates the containers and removes orphans (old unused containers).
-    - 'docker compose -f infrastructure/compose-yml up  --timestamps --wait --wait-timeout 30' # Spin up integration testing environment
+    - 'docker compose -f infrastructure/compose.yml create --remove-orphans' # Creates the containers and removes orphans (old unused containers).
+    - 'docker compose -f infrastructure/compose.yml up  --timestamps --wait --wait-timeout 30' # Spin up integration testing environment
   script:
     # Reference:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/integration/** matches all test classes located within folders named integration.
     - 'mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
+  after_script:
+    - 'docker compose -f infrastructure/compose.yml down'
 
 deploy_to_gitlab:
   stage: Deploy
