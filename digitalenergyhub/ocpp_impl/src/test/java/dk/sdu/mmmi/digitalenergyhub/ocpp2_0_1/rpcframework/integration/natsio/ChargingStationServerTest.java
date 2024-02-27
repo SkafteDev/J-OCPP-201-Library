@@ -35,7 +35,7 @@ public class ChargingStationServerTest {
     private IChargingStationServer<Connection, Dispatcher> csServerImpl;
 
     @BeforeEach
-    void setup_chargingstation() {
+    void setup_chargingstation_and_connect_to_nats() {
         Connection natsConnection = getNatsConnection();
 
         ChargingStation basicCsInfo = ChargingStation.builder()

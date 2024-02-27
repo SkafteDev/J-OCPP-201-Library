@@ -34,7 +34,7 @@ public class ChargingStationClientTest {
     private ChargingStationManagementServerImpl csmsImpl;
 
     @BeforeEach
-    void setup_csms() {
+    void setup_and_connect_csms_to_nats() {
         /*
          * Set up a new management system that can respond to incoming messages.
          */
