@@ -3,6 +3,7 @@ image: maven:3.8.6-openjdk-11
 stages:
   - Compile
   - Build
+  - Deploy
 
 # The cache is updated after each step and serves the
 # purpose o data-sharing between steps.
@@ -34,3 +35,11 @@ maven_install:
   script:
     - 'cd $PROJECT_DIR'
     - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean install -DskipTests'
+
+
+deploy_to_gitlab:
+  stage: Deploy
+  script: # gitlab-maven refers to a specific server in the settings.xml
+    - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean deploy -DaltDeploymentRepository=gitlab-maven::default::${DEPLOY_URL}'
+  only:
+    - master

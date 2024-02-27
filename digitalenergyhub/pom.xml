@@ -9,16 +9,36 @@
     <version>0.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <!-- Sub modules -->
-    <modules>
-        <module>ocpp_schemas</module>
-        <module>ocpp_impl</module>
-    </modules>
-
     <!-- Global properties -->
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gitlab.packages.url>https://gitlab.sdu.dk/api/v4/projects/7130/packages/maven</gitlab.packages.url>
     </properties>
+
+    <!-- Distribution management (publishing JARs to GitLab)-->
+    <repositories>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>${gitlab.packages.url}</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>${gitlab.packages.url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitlab-maven</id>
+            <url>${gitlab.packages.url}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+    <!-- Sub modules -->
+    <modules>
+        <module>ocpp_schemas</module>
+        <module>ocpp_impl</module>
+    </modules>
 </project>
