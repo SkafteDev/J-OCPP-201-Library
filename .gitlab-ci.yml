@@ -65,7 +65,7 @@ tests:integration:
     # -am will make all the other sub-modules.
     # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
     # -Dtest=**/integration/** matches all test classes located within folders named integration.
-    - 'docker run --network nats_network -v $PWD:/app -w /app maven:3.8.6-openjdk-11 mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
+    - 'docker run -v $PWD:/app -w /app maven:3.8.6-openjdk-11 mvn $MAVEN_CLI_OPTS test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
   after_script:
     - 'docker compose -f infrastructure/compose.yml down'
 
