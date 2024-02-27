@@ -3,6 +3,7 @@ image: maven:3.8.6-openjdk-11
 stages:
   - Compile
   - Build
+  - Tests
   - Deploy
 
 # The cache is updated after each step and serves the
@@ -36,6 +37,25 @@ maven_install:
     - 'cd $PROJECT_DIR'
     - 'mvn $MAVEN_M2 $MAVEN_OPTIONS clean install -DskipTests'
 
+unit_tests:
+  stage: Tests
+  script:
+    - 'cd $PROJECT_DIR'
+    # Reference:
+    # -am will make all the other sub-modules.
+    # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
+    # -Dtest=**/unit/** matches all test classes located within folders named unit.
+    - 'mvn test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/unit/** -am'
+
+integration_tests:
+  stage: Tests
+  script:
+    - 'cd $PROJECT_DIR'
+    # Reference:
+    # -am will make all the other sub-modules.
+    # -DfailIfNoTests=false does not fail the entire process since we are not intending to run tests in other modules.
+    # -Dtest=**/integration/** matches all test classes located within folders named integration.
+    - 'mvn test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=**/integration/** -am'
 
 deploy_to_gitlab:
   stage: Deploy
