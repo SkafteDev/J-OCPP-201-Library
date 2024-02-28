@@ -4,7 +4,7 @@ services:
   middleware_messaging:
     image: nats:latest
     container_name: nats-server
-    restart: no
+    restart: "no"
     # Enable JetStream, configure the HTTP management port.
     command: --jetstream --store_dir /data/jetstream --http_port 8222 -c /container/configs/nats.conf
     ports:
@@ -20,7 +20,7 @@ services:
   middleware_messaging_inspector:
     image: ulexxander/nats-inspector:latest
     container_name: nats-inspector
-    restart: no
+    restart: "no"
     ports:
       - "6223:80" # HTTP management port for information reporting.
     networks:
