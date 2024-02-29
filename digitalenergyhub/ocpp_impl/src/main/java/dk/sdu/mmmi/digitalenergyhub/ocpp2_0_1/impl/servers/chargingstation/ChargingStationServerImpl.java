@@ -2,39 +2,40 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.dispatching.IDispatcher;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.NatsRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import io.nats.client.Connection;
-import io.nats.client.Dispatcher;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class ChargingStationServerImpl implements IChargingStationServer<Connection, Dispatcher> {
+public class ChargingStationServerImpl implements IOCPPServer {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final IMessageRouteResolver msgRouteResolver;
 
     protected Connection natsConnection;
 
-    protected Map<OCPPMessageType, IDispatcher<Connection, Dispatcher>> dispatchers;
+    protected Map<OCPPMessageType, NatsRequestHandler<?, ?>> requestHandlers;
 
     public ChargingStationServerImpl(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
         this.natsConnection = natsConnection;
         this.msgRouteResolver = msgRouteResolver;
-        this.dispatchers = new HashMap<>();
+        this.requestHandlers = new HashMap<>();
     }
 
     @Override
-    public void addDispatcher(OCPPMessageType requestType, IDispatcher<Connection, Dispatcher> dispatcher) {
-        if (dispatchers.containsKey(requestType)) {
+    public <IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> void addRequestHandler(OCPPMessageType requestType, NatsRequestHandler<IN, OUT> requestHandler) {
+        if (requestHandlers.containsKey(requestType)) {
             logger.warning(String.format("Dispatcher for OCPPMessageType=%s already exists. Aborting.", requestType.getValue()));
             return;
         }
 
         logger.warning(String.format("Added dispatcher for OCPPMessageType=%s.", requestType.getValue()));
-        dispatcher.register(natsConnection);
-        this.dispatchers.put(requestType, dispatcher);
+        requestHandler.register(natsConnection);
+        this.requestHandlers.put(requestType, requestHandler);
     }
 
     public IMessageRouteResolver getMsgRouteResolver() {

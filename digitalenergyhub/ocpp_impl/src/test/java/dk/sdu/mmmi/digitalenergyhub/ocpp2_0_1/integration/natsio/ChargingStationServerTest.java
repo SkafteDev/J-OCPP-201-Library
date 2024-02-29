@@ -3,10 +3,10 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.integration.natsio;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.CsmsClientImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigs;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
@@ -15,7 +15,6 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessag
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
-import io.nats.client.Dispatcher;
 import io.nats.client.Nats;
 import io.nats.client.Options;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,18 +30,18 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class ChargingStationServerTest {
     private static final String CS_ID = "ce2b8b0e-db26-4643-a705-c848fab64327";
 
-    private IChargingStationServer<Connection, Dispatcher> csServerImpl;
+    private IOCPPServer csServerImpl;
 
     @BeforeEach
     void setup_chargingstation_and_connect_to_nats() {
         URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
-        String brokerUrl = brokerConnectorConfigs.getConfigFromCsId(CS_ID).getBrokerUrl();
+        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        String brokerUrl = brokerConnectorLookup.getConfigFromCsId(CS_ID).getBrokerUrl();
         Connection natsConnection = getNatsConnection(brokerUrl);
-        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
+        IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
 
         csServerImpl = new ChargingStationServerImpl(natsConnection, routeResolver);
-        csServerImpl.addDispatcher(OCPPMessageType.SetChargingProfileRequest,
+        csServerImpl.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(csServerImpl.getMsgRouteResolver()));
     }
 
@@ -73,9 +72,9 @@ public class ChargingStationServerTest {
     @Test
     void integration_ChargingStationServer_handle_SetChargingProfileRequest() {
         URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
-        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
-        String brokerUrl = brokerConnectorConfigs.getConfigFromCsId(CS_ID).getBrokerUrl();
+        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
+        String brokerUrl = brokerConnectorLookup.getConfigFromCsId(CS_ID).getBrokerUrl();
 
         ICsmsClientApi csmsClientApi = new CsmsClientImpl(getNatsConnection(brokerUrl), routeResolver);
 

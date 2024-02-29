@@ -6,7 +6,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverIm
 import java.util.List;
 import java.util.Optional;
 
-public class BrokerConnectorConfigs {
+public class BrokerConnectorConfigs implements IBrokerConnectorConfigs {
     private List<BrokerConnectorConfig> brokerConnectorConfigs;
 
     // Getters and setters
@@ -18,6 +18,7 @@ public class BrokerConnectorConfigs {
         this.brokerConnectorConfigs = brokerConnectorConfigs;
     }
 
+    @Override
     public IMessageRouteResolver getChargingStationRouteResolver(String csId) {
         Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
                 .filter(
@@ -36,6 +37,7 @@ public class BrokerConnectorConfigs {
         );
     }
 
+    @Override
     public BrokerConnectorConfig getConfigFromCsId(String csId) {
         Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
                 .filter(
@@ -50,6 +52,7 @@ public class BrokerConnectorConfigs {
         return matchingEntry.get();
     }
 
+    @Override
     public BrokerConnectorConfig getConfigFromCsmsId(String csmsId) {
         Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
                 .filter(
@@ -64,6 +67,7 @@ public class BrokerConnectorConfigs {
         return matchingEntry.get();
     }
 
+    @Override
     public IMessageRouteResolver getCsmsRouteResolver(String csmsId) {
         Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
                 .filter(

@@ -2,12 +2,11 @@ package dk.sdu.mmmi.application.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationClientNatsIo;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Nats;
@@ -20,13 +19,13 @@ import java.util.logging.Logger;
 public class ChargingStationConnector {
 
     private final IChargingStationClientApi csApi;
-    private final IChargingStationServer<Connection, Dispatcher> csServer;
+    private final IOCPPServer csServer;
     private final Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationConnector.class.getName());
 
     public ChargingStationConnector(IChargingStationClientApi clientApi,
-                                    IChargingStationServer<Connection, Dispatcher> server,
+                                    IOCPPServer server,
                                     Connection natsConnection) {
         this.csApi = clientApi;
         this.csServer = server;
@@ -41,7 +40,7 @@ public class ChargingStationConnector {
         return this.csApi;
     }
 
-    public IChargingStationServer<Connection, Dispatcher> getChargingStationServer() {
+    public IOCPPServer getChargingStationServer() {
         return this.csServer;
     }
 
@@ -50,43 +49,30 @@ public class ChargingStationConnector {
     }
 
     public static class ChargingStationConnectorBuilder {
-        private String operatorId;
-        private String csmsId;
         private String csId;
-        private String natsConnectionUrl;
-        private IMessageRouteResolver resolver;
-
-        public ChargingStationConnectorBuilder withOperatorId(String operatorId) {
-            this.operatorId = operatorId;
-            return this;
-        }
-
-        public ChargingStationConnectorBuilder withCsmsId(String csmsId) {
-            this.csmsId = csmsId;
-            return this;
-        }
+        private IBrokerConnectorConfigs configs;
 
         public ChargingStationConnectorBuilder withCsId(String csId) {
             this.csId = csId;
             return this;
         }
 
-        public ChargingStationConnectorBuilder withMessageRouteResolver(IMessageRouteResolver resolver) {
-            this.resolver = resolver;
-            return this;
-        }
-
-        public ChargingStationConnectorBuilder withNatsConnectionUrl(String natsConnectionUrl) {
-            this.natsConnectionUrl = natsConnectionUrl;
+        public ChargingStationConnectorBuilder withBrokerConnectorConfigs(IBrokerConnectorConfigs configs) {
+            this.configs = configs;
             return this;
         }
 
         public ChargingStationConnector build() {
+            if (csId == null) throw new IllegalArgumentException("Charging Station ID must not be null. Provide a Charging Station Id.");
+            if (configs == null) throw new IllegalArgumentException("BrokerConnectorConfigs must not be null. Provide a BrokerConnectorConfigs");
+
+            BrokerConnectorConfig csBrokerConnectorConfig = configs.getConfigFromCsId(csId);
+
             try {
                 Options natsOptions = Options.builder()
-                        .server(natsConnectionUrl)
+                        .server(csBrokerConnectorConfig.getBrokerUrl())
                         .connectionName(String.format("Charging Station Server operatorId=%s csmsId=%s csId=%s",
-                                operatorId, csmsId, csId))
+                                csBrokerConnectorConfig.getOperatorId(), csBrokerConnectorConfig.getCsmsId(), csId))
                         .connectionTimeout(Duration.ofMinutes(2))
                         .connectionListener((connection, eventType) -> {
                             logger.info(String.format("NATS.io connection event: %s%n", eventType));
@@ -95,9 +81,10 @@ public class ChargingStationConnector {
 
                 Connection natsClientConnection = Nats.connect(natsOptions);
 
-                IChargingStationServer server = new ChargingStationServerImpl(natsClientConnection, null);
-                IMessageRouteResolver routingMap = new MessageRouteResolverImpl(operatorId, csmsId, csId);
-                IChargingStationClientApi clientApi = new ChargingStationClientNatsIo(natsClientConnection, routingMap);
+                IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
+
+                IOCPPServer server = new ChargingStationServerImpl(natsClientConnection, csRouteResolver);
+                IChargingStationClientApi clientApi = new ChargingStationClientNatsIo(natsClientConnection, csRouteResolver);
 
                 return new ChargingStationConnector(clientApi, server, natsClientConnection);
             } catch (IOException | InterruptedException e) {

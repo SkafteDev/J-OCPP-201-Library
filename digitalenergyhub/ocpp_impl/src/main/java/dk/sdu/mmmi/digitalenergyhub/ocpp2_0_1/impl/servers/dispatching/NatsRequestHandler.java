@@ -14,7 +14,7 @@ import io.nats.client.impl.NatsMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> implements IDispatcher<Connection, Dispatcher> {
+public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> {
     private final Logger logger = Logger.getLogger(NatsRequestHandler.class.getName());
     private final Class<?> inboundPayloadType;
     private final Class<?> outboundPayloadType;
@@ -26,7 +26,6 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
         this.outboundPayloadType = outPayloadType;
     }
 
-    @Override
     public Dispatcher register(Connection natsConnection) {
         if (dispatcher != null) return dispatcher;
 
@@ -57,12 +56,10 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
         return dispatcher;
     }
 
-    @Override
     public void unregister() {
         dispatcher.unsubscribe(getInboundMessageRoute());
     }
-
-    @Override
+    
     public Dispatcher getDispatcher() {
         return dispatcher;
     }

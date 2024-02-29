@@ -6,8 +6,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationClientNatsIo;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigs;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.ChargingStationManagementServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
@@ -37,8 +36,8 @@ public class ChargingStationClientTest {
     @BeforeEach
     void setup_and_connect_csms_to_nats() {
         URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
-        BrokerConnectorConfig csmsConnectorConfig = brokerConnectorConfigs.getConfigFromCsmsId(CSMS_ID);
+        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        BrokerConnectorConfig csmsConnectorConfig = brokerConnectorLookup.getConfigFromCsmsId(CSMS_ID);
 
         /*
          * Set up a new management system that can respond to incoming messages.
@@ -67,12 +66,12 @@ public class ChargingStationClientTest {
     @Test
     void integration_cs_to_csms_BootNotificationRequest() {
         URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
-        BrokerConnectorConfig csConnectorConfig = brokerConnectorConfigs.getConfigFromCsId(CS_ID);
+        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        BrokerConnectorConfig csConnectorConfig = brokerConnectorLookup.getConfigFromCsId(CS_ID);
 
         Connection natsConnection = getNatsConnection(csConnectorConfig.getBrokerUrl());
 
-        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
+        IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
 
         IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routeResolver);
 
@@ -108,12 +107,12 @@ public class ChargingStationClientTest {
     @Test
     void integration_cs_to_csms_StatusNotificationRequest() {
         URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
-        BrokerConnectorConfig csConnectorConfig = brokerConnectorConfigs.getConfigFromCsId(CS_ID);
+        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        BrokerConnectorConfig csConnectorConfig = brokerConnectorLookup.getConfigFromCsId(CS_ID);
 
         Connection natsConnection = getNatsConnection(csConnectorConfig.getBrokerUrl());
 
-        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
+        IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
 
         IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routeResolver);
 

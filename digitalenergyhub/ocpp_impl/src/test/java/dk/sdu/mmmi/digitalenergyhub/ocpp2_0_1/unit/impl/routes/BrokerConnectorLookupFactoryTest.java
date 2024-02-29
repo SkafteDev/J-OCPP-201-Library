@@ -2,15 +2,16 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.unit.impl.routes;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigs;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class BrokerConnectorConfigsFactoryTest {
+class BrokerConnectorLookupFactoryTest {
 
     private static final String resourceFile = "RoutingConfigs/brokerConnectorConfigs.yml";
 
@@ -20,7 +21,7 @@ class BrokerConnectorConfigsFactoryTest {
     void unit_generate_charging_station_routing_map_from_yaml() {
         URL resource = getResource(resourceFile);
 
-        BrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        IBrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
 
         IMessageRouteResolver routes = configs.getChargingStationRouteResolver(csIdSearchCriteria);
 
@@ -40,7 +41,7 @@ class BrokerConnectorConfigsFactoryTest {
     void unit_generate_routing_map_from_yaml_for_non_existing_charging_station() {
         URL resource = getResource(resourceFile);
 
-        BrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        IBrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
 
         assertThrows(BrokerConnectorConfigs.ChargingStationIdNotFoundException.class,
                 () -> configs.getChargingStationRouteResolver("non-existent charging station id"));
@@ -51,7 +52,7 @@ class BrokerConnectorConfigsFactoryTest {
     void unit_generate_csms_routing_map_from_yaml() {
         URL resource = getResource(resourceFile);
 
-        BrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        IBrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
 
         IMessageRouteResolver routes = configs.getCsmsRouteResolver("Clever CSMS");
 
@@ -71,7 +72,7 @@ class BrokerConnectorConfigsFactoryTest {
     void unit_generate_routing_map_from_yaml_for_non_existing_charging_station_management_system() {
         URL resource = getResource(resourceFile);
 
-        BrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        IBrokerConnectorConfigs configs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
 
         assertThrows(BrokerConnectorConfigs.ChargingStationManagementSystemIdNotFoundException.class,
                 () -> configs.getCsmsRouteResolver("non-existent charging station id"));
@@ -79,7 +80,7 @@ class BrokerConnectorConfigsFactoryTest {
     }
 
     private static URL getResource(String resourcePath) {
-        ClassLoader classLoader = BrokerConnectorConfigsFactoryTest.class.getClassLoader();
+        ClassLoader classLoader = BrokerConnectorLookupFactoryTest.class.getClassLoader();
         URL resourceUrl = classLoader.getResource(resourceFile);
 
         if (resourceUrl == null) {

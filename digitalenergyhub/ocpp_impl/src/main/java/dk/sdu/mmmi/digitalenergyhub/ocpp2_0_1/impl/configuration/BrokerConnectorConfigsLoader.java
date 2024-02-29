@@ -9,7 +9,7 @@ public class BrokerConnectorConfigsLoader {
 
     private BrokerConnectorConfigsLoader() {}
 
-    public static BrokerConnectorConfigs loadBrokerConnectionConfigs(String pathName) {
+    public static IBrokerConnectorConfigs fromYAML(String pathName) {
         Yaml yaml = new Yaml();
 
         try(FileInputStream inputStream = new FileInputStream(pathName)) {
