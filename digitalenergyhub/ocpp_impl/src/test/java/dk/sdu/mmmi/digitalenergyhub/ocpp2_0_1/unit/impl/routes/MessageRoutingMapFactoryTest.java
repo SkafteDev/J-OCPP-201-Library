@@ -1,11 +1,10 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.unit.impl.routes;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapFactory;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,6 +58,15 @@ class MessageRoutingMapFactoryTest {
         );
 
         assertEquals(expectedRoute, actualRoute);
+    }
+
+    @Test
+    void unit_generate_routing_map_from_yaml_for_non_existing_charging_station_management_system() {
+        URL resource = getResource(resourceFile);
+
+        assertThrows(MessageRoutingMapFactory.ChargingStationManagementSystemIdNotFoundException.class,
+                () -> MessageRoutingMapFactory.csmsRoutesFromYaml(resource.getPath(), "non-existent charging station id"));
+
     }
 
     private static URL getResource(String resourcePath) {

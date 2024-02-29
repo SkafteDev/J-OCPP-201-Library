@@ -34,7 +34,7 @@ public class MessageRoutingMapFactory {
         Optional<Entry> matchingEntry = rootObject.entries.stream().filter(entry -> entry.csmsId.equals(csmsId)).findFirst();
 
         if (matchingEntry.isEmpty()) {
-            throw new RuntimeException("The Charging Station Management Id was not found within the file. Make sure to provide a valid id contained within the file.");
+            throw new ChargingStationManagementSystemIdNotFoundException("The Charging Station Management Id was not found within the file. Make sure to provide a valid id contained within the file.");
         }
 
         return new MessageRoutingMapImpl(
@@ -103,6 +103,16 @@ public class MessageRoutingMapFactory {
         }
 
         public ChargingStationIdNotFoundException(String msg, Throwable cause) {
+            super(msg, cause);
+        }
+    }
+
+    public static class ChargingStationManagementSystemIdNotFoundException extends RuntimeException {
+        public ChargingStationManagementSystemIdNotFoundException(String msg) {
+            super(msg);
+        }
+
+        public ChargingStationManagementSystemIdNotFoundException(String msg, Throwable cause) {
             super(msg, cause);
         }
     }
