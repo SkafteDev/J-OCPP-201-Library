@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.application.csms;
+package dk.sdu.mmmi.application.csms;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.ChargingStationManagementServerImpl;
