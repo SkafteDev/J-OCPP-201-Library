@@ -1,15 +1,15 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.unit.impl.routes;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapFactory;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverFactory;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MessageRoutingMapFactoryTest {
+class MessageRouteResolverFactoryTest {
 
     private static final String resourceFile = "RoutingConfigs/routingConfigExample.yml";
 
@@ -19,7 +19,7 @@ class MessageRoutingMapFactoryTest {
     void unit_generate_charging_station_routing_map_from_yaml() {
         URL resource = getResource(resourceFile);
 
-        IMessageRoutingMap routes = MessageRoutingMapFactory.chargingStationRoutesFromYaml(resource.getPath(), csIdSearchCriteria);
+        IMessageRouteResolver routes = MessageRouteResolverFactory.chargingStationRoutesFromYaml(resource.getPath(), csIdSearchCriteria);
 
         String actualRoute = routes.getRoute(OCPPMessageType.BootNotificationRequest);
 
@@ -37,8 +37,8 @@ class MessageRoutingMapFactoryTest {
     void unit_generate_routing_map_from_yaml_for_non_existing_charging_station() {
         URL resource = getResource(resourceFile);
 
-        assertThrows(MessageRoutingMapFactory.ChargingStationIdNotFoundException.class,
-                () -> MessageRoutingMapFactory.chargingStationRoutesFromYaml(resource.getPath(), "non-existent charging station id"));
+        assertThrows(MessageRouteResolverFactory.ChargingStationIdNotFoundException.class,
+                () -> MessageRouteResolverFactory.chargingStationRoutesFromYaml(resource.getPath(), "non-existent charging station id"));
 
     }
 
@@ -46,7 +46,7 @@ class MessageRoutingMapFactoryTest {
     void unit_generate_csms_routing_map_from_yaml() {
         URL resource = getResource(resourceFile);
 
-        IMessageRoutingMap routes = MessageRoutingMapFactory.csmsRoutesFromYaml(resource.getPath(), "Clever CSMS");
+        IMessageRouteResolver routes = MessageRouteResolverFactory.csmsRoutesFromYaml(resource.getPath(), "Clever CSMS");
 
         String actualRoute = routes.getRoute(OCPPMessageType.BootNotificationRequest);
 
@@ -64,13 +64,13 @@ class MessageRoutingMapFactoryTest {
     void unit_generate_routing_map_from_yaml_for_non_existing_charging_station_management_system() {
         URL resource = getResource(resourceFile);
 
-        assertThrows(MessageRoutingMapFactory.ChargingStationManagementSystemIdNotFoundException.class,
-                () -> MessageRoutingMapFactory.csmsRoutesFromYaml(resource.getPath(), "non-existent charging station id"));
+        assertThrows(MessageRouteResolverFactory.ChargingStationManagementSystemIdNotFoundException.class,
+                () -> MessageRouteResolverFactory.csmsRoutesFromYaml(resource.getPath(), "non-existent charging station id"));
 
     }
 
     private static URL getResource(String resourcePath) {
-        ClassLoader classLoader = MessageRoutingMapFactoryTest.class.getClassLoader();
+        ClassLoader classLoader = MessageRouteResolverFactoryTest.class.getClassLoader();
         URL resourceUrl = classLoader.getResource(resourceFile);
 
         if (resourceUrl == null) {

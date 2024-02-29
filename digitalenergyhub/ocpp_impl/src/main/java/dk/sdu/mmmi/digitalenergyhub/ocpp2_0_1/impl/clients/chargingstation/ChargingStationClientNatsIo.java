@@ -3,8 +3,7 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
@@ -28,9 +27,9 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
     private final Connection natsConnection;
     private final Duration defaultTimeout = Duration.ofSeconds(30);
 
-    private final IMessageRoutingMap messageRoutingMap;
+    private final IMessageRouteResolver messageRoutingMap;
 
-    public ChargingStationClientNatsIo(Connection natsConnection, IMessageRoutingMap routingMap) {
+    public ChargingStationClientNatsIo(Connection natsConnection, IMessageRouteResolver routingMap) {
         this.natsConnection = natsConnection;
         this.messageRoutingMap = routingMap;
     }
@@ -234,7 +233,7 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
     }
 
     @Override
-    public IMessageRoutingMap getMessageRoutingMap() {
+    public IMessageRouteResolver getMessageRoutingMap() {
         return null;
     }
 }

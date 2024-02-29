@@ -3,7 +3,7 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
@@ -22,9 +22,9 @@ import java.util.logging.Logger;
 public class CsmsClientImpl implements ICsmsClientApi {
     private final Logger logger = Logger.getLogger(CsmsClientImpl.class.getName());
     private final Connection natsConnection;
-    private final IMessageRoutingMap routingMap;
+    private final IMessageRouteResolver routingMap;
 
-    public CsmsClientImpl(Connection natsConnection, IMessageRoutingMap routingMap) {
+    public CsmsClientImpl(Connection natsConnection, IMessageRouteResolver routingMap) {
         this.natsConnection = natsConnection;
         this.routingMap = routingMap;
     }

@@ -2,10 +2,10 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -34,7 +34,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private final String operatorId;
     private final String csmsId;
-    private final IMessageRoutingMap routingMap;
+    private final IMessageRouteResolver routingMap;
 
     private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
 
@@ -44,7 +44,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         this.operatorId = operatorId;
         this.csmsId = csmsId;
         this.natsConnection = natsConnection;
-        this.routingMap = new MessageRoutingMapImpl(operatorId, csmsId, "*");
+        this.routingMap = new MessageRouteResolverImpl(operatorId, csmsId, "*");
         this.chargingStationRegistry = new HashMap<>();
     }
 

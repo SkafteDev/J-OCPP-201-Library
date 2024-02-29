@@ -1,11 +1,11 @@
 package dk.sdu.mmmi.application.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationClientNatsIo;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.ChargingStation;
 import io.nats.client.Connection;
@@ -129,7 +129,7 @@ public class ChargingStationFacade {
                 Connection natsClientConnection = Nats.connect(natsOptions);
 
                 IChargingStationServer server = new ChargingStationServerImpl(csDeviceModel, natsClientConnection);
-                IMessageRoutingMap routingMap = new MessageRoutingMapImpl(operatorId, csmsId, csId);
+                IMessageRouteResolver routingMap = new MessageRouteResolverImpl(operatorId, csmsId, csId);
                 IChargingStationClientApi clientApi = new ChargingStationClientNatsIo(natsClientConnection, routingMap);
 
                 return new ChargingStationFacade(clientApi, server, natsClientConnection, csDeviceModel);

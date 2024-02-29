@@ -13,6 +13,6 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
  * BootNotificationResponse
  * etc.
  */
-public interface IMessageRoutingMap {
+public interface IMessageRouteResolver {
     String getRoute(OCPPMessageType msgType);
 }

@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.dispatching.IDispatcher;
 
 /**
@@ -13,5 +13,5 @@ public interface IChargingStationServer<C, D>  {
 
     void addDispatcher(OCPPMessageType msgType, IDispatcher<C, D> dispatcher);
 
-    IMessageRoutingMap getRoutingMap();
+    IMessageRouteResolver getRoutingMap();
 }

@@ -2,11 +2,11 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.CsmsClientImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRoutingMapImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
@@ -66,7 +66,7 @@ public class ChargingStationServerTest {
 
     @Test
     void integration_ChargingStationServer_handle_SetChargingProfileRequest() {
-        IMessageRoutingMap routingMap = new MessageRoutingMapImpl(OPERATOR_ID, CSMS_ID, CS_ID);
+        IMessageRouteResolver routingMap = new MessageRouteResolverImpl(OPERATOR_ID, CSMS_ID, CS_ID);
         ICsmsClientApi csmsClientApi = new CsmsClientImpl(getNatsConnection(), routingMap);
 
         ChargingProfile chargingProfile = getChargingProfile();

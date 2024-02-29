@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
@@ -49,5 +49,5 @@ public interface IChargingStationClientApi {
      * This operation returns a message routing map that can be used to look up the route for a specific message type.
      * @return
      */
-    IMessageRoutingMap getMessageRoutingMap();
+    IMessageRouteResolver getMessageRoutingMap();
 }

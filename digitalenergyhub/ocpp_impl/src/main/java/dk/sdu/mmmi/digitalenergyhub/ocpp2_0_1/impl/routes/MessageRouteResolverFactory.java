@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-public class MessageRoutingMapFactory {
+public class MessageRouteResolverFactory {
 
-    private MessageRoutingMapFactory() {}
+    private MessageRouteResolverFactory() {}
 
-    public static IMessageRoutingMap chargingStationRoutesFromYaml(String pathName, String csId) {
+    public static IMessageRouteResolver chargingStationRoutesFromYaml(String pathName, String csId) {
         RootObject rootObject = getRootObject(pathName);
 
         Optional<Entry> matchingEntry = rootObject.entries.stream().filter(entry -> entry.chargingStationIds.contains(csId)).findFirst();
@@ -21,14 +21,14 @@ public class MessageRoutingMapFactory {
             throw new ChargingStationIdNotFoundException("The Charging Station Id was not found within the file. Make sure to provide a valid id contained within the file.");
         }
 
-        return new MessageRoutingMapImpl(
+        return new MessageRouteResolverImpl(
                 matchingEntry.get().operatorId,
                 matchingEntry.get().csmsId,
                 csId
         );
     }
 
-    public static IMessageRoutingMap csmsRoutesFromYaml(String pathName, String csmsId) {
+    public static IMessageRouteResolver csmsRoutesFromYaml(String pathName, String csmsId) {
         RootObject rootObject = getRootObject(pathName);
 
         Optional<Entry> matchingEntry = rootObject.entries.stream().filter(entry -> entry.csmsId.equals(csmsId)).findFirst();
@@ -37,7 +37,7 @@ public class MessageRoutingMapFactory {
             throw new ChargingStationManagementSystemIdNotFoundException("The Charging Station Management Id was not found within the file. Make sure to provide a valid id contained within the file.");
         }
 
-        return new MessageRoutingMapImpl(
+        return new MessageRouteResolverImpl(
                 matchingEntry.get().operatorId,
                 matchingEntry.get().csmsId,
                 "*"

@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessageImpl;
@@ -17,9 +17,9 @@ public class SetChargingProfileRequestHandler
 
     private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
 
-    private final IMessageRoutingMap routingMap;
+    private final IMessageRouteResolver routingMap;
 
-    public SetChargingProfileRequestHandler(IMessageRoutingMap routingMap) {
+    public SetChargingProfileRequestHandler(IMessageRouteResolver routingMap) {
         super(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
         this.routingMap = routingMap;
     }
