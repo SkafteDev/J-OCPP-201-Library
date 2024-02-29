@@ -39,6 +39,13 @@
         </dependency>
 
 
+        <!-- YAML parser for reading configuration files -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
+        </dependency>
+
         <!-- Unit test framework -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

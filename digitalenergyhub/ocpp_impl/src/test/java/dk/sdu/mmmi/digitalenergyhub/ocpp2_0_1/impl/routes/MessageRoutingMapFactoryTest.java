@@ -1,0 +1,74 @@
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes;
+
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRoutingMap;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class MessageRoutingMapFactoryTest {
+
+    private static final String resourceFile = "RoutingConfigs/routingConfigExample.yml";
+
+    private static final String csIdSearchCriteria = "505f0da2-d44a-43bb-bf19-7ed392bc36a7";
+
+    @Test
+    void unit_generate_charging_station_routing_map_from_yaml() {
+        URL resource = getResource(resourceFile);
+
+        IMessageRoutingMap routes = MessageRoutingMapFactory.chargingStationRoutesFromYaml(resource.getPath(), csIdSearchCriteria);
+
+        String actualRoute = routes.getRoute(OCPPMessageType.BootNotificationRequest);
+
+        String expectedRoute = String.format("operators.%s.csms.%s.cs.%s.requests.%s",
+                "ewii",
+                "ewiicsms",
+                csIdSearchCriteria,
+                OCPPMessageType.BootNotificationRequest.getValue().toLowerCase()
+        );
+
+        assertEquals(expectedRoute, actualRoute);
+    }
+
+    @Test
+    void unit_generate_routing_map_from_yaml_for_non_existing_charging_station() {
+        URL resource = getResource(resourceFile);
+
+        assertThrows(MessageRoutingMapFactory.ChargingStationIdNotFoundException.class,
+                () -> MessageRoutingMapFactory.chargingStationRoutesFromYaml(resource.getPath(), "non-existent charging station id"));
+
+    }
+
+    @Test
+    void unit_generate_csms_routing_map_from_yaml() {
+        URL resource = getResource(resourceFile);
+
+        IMessageRoutingMap routes = MessageRoutingMapFactory.csmsRoutesFromYaml(resource.getPath(), "Clever CSMS");
+
+        String actualRoute = routes.getRoute(OCPPMessageType.BootNotificationRequest);
+
+        String expectedRoute = String.format("operators.%s.csms.%s.cs.%s.requests.%s",
+                "clever",
+                "clevercsms",
+                "*",
+                OCPPMessageType.BootNotificationRequest.getValue().toLowerCase()
+        );
+
+        assertEquals(expectedRoute, actualRoute);
+    }
+
+    private static URL getResource(String resourcePath) {
+        ClassLoader classLoader = MessageRoutingMapFactoryTest.class.getClassLoader();
+        URL resourceUrl = classLoader.getResource(resourceFile);
+
+        if (resourceUrl == null) {
+            fail(String.format("Could not read input resource file: %s. Ensure that the file exists.", resourceFile));
+        }
+
+        return resourceUrl;
+    }
+}

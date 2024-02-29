@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.digitalenergyhub.application.chargingstation;
+package dk.sdu.mmmi.application.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
