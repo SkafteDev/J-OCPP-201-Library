@@ -1,7 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.dispatching.IDispatcher;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallMessageDeserializer;
@@ -14,14 +13,14 @@ import io.nats.client.impl.NatsMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> {
-    private final Logger logger = Logger.getLogger(NatsRequestHandler.class.getName());
-    private final Class<?> inboundPayloadType;
-    private final Class<?> outboundPayloadType;
+public abstract class OCPPRequestHandler<IN, OUT> {
+    private final Logger logger = Logger.getLogger(OCPPRequestHandler.class.getName());
+    private final Class<IN> inboundPayloadType;
+    private final Class<OUT> outboundPayloadType;
 
     private Dispatcher dispatcher;
 
-    public NatsRequestHandler(Class<?> inPayloadType, Class<?> outPayloadType) {
+    public OCPPRequestHandler(Class<IN> inPayloadType, Class<OUT> outPayloadType) {
         this.inboundPayloadType = inPayloadType;
         this.outboundPayloadType = outPayloadType;
     }
@@ -35,12 +34,12 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
                     jsonPayload,
                     natsMsg.getSubject()));
 
-            IN callMessage = deserialize(jsonPayload);
+            ICallMessage<IN> callMessage = deserialize(jsonPayload);
 
             // Handle the message internally, e.g. update state, store in db, etc.
-            process(callMessage);
+            handle(callMessage);
 
-            OUT callResult = generateResponse(callMessage);
+            ICallResultMessage<OUT> callResult = generateResponse(callMessage);
 
             String jsonResponsePayload = serialize(callResult);
 
@@ -64,8 +63,8 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
         return dispatcher;
     }
 
-    public IN deserialize(String rawJsonPayload) {
-        ICallMessage<?> deserialized;
+    public ICallMessage<IN> deserialize(String rawJsonPayload) {
+        ICallMessage<IN> deserialized;
 
         try {
             deserialized = CallMessageDeserializer.deserialize(rawJsonPayload, inboundPayloadType);
@@ -73,14 +72,14 @@ public abstract class NatsRequestHandler<IN extends ICallMessage<?>, OUT extends
             throw new RuntimeException(e.getMessage(), e);
         }
 
-        return (IN) deserialized;
+        return deserialized;
     }
-    public abstract void process(IN message);
-    public abstract OUT generateResponse(IN message);
+    public abstract void handle(ICallMessage<IN> message);
+    public abstract ICallResultMessage<OUT> generateResponse(ICallMessage<IN> message);
 
-    public String serialize(OUT message) {
+    public String serialize(ICallResultMessage<OUT> message) {
         try {
-            return CallResultMessageSerializer.serialize((ICallResultMessage<?>) message);
+            return CallResultMessageSerializer.serialize(message);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

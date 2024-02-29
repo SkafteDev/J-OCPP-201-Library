@@ -3,9 +3,11 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.NatsRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.SetChargingProfileRequest;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.SetChargingProfileResponse;
 import io.nats.client.Connection;
 
 import java.util.HashMap;
@@ -18,7 +20,7 @@ public class ChargingStationServerImpl implements IOCPPServer {
 
     protected Connection natsConnection;
 
-    protected Map<OCPPMessageType, NatsRequestHandler<?, ?>> requestHandlers;
+    protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;
 
     public ChargingStationServerImpl(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
         this.natsConnection = natsConnection;
@@ -27,7 +29,7 @@ public class ChargingStationServerImpl implements IOCPPServer {
     }
 
     @Override
-    public <IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> void addRequestHandler(OCPPMessageType requestType, NatsRequestHandler<IN, OUT> requestHandler) {
+    public <IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> void addRequestHandler(OCPPMessageType requestType, OCPPRequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> requestHandler) {
         if (requestHandlers.containsKey(requestType)) {
             logger.warning(String.format("Dispatcher for OCPPMessageType=%s already exists. Aborting.", requestType.getValue()));
             return;

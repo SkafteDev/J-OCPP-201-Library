@@ -8,11 +8,12 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.Csms
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessageImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -284,5 +286,47 @@ public class ChargingStationServerTest {
                                         )).build()
                         ))
                 .build();
+    }
+
+    public static class SetChargingProfileRequestHandler
+            extends OCPPRequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
+
+        private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
+
+        private final IMessageRouteResolver routingMap;
+
+        public SetChargingProfileRequestHandler(IMessageRouteResolver routingMap) {
+            super(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
+            this.routingMap = routingMap;
+        }
+
+        @Override
+        public void handle(ICallMessage<SetChargingProfileRequest> callMessage) {
+            // Update the internal state
+            SetChargingProfileRequest requestPayload = callMessage.getPayload();
+            //this.chargingStationDeviceModel.setChargingProfile(requestPayload.getChargingProfile());
+            logger.info("Updated internal state...");
+        }
+
+        @Override
+        public ICallResultMessage<SetChargingProfileResponse> generateResponse(ICallMessage<SetChargingProfileRequest> callMessage) {
+            // TODO: Create response depending on the internal state...
+            SetChargingProfileResponse responsePayload = SetChargingProfileResponse.builder()
+                    .withStatus(ChargingProfileStatusEnum.ACCEPTED)
+                    .build();
+
+            ICallResultMessage<SetChargingProfileResponse> callResult =
+                    CallResultMessageImpl.<SetChargingProfileResponse>newBuilder()
+                            .withMessageId(callMessage.getMessageId()) // MessageId MUST be identical to the call.
+                            .withPayLoad(responsePayload)
+                            .build();
+
+            return callResult;
+        }
+
+        @Override
+        public String getInboundMessageRoute() {
+            return routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest);
+        }
     }
 }

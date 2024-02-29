@@ -15,7 +15,7 @@
 brokerConnectorConfigs:
   - brokerUrl: "nats://localhost:4222"
     operatorId: "Clever"
-    csmsId: "Clever CSMS"
+    csmsId: "Clever Central CSMS"
     chargingStationIds:
       - "b78bc5c2-2fc9-4c40-8664-82d069341b98"
       - "4b01493d-ec14-4c63-9c4d-7d6fce1278a7"

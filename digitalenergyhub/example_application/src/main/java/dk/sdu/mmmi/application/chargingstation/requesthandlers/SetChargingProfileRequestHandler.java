@@ -1,7 +1,8 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching;
+package dk.sdu.mmmi.application.chargingstation.requesthandlers;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessageImpl;
@@ -12,8 +13,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.SetChargingProfileRes
 import java.util.logging.Logger;
 
 public class SetChargingProfileRequestHandler
-        extends NatsRequestHandler<ICallMessage<SetChargingProfileRequest>,
-        ICallResultMessage<SetChargingProfileResponse>> {
+        extends OCPPRequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
 
     private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
 
@@ -25,7 +25,7 @@ public class SetChargingProfileRequestHandler
     }
 
     @Override
-    public void process(ICallMessage<SetChargingProfileRequest> callMessage) {
+    public void handle(ICallMessage<SetChargingProfileRequest> callMessage) {
         // Update the internal state
         SetChargingProfileRequest requestPayload = callMessage.getPayload();
         //this.chargingStationDeviceModel.setChargingProfile(requestPayload.getChargingProfile());
