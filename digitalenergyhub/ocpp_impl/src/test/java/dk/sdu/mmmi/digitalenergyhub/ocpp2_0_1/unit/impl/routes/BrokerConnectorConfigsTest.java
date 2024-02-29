@@ -11,7 +11,7 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class BrokerConnectorLookupFactoryTest {
+class BrokerConnectorConfigsTest {
 
     private static final String resourceFile = "RoutingConfigs/brokerConnectorConfigs.yml";
 
@@ -80,7 +80,7 @@ class BrokerConnectorLookupFactoryTest {
     }
 
     private static URL getResource(String resourcePath) {
-        ClassLoader classLoader = BrokerConnectorLookupFactoryTest.class.getClassLoader();
+        ClassLoader classLoader = BrokerConnectorConfigsTest.class.getClassLoader();
         URL resourceUrl = classLoader.getResource(resourceFile);
 
         if (resourceUrl == null) {
