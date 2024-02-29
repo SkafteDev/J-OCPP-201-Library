@@ -12,15 +12,17 @@
 #
 # All IDs must be globally unique. Otherwise, no guarantee is given on how the path is resolved.
 #
-entries:
-  - operatorId: "Clever"
+connectorConfig:
+  - brokerUrl: "nats://localhost:4222"
+    operatorId: "Clever"
     csmsId: "Clever CSMS"
     chargingStationIds:
       - "b78bc5c2-2fc9-4c40-8664-82d069341b98"
       - "4b01493d-ec14-4c63-9c4d-7d6fce1278a7"
       - "ce2b8b0e-db26-4643-a705-c848fab64327"
       - "cd61a524-925d-487f-9012-9c38a0d0e302"
-  - operatorId: "EWII"
+  - brokerUrl: "nats://localhost:4222"
+    operatorId: "EWII"
     csmsId: "EWII CSMS"
     chargingStationIds:
       - "f8125503-8d0f-467f-abad-b830ca6782e2"

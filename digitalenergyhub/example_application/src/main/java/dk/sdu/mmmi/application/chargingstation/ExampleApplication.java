@@ -11,14 +11,12 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 
-/**
- *
- */
 public class ExampleApplication {
     private static final String quitToken = "q";
 
     public static void main(String[] args) {
-        ChargingStationFacade csFacade = ChargingStationFacade.newBuilder()
+        /*
+        ChargingStationConnector csFacade = ChargingStationConnector.newBuilder()
                 .withOperatorId("Clever")
                 .withCsmsId("Clever Central CSMS")
                 .withCsId("DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1")
@@ -40,6 +38,7 @@ public class ExampleApplication {
                 .build();
 
         ICallResultMessage<BootNotificationResponse> bootNotificationResponseICallResultMessage = csFacade.getChargingStationApi().sendBootNotificationRequest(bootRequest);
+        */
 
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;

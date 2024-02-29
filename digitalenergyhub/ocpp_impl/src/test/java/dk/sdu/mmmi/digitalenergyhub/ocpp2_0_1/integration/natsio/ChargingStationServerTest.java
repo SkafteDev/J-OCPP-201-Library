@@ -5,8 +5,8 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsms
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IChargingStationServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.CsmsClientImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
@@ -22,38 +22,44 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 
-public class ChargingStationServerTest {
+import static org.junit.jupiter.api.Assertions.fail;
 
-    private static final String NATS_CONNECTION_STRING = "nats://nats-server:4222";
-    private static final String OPERATOR_ID = "Clever";
-    private static final String CSMS_ID = "Clever Central CSMS";
-    private static final String CS_ID = "DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1";
+public class ChargingStationServerTest {
+    private static final String CS_ID = "ce2b8b0e-db26-4643-a705-c848fab64327";
 
     private IChargingStationServer<Connection, Dispatcher> csServerImpl;
 
     @BeforeEach
     void setup_chargingstation_and_connect_to_nats() {
-        Connection natsConnection = getNatsConnection();
+        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
+        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        String brokerUrl = brokerConnectorConfigs.getConfigFromCsId(CS_ID).getBrokerUrl();
+        Connection natsConnection = getNatsConnection(brokerUrl);
+        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
 
-        ChargingStation basicCsInfo = ChargingStation.builder()
-                .withVendorName("ABB")
-                .withFirmwareVersion("3.1.2")
-                .withSerialNumber("47888eec-b9e5-4d67-9f36-136126e158c8")
-                .withModel("ABB TAC-W11-G5-R-0")
-                .build();
-        ChargingStationDeviceModel deviceModel = new ChargingStationDeviceModel(CS_ID, OPERATOR_ID, CSMS_ID,
-                basicCsInfo);
-        csServerImpl = new ChargingStationServerImpl(deviceModel, natsConnection);
+        csServerImpl = new ChargingStationServerImpl(natsConnection, routeResolver);
         csServerImpl.addDispatcher(OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(csServerImpl.getRoutingMap()));
+                new SetChargingProfileRequestHandler(csServerImpl.getMsgRouteResolver()));
     }
 
-    private static Connection getNatsConnection() {
+    private static URL getResource(String resourceFile) {
+        ClassLoader classLoader = ChargingStationServerTest.class.getClassLoader();
+        URL resourceUrl = classLoader.getResource(resourceFile);
+
+        if (resourceUrl == null) {
+            fail(String.format("Could not read input resource file: %s. Ensure that the file exists.", resourceFile));
+        }
+
+        return resourceUrl;
+    }
+
+    private static Connection getNatsConnection(String natsConnectionString) {
         Options natsOptions = Options.builder()
-                .server(NATS_CONNECTION_STRING)
+                .server(natsConnectionString)
                 .connectionTimeout(Duration.ofMinutes(2))
                 .build();
 
@@ -66,8 +72,12 @@ public class ChargingStationServerTest {
 
     @Test
     void integration_ChargingStationServer_handle_SetChargingProfileRequest() {
-        IMessageRouteResolver routingMap = new MessageRouteResolverImpl(OPERATOR_ID, CSMS_ID, CS_ID);
-        ICsmsClientApi csmsClientApi = new CsmsClientImpl(getNatsConnection(), routingMap);
+        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
+        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
+        String brokerUrl = brokerConnectorConfigs.getConfigFromCsId(CS_ID).getBrokerUrl();
+
+        ICsmsClientApi csmsClientApi = new CsmsClientImpl(getNatsConnection(brokerUrl), routeResolver);
 
         ChargingProfile chargingProfile = getChargingProfile();
 

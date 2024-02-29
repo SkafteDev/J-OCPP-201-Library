@@ -4,6 +4,9 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationClientNatsIo;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.ChargingStationManagementServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
@@ -19,56 +22,59 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.Duration;
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ChargingStationClientTest {
+    private static final String CS_ID = "ce2b8b0e-db26-4643-a705-c848fab64327";
 
-    private static final String NATS_CONNECTION_STRING = "nats://nats-server:4222";
-    private static final String OPERATOR_ID = "Clever";
-    private static final String CSMS_ID = "Clever_Csms1";
-    private static final String CS_ID = "DENMARK_ODENSE_M_DRAEJEBAENKEN_CS_1";
+    private static final String CSMS_ID = "Clever CSMS";
 
     private ChargingStationManagementServerImpl csmsImpl;
 
     @BeforeEach
     void setup_and_connect_csms_to_nats() {
+        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
+        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        BrokerConnectorConfig csmsConnectorConfig = brokerConnectorConfigs.getConfigFromCsmsId(CSMS_ID);
+
         /*
          * Set up a new management system that can respond to incoming messages.
          */
-        try {
-            Options natsOptions = Options.builder()
-                    .server(NATS_CONNECTION_STRING)
-                    .connectionName(String.format("CSMS %s %s", OPERATOR_ID, CSMS_ID))
-                    .connectionTimeout(Duration.ofMinutes(2))
-                    .connectionListener((connection, eventType) -> {
-                        System.out.println(String.format("NATS.io connection event: %s%n", eventType));
-                    })
-                    .build();
+        Connection natsConnection = getNatsConnection(csmsConnectorConfig.getBrokerUrl());
+        csmsImpl = new ChargingStationManagementServerImpl(
+                csmsConnectorConfig.getOperatorId(),
+                csmsConnectorConfig.getCsmsId(),
+                natsConnection);
 
-            Connection natsConnection = Nats.connect(natsOptions);
-            csmsImpl = new ChargingStationManagementServerImpl(
-                    OPERATOR_ID,
-                    CSMS_ID,
-                    natsConnection);
+        csmsImpl.connect();
+        csmsImpl.serve();
+    }
 
-            csmsImpl.connect();
-            csmsImpl.serve();
+    private static URL getResource(String resourceFile) {
+        ClassLoader classLoader = ChargingStationServerTest.class.getClassLoader();
+        URL resourceUrl = classLoader.getResource(resourceFile);
 
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Failed to boot CSMS.", e);
+        if (resourceUrl == null) {
+            fail(String.format("Could not read input resource file: %s. Ensure that the file exists.", resourceFile));
         }
+
+        return resourceUrl;
     }
 
     @Test
     void integration_cs_to_csms_BootNotificationRequest() {
-        Connection natsConnection = getNatsConnection();
+        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
+        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        BrokerConnectorConfig csConnectorConfig = brokerConnectorConfigs.getConfigFromCsId(CS_ID);
 
-        IMessageRouteResolver routingMap = new MessageRouteResolverImpl(OPERATOR_ID, CSMS_ID, CS_ID);
+        Connection natsConnection = getNatsConnection(csConnectorConfig.getBrokerUrl());
 
-        IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routingMap);
+        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
+
+        IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routeResolver);
 
         ICallMessage<BootNotificationRequest> bootNotificationRequest = createBootNotificationRequest();
 
@@ -87,12 +93,11 @@ public class ChargingStationClientTest {
         assertEquals(RegistrationStatusEnum.ACCEPTED, bootNotificationResponse.getPayload().getStatus());
     }
 
-    private static Connection getNatsConnection() {
+    private static Connection getNatsConnection(String natsUrl) {
         Connection natsConnection = null;
         try {
             natsConnection = Nats.connect(Options.builder()
-                    .server(NATS_CONNECTION_STRING)
-                    .connectionName(CS_ID)
+                    .server(natsUrl)
                     .build());
         } catch (IOException | InterruptedException cause) {
             fail("Failed to connect to a NATS.IO server", cause);
@@ -102,11 +107,15 @@ public class ChargingStationClientTest {
 
     @Test
     void integration_cs_to_csms_StatusNotificationRequest() {
-        Connection natsConnection = getNatsConnection();
+        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
+        BrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.loadBrokerConnectionConfigs(resource.getPath());
+        BrokerConnectorConfig csConnectorConfig = brokerConnectorConfigs.getConfigFromCsId(CS_ID);
 
-        IMessageRouteResolver routingMap = new MessageRouteResolverImpl(OPERATOR_ID, CSMS_ID, CS_ID);
+        Connection natsConnection = getNatsConnection(csConnectorConfig.getBrokerUrl());
 
-        IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routingMap);
+        IMessageRouteResolver routeResolver = brokerConnectorConfigs.getChargingStationRouteResolver(CS_ID);
+
+        IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routeResolver);
 
         ICallMessage<StatusNotificationRequest> statusNotificationRequest = createStatusNotificationRequest();
 

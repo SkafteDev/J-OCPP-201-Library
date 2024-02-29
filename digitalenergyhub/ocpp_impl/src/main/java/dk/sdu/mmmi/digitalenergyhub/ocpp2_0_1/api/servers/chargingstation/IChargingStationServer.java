@@ -13,5 +13,5 @@ public interface IChargingStationServer<C, D>  {
 
     void addDispatcher(OCPPMessageType msgType, IDispatcher<C, D> dispatcher);
 
-    IMessageRouteResolver getRoutingMap();
+    IMessageRouteResolver getMsgRouteResolver();
 }
