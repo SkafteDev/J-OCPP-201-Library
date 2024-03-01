@@ -13,7 +13,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.SetChargingProfileRes
  */
 public interface IOCPPServer {
 
-    <IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> void addRequestHandler(OCPPMessageType msgType, OCPPRequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> requestHandler);
+    <IN, OUT> void addRequestHandler(OCPPMessageType msgType, OCPPRequestHandler<IN, OUT> requestHandler);
 
     IMessageRouteResolver getMsgRouteResolver();
 }

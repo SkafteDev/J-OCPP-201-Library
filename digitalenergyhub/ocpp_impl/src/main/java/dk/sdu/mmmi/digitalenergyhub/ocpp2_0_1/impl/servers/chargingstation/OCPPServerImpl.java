@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class ChargingStationServerImpl implements IOCPPServer {
+public class OCPPServerImpl implements IOCPPServer {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final IMessageRouteResolver msgRouteResolver;
 
@@ -22,14 +22,14 @@ public class ChargingStationServerImpl implements IOCPPServer {
 
     protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;
 
-    public ChargingStationServerImpl(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
+    public OCPPServerImpl(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
         this.natsConnection = natsConnection;
         this.msgRouteResolver = msgRouteResolver;
         this.requestHandlers = new HashMap<>();
     }
 
     @Override
-    public <IN extends ICallMessage<?>, OUT extends ICallResultMessage<?>> void addRequestHandler(OCPPMessageType requestType, OCPPRequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> requestHandler) {
+    public <IN, OUT> void addRequestHandler(OCPPMessageType requestType, OCPPRequestHandler<IN, OUT> requestHandler) {
         if (requestHandlers.containsKey(requestType)) {
             logger.warning(String.format("Dispatcher for OCPPMessageType=%s already exists. Aborting.", requestType.getValue()));
             return;

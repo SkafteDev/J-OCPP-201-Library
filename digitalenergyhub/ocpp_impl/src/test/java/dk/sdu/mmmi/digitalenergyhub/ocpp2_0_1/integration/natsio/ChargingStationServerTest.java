@@ -1,13 +1,13 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.ICsmsClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.IChargingStationProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.CsmsClientImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.ChargingStationProxyImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
@@ -42,7 +42,7 @@ public class ChargingStationServerTest {
         Connection natsConnection = getNatsConnection(brokerUrl);
         IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
 
-        csServerImpl = new ChargingStationServerImpl(natsConnection, routeResolver);
+        csServerImpl = new OCPPServerImpl(natsConnection, routeResolver);
         csServerImpl.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(csServerImpl.getMsgRouteResolver()));
     }
@@ -78,7 +78,7 @@ public class ChargingStationServerTest {
         IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
         String brokerUrl = brokerConnectorLookup.getConfigFromCsId(CS_ID).getBrokerUrl();
 
-        ICsmsClientApi csmsClientApi = new CsmsClientImpl(getNatsConnection(brokerUrl), routeResolver);
+        IChargingStationProxy csmsClientApi = new ChargingStationProxyImpl(getNatsConnection(brokerUrl), routeResolver);
 
         ChargingProfile chargingProfile = getChargingProfile();
 

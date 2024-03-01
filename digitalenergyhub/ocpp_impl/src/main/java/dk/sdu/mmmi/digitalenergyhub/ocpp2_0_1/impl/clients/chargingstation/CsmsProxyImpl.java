@@ -2,7 +2,7 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class ChargingStationClientNatsIo implements IChargingStationClientApi {
+public class CsmsProxyImpl implements ICsmsProxy {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -29,7 +29,7 @@ public class ChargingStationClientNatsIo implements IChargingStationClientApi {
 
     private final IMessageRouteResolver messageRoutingMap;
 
-    public ChargingStationClientNatsIo(Connection natsConnection, IMessageRouteResolver routingMap) {
+    public CsmsProxyImpl(Connection natsConnection, IMessageRouteResolver routingMap) {
         this.natsConnection = natsConnection;
         this.messageRoutingMap = routingMap;
     }

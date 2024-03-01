@@ -2,7 +2,7 @@ package dk.sdu.mmmi.application.chargingstation;
 
 import dk.sdu.mmmi.application.chargingstation.requesthandlers.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationConnector;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationApi;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
@@ -29,12 +29,12 @@ public class CsExampleApp {
 
         IBrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
 
-        ChargingStationConnector connector = ChargingStationConnector.newBuilder()
+        ChargingStationApi csApi = ChargingStationApi.newBuilder()
                 .withBrokerConnectorConfigs(brokerConnectorConfigs)
                 .withCsId(csId)
                 .build();
 
-        connector.getChargingStationServer().addRequestHandler(
+        csApi.getChargingStationServer().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(brokerConnectorConfigs.getChargingStationRouteResolver(csId))
         );
@@ -55,7 +55,7 @@ public class CsExampleApp {
                 .withPayLoad(bootNotificationRequest)
                 .build();
 
-        ICallResultMessage<BootNotificationResponse> response = connector.getChargingStationApi().sendBootNotificationRequest(bootRequest);
+        ICallResultMessage<BootNotificationResponse> response = csApi.getCsmsProxy().sendBootNotificationRequest(bootRequest);
         System.out.println(response.getPayload().toString());
 
 

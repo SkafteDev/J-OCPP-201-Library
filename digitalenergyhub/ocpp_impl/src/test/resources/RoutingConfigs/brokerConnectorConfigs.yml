@@ -1,16 +1,15 @@
-# This is a configuration file intended to automatically resolve NATS.io subject routes.
-# Use cases:
-#   1. Generate routing map by looking up a charging station id.
-#      This will resolve the path:
-#        operators.{operatorId}.csms.{csmsId}.cs.{csId}
+# This configuration contains the fields that are used to
+# (a) connect a CS or CSMS to a message broker and
+# (b) to exchange messages between them.
 #
+# For example, the configuration can be used to
+# retrieve the brokerUrl given a csmsId or a Charging Station Id.
+# It can also be used to resolve routes for requests and responses, for example:
+#     operators.{operatorId}.csms.{csmsId}.cs.{csId}.requests
+# or  operators.{operatorId}.csms.{csmsId}.cs.{csId}.responses
+# or  operators.{operatorId}.csms.{csmsId}.cs.* where the '*' indicates a wild card notation typically used by message brokers.
 #
-#   2. Generate routing map by looking up a charging station management system id.
-#      This will resolve the path:
-#        operators.{operatorId}.csms.{csmsId}.cs.*
-#      The '*' indicates a wild card notation typically used by message brokers.
-#
-# All IDs must be globally unique. Otherwise, no guarantee is given on how the path is resolved.
+# All IDs must be globally unique.
 #
 brokerConnectorConfigs:
   - brokerUrl: "nats://nats-server:4222"

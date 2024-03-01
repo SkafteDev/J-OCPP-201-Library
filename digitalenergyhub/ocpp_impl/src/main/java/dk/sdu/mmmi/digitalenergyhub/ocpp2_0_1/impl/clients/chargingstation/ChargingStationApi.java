@@ -1,11 +1,11 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.ChargingStationServerImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;
@@ -14,18 +14,18 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.logging.Logger;
 
-public class ChargingStationConnector {
+public class ChargingStationApi {
 
-    private final IChargingStationClientApi csApi;
+    private final ICsmsProxy csmsProxy;
     private final IOCPPServer csServer;
     private final Connection natsConnection;
 
-    private static final Logger logger = Logger.getLogger(ChargingStationConnector.class.getName());
+    private static final Logger logger = Logger.getLogger(ChargingStationApi.class.getName());
 
-    public ChargingStationConnector(IChargingStationClientApi clientApi,
-                                    IOCPPServer server,
-                                    Connection natsConnection) {
-        this.csApi = clientApi;
+    public ChargingStationApi(ICsmsProxy clientApi,
+                              IOCPPServer server,
+                              Connection natsConnection) {
+        this.csmsProxy = clientApi;
         this.csServer = server;
         this.natsConnection = natsConnection;
     }
@@ -34,33 +34,33 @@ public class ChargingStationConnector {
         return natsConnection;
     }
 
-    public IChargingStationClientApi getChargingStationApi() {
-        return this.csApi;
+    public ICsmsProxy getCsmsProxy() {
+        return this.csmsProxy;
     }
 
     public IOCPPServer getChargingStationServer() {
         return this.csServer;
     }
 
-    public static ChargingStationConnectorBuilder newBuilder() {
-        return new ChargingStationConnectorBuilder();
+    public static ChargingStationApiBuilder newBuilder() {
+        return new ChargingStationApiBuilder();
     }
 
-    public static class ChargingStationConnectorBuilder {
+    public static class ChargingStationApiBuilder {
         private String csId;
         private IBrokerConnectorConfigs configs;
 
-        public ChargingStationConnectorBuilder withCsId(String csId) {
+        public ChargingStationApiBuilder withCsId(String csId) {
             this.csId = csId;
             return this;
         }
 
-        public ChargingStationConnectorBuilder withBrokerConnectorConfigs(IBrokerConnectorConfigs configs) {
+        public ChargingStationApiBuilder withBrokerConnectorConfigs(IBrokerConnectorConfigs configs) {
             this.configs = configs;
             return this;
         }
 
-        public ChargingStationConnector build() {
+        public ChargingStationApi build() {
             if (csId == null) throw new IllegalArgumentException("Charging Station ID must not be null. Provide a Charging Station Id.");
             if (configs == null) throw new IllegalArgumentException("BrokerConnectorConfigs must not be null. Provide a BrokerConnectorConfigs");
 
@@ -81,10 +81,10 @@ public class ChargingStationConnector {
 
                 IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-                IOCPPServer server = new ChargingStationServerImpl(natsClientConnection, csRouteResolver);
-                IChargingStationClientApi clientApi = new ChargingStationClientNatsIo(natsClientConnection, csRouteResolver);
+                IOCPPServer server = new OCPPServerImpl(natsClientConnection, csRouteResolver);
+                ICsmsProxy clientApi = new CsmsProxyImpl(natsClientConnection, csRouteResolver);
 
-                return new ChargingStationConnector(clientApi, server, natsClientConnection);
+                return new ChargingStationApi(clientApi, server, natsClientConnection);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }

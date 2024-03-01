@@ -1,9 +1,9 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.IChargingStationClientApi;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationClientNatsIo;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.CsmsProxyImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
@@ -73,7 +73,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
 
-        IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routeResolver);
+        ICsmsProxy csClient = new CsmsProxyImpl(natsConnection, routeResolver);
 
         ICallMessage<BootNotificationRequest> bootNotificationRequest = createBootNotificationRequest();
 
@@ -114,7 +114,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
 
-        IChargingStationClientApi csClient = new ChargingStationClientNatsIo(natsConnection, routeResolver);
+        ICsmsProxy csClient = new CsmsProxyImpl(natsConnection, routeResolver);
 
         ICallMessage<StatusNotificationRequest> statusNotificationRequest = createStatusNotificationRequest();
 

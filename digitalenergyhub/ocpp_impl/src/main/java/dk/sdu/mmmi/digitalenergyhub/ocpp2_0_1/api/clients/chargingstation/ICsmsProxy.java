@@ -18,7 +18,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
  * Authentication API
  * etc.
  */
-public interface IChargingStationClientApi {
+public interface ICsmsProxy {
     ICallResultMessage<AuthorizeResponse> sendAuthorizeRequest(ICallMessage<AuthorizeRequest> req);
     ICallResultMessage<BootNotificationResponse> sendBootNotificationRequest(ICallMessage<BootNotificationRequest> req);
     ICallResultMessage<ClearedChargingLimitResponse> sendClearedChargingLimitRequest(ICallMessage<ClearedChargingLimitRequest> req);

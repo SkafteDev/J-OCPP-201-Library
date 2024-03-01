@@ -11,7 +11,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
  * a Charging Station.
  *
  */
-public interface ICsmsClientApi {
+public interface IChargingStationProxy {
     ICallResultMessage<CancelReservationResponse> sendCancelReservationRequest(ICallMessage<CancelReservationRequest> request);
     ICallResultMessage<CertificateSignedResponse> sendCertificateSignedRequest(ICallMessage<CertificateSignedRequest> request);
     ICallResultMessage<ChangeAvailabilityResponse> sendChangeAvailabilityRequest(ICallMessage<ChangeAvailabilityRequest> request);
