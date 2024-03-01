@@ -13,4 +13,4 @@ The Java framework contains:
 
 * **A proxy interface (ICsmsClient)** that represents a Charging Station and the calls that may be invoked from a Charging Station Management System -> Charging Station.
 
-* **A dispatching implementation ontop of NATS.io** to register/unregister how to dispatch inbound messages (requests) and generate outbound messages (responses).
+* **A dispatch and request handler implementation ontop of NATS.io** to register/unregister how to dispatch inbound messages (requests) and generate outbound messages (responses).
