@@ -48,7 +48,6 @@ public class ChargingStationClientTest {
                 csmsConnectorConfig.getCsmsId(),
                 natsConnection);
 
-        csmsImpl.connect();
         csmsImpl.serve();
     }
 

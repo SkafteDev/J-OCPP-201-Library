@@ -1,11 +1,11 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.IChargingStationProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.ChargingStationProxyImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
@@ -14,23 +14,13 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPReque
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallMessageDeserializer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessageImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallResultMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
-import io.nats.client.Dispatcher;
-import io.nats.client.Message;
-import io.nats.client.impl.NatsMessage;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 public class ChargingStationManagementServerImpl implements IChargingStationManagementServer {
@@ -52,10 +42,6 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         this.chargingStationRegistry = new HashMap<>();
 
         this.ocppServer = new OCPPServerImpl(natsConnection, routeResolver);
-    }
-
-    @Override
-    public void connect() {
     }
 
     @Override
@@ -85,7 +71,8 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
             logger.info(String.format("Completed control loop in %s seconds.", elapsed.toSeconds()));
 
             try {
-                Duration waitTimeBeforeNextLoop = interval.minus(elapsed);
+                // If we spent more time than 'allowed' during the control loop, set the interval to 0.
+                Duration waitTimeBeforeNextLoop = interval.minus(elapsed).toMillis() >= 0 ? interval.minus(elapsed) : Duration.ZERO;
                 logger.info(String.format("Waiting %s seconds before proceeding to next control iteration.",
                         waitTimeBeforeNextLoop.toSeconds()));
                 Thread.sleep(waitTimeBeforeNextLoop.toMillis());
@@ -114,12 +101,17 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                     .withPayLoad(payload)
                     .build();
 
-            IMessageRouteResolver routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, csId);
-            IChargingStationProxy csProxy = new ChargingStationProxyImpl(natsConnection, routeResolver);
-            ICallResultMessage<SetChargingProfileResponse> callResult = csProxy.sendSetChargingProfileRequest(call);
+            try {
+                IMessageRouteResolver routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, csId);
+                IChargingStationProxy csProxy = new ChargingStationProxyImpl(natsConnection, routeResolver);
+                ICallResultMessage<SetChargingProfileResponse> callResult = csProxy.sendSetChargingProfileRequest(call);
 
-            logger.info(String.format("Received response '%s' with payload %s",
-                    SetChargingProfileResponse.class.getName(), callResult.getPayload().toString()));
+                logger.info(String.format("Received response '%s' with payload %s",
+                        SetChargingProfileResponse.class.getName(), callResult.getPayload().toString()));
+            } catch (OCPPRequestException e) {
+                logger.info(String.format("Error occurred while sending the request or receiving the response. %s",
+                        e.getMessage()));
+            }
         }
     }
 

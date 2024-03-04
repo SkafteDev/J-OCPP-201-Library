@@ -1,19 +1,23 @@
 package dk.sdu.mmmi.application.csms;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.ChargingStationManagementServerImpl;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
-public class ExampleApplication {
-    private static final Logger logger = Logger.getLogger(ExampleApplication.class.getName());
+public class CsmsExampleApp {
+    private static final Logger logger = Logger.getLogger(CsmsExampleApp.class.getName());
 
     private static final String quitToken = "q";
 
@@ -22,9 +26,8 @@ public class ExampleApplication {
         IChargingStationManagementServer server = boot();
         logger.info("Booting complete.");
 
-        server.connect(); // Connect to broker.
-        server.serve();   // Listen to incoming messages.
-        server.startSmartChargingControlLoop(Duration.ofSeconds(15));
+        server.serve();   // Handle incoming messages.
+        server.startSmartChargingControlLoop(Duration.ofSeconds(15)); // Start the smart charging control loop.
 
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;
@@ -37,14 +40,14 @@ public class ExampleApplication {
     }
 
     private static IChargingStationManagementServer boot() {
-        String operatorId = "Clever";
-        String csmsId = "Clever Central CSMS";
-        String natsConnectionURL = "nats://localhost:4222";
+        URL resource = ClassLoader.getSystemResource("brokerConnectorConfigs.yml");
+        IBrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        BrokerConnectorConfig brokerConfig = brokerConnectorConfigs.getConfigFromCsmsId("Clever Central CSMS");
 
         try {
             Options natsOptions = Options.builder()
-                    .server(natsConnectionURL)
-                    .connectionName(String.format("CSMS %s %s", operatorId, csmsId))
+                    .server(brokerConfig.getBrokerUrl())
+                    .connectionName(String.format("CSMS %s %s", brokerConfig.getOperatorId(), brokerConfig.getCsmsId()))
                     .connectionTimeout(Duration.ofMinutes(2))
                     .connectionListener((connection, eventType) -> {
                         logger.info(String.format("NATS.io connection event: %s%n", eventType));
@@ -53,8 +56,8 @@ public class ExampleApplication {
 
             Connection natsConnection = Nats.connect(natsOptions);
             IChargingStationManagementServer server = new ChargingStationManagementServerImpl(
-                    "Clever",
-                    "Clever Central CSMS",
+                    brokerConfig.getOperatorId(),
+                    brokerConfig.getCsmsId(),
                     natsConnection);
 
             return server;
