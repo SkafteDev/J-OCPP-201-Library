@@ -49,5 +49,5 @@ public interface ICsmsProxy {
      * This operation returns a message routing map that can be used to look up the route for a specific message type.
      * @return
      */
-    IMessageRouteResolver getMessageRoutingMap();
+    IMessageRouteResolver getRouteResolver();
 }

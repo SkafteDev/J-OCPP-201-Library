@@ -27,11 +27,11 @@ public class CsmsProxyImpl implements ICsmsProxy {
     private final Connection natsConnection;
     private final Duration defaultTimeout = Duration.ofSeconds(30);
 
-    private final IMessageRouteResolver messageRoutingMap;
+    private final IMessageRouteResolver routeResolver;
 
     public CsmsProxyImpl(Connection natsConnection, IMessageRouteResolver routingMap) {
         this.natsConnection = natsConnection;
-        this.messageRoutingMap = routingMap;
+        this.routeResolver = routingMap;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
     @Override
     public ICallResultMessage<BootNotificationResponse> sendBootNotificationRequest(ICallMessage<BootNotificationRequest> req) {
-        String subject = messageRoutingMap.getRoute(OCPPMessageType.BootNotificationRequest);
+        String subject = routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
 
         String jsonPayloadRequest = null;
 
@@ -107,7 +107,7 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
     @Override
     public ICallResultMessage<StatusNotificationResponse> sendStatusNotificationRequest(ICallMessage<StatusNotificationRequest> req) {
-        String subject = messageRoutingMap.getRoute(OCPPMessageType.StatusNotificationRequest);
+        String subject = routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
 
         String jsonPayloadRequest = null;
 
@@ -233,7 +233,7 @@ public class CsmsProxyImpl implements ICsmsProxy {
     }
 
     @Override
-    public IMessageRouteResolver getMessageRoutingMap() {
-        return null;
+    public IMessageRouteResolver getRouteResolver() {
+        return this.routeResolver;
     }
 }
