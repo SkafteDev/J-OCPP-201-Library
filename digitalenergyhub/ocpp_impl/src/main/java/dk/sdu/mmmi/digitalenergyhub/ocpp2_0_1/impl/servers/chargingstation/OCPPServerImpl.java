@@ -31,13 +31,29 @@ public class OCPPServerImpl implements IOCPPServer {
     @Override
     public <IN, OUT> void addRequestHandler(OCPPMessageType requestType, OCPPRequestHandler<IN, OUT> requestHandler) {
         if (requestHandlers.containsKey(requestType)) {
-            logger.warning(String.format("Dispatcher for OCPPMessageType=%s already exists. Aborting.", requestType.getValue()));
+            logger.warning(String.format("Request handler for OCPPMessageType=%s already exists. Aborting.",
+                    requestType.getValue()));
             return;
         }
 
-        logger.warning(String.format("Added dispatcher for OCPPMessageType=%s.", requestType.getValue()));
+        logger.warning(String.format("Added request handler for OCPPMessageType=%s.", requestType.getValue()));
         requestHandler.register(natsConnection);
         this.requestHandlers.put(requestType, requestHandler);
+    }
+
+    @Override
+    public void removeRequestHandler(OCPPMessageType requestType) {
+        if (!requestHandlers.containsKey(requestType)) {
+            logger.warning(String.format("Request handler for OCPPMessageType=%s does not exists. Aborting.",
+                    requestType.getValue()));
+        }
+
+        requestHandlers.remove(requestType);
+    }
+
+    @Override
+    public boolean existsRequestHandler(OCPPMessageType requestType) {
+        return requestHandlers.containsKey(requestType);
     }
 
     public IMessageRouteResolver getMsgRouteResolver() {

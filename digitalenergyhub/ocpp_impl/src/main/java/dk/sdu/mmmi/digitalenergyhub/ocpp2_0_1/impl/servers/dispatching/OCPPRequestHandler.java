@@ -37,9 +37,7 @@ public abstract class OCPPRequestHandler<IN, OUT> {
             ICallMessage<IN> callMessage = deserialize(jsonPayload);
 
             // Handle the message internally, e.g. update state, store in db, etc.
-            handle(callMessage);
-
-            ICallResultMessage<OUT> callResult = generateResponse(callMessage);
+            ICallResultMessage<OUT> callResult = handle(callMessage, natsMsg.getSubject());
 
             String jsonResponsePayload = serialize(callResult);
 
@@ -74,8 +72,7 @@ public abstract class OCPPRequestHandler<IN, OUT> {
 
         return deserialized;
     }
-    public abstract void handle(ICallMessage<IN> message);
-    public abstract ICallResultMessage<OUT> generateResponse(ICallMessage<IN> message);
+    public abstract ICallResultMessage<OUT> handle(ICallMessage<IN> message, String subject);
 
     public String serialize(ICallResultMessage<OUT> message) {
         try {

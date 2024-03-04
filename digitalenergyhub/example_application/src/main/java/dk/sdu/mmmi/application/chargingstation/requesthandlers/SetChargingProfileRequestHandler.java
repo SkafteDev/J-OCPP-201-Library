@@ -25,15 +25,12 @@ public class SetChargingProfileRequestHandler
     }
 
     @Override
-    public void handle(ICallMessage<SetChargingProfileRequest> callMessage) {
+    public ICallResultMessage<SetChargingProfileResponse> handle(ICallMessage<SetChargingProfileRequest> callMessage, String subject) {
         // Update the internal state
         SetChargingProfileRequest requestPayload = callMessage.getPayload();
         //this.chargingStationDeviceModel.setChargingProfile(requestPayload.getChargingProfile());
         logger.info("Updated internal state...");
-    }
 
-    @Override
-    public ICallResultMessage<SetChargingProfileResponse> generateResponse(ICallMessage<SetChargingProfileRequest> callMessage) {
         // TODO: Create response depending on the internal state...
         SetChargingProfileResponse responsePayload = SetChargingProfileResponse.builder()
                 .withStatus(ChargingProfileStatusEnum.ACCEPTED)

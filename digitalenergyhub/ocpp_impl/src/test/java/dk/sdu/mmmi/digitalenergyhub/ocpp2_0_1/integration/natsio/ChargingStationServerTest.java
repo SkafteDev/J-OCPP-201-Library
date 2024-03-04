@@ -301,16 +301,16 @@ public class ChargingStationServerTest {
         }
 
         @Override
-        public void handle(ICallMessage<SetChargingProfileRequest> callMessage) {
-            // Update the internal state
-            SetChargingProfileRequest requestPayload = callMessage.getPayload();
-            //this.chargingStationDeviceModel.setChargingProfile(requestPayload.getChargingProfile());
-            logger.info("Updated internal state...");
-        }
+        public ICallResultMessage<SetChargingProfileResponse> handle(ICallMessage<SetChargingProfileRequest> callMessage, String subject) {
+            logger.info("Handling inbound msg received on: " + subject);
 
-        @Override
-        public ICallResultMessage<SetChargingProfileResponse> generateResponse(ICallMessage<SetChargingProfileRequest> callMessage) {
-            // TODO: Create response depending on the internal state...
+            // Do something with the payload...
+            // E.g. update the internal state...
+            SetChargingProfileRequest requestPayload = callMessage.getPayload();
+
+            logger.info("Inbound message handled..");
+
+            // Create response depending on the internal state...
             SetChargingProfileResponse responsePayload = SetChargingProfileResponse.builder()
                     .withStatus(ChargingProfileStatusEnum.ACCEPTED)
                     .build();

@@ -3,9 +3,12 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -34,18 +37,22 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private final String operatorId;
     private final String csmsId;
-    private final IMessageRouteResolver routingMap;
+    private final IMessageRouteResolver routeResolver;
 
     private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
 
     private final Connection natsConnection;
 
+    private final IOCPPServer ocppServer;
+
     public ChargingStationManagementServerImpl(String operatorId, String csmsId, Connection natsConnection) {
         this.operatorId = operatorId;
         this.csmsId = csmsId;
         this.natsConnection = natsConnection;
-        this.routingMap = new MessageRouteResolverImpl(operatorId, csmsId, "*");
+        this.routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, "*");
         this.chargingStationRegistry = new HashMap<>();
+
+        this.ocppServer = new OCPPServerImpl(natsConnection, routeResolver);
     }
 
     @Override
@@ -54,10 +61,10 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     @Override
     public void serve() {
-        // TODO: Add dispatchers for all incoming message types.
-        addBootNotificationDispatcher(natsConnection);
-        addStatusNotificationDispatcher(natsConnection);
-        //addHeartbeatDispatcher(natsConnection);
+        // TODO: Add handlers for all incoming message types.
+        addBootNotificationHandler(natsConnection);
+        addStatusNotificationHandler(natsConnection);
+        //addHeartbeatHandler(natsConnection);
     }
 
     @Override
@@ -110,7 +117,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
             try {
                 String jsonRequestPayload = CallMessageSerializer.serialize(call);
-                String requestSubject = routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest).replace("*", csId);
+                String requestSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest).replace("*", csId);
                 Message natsMessage = NatsMessage.builder()
                         .subject(requestSubject)
                         .data(jsonRequestPayload, StandardCharsets.UTF_8)
@@ -139,6 +146,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     /**
      * Returns a map of Charging Station IDs and for each, a generated Charging Profile.
+     *
      * @return
      */
     private Map<String, ChargingProfile> calculateChargingProfiles() {
@@ -147,7 +155,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         try {
             // Simulate a long-running task (calculating charging profiles)
             double taskLength = Math.random() * 30d;
-            Thread.sleep((int)taskLength);
+            Thread.sleep((int) taskLength);
 
             for (ChargingStationDeviceModel csDeviceModel : chargingStationRegistry.values()) {
                 ChargingProfile chargingProfile = getChargingProfile();
@@ -349,171 +357,107 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                 .build();
     }
 
-    private void addBootNotificationDispatcher(Connection natsConnection) {
-        Dispatcher dispatcher = natsConnection.createDispatcher((natsMsg) -> {
-            String jsonPayload = new String(natsMsg.getData(), StandardCharsets.UTF_8);
-            logger.info(String.format("Received 'BootNotificationRequest' %s on subject %s", jsonPayload, natsMsg.getSubject()));
+    private void addBootNotificationHandler(Connection natsConnection) {
+        ocppServer.addRequestHandler(OCPPMessageType.BootNotificationRequest,
+                new OCPPRequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class) {
+                    @Override
+                    public String getInboundMessageRoute() {
+                        return routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
+                    }
 
-            ICallMessage<BootNotificationRequest> callMessage;
+                    @Override
+                    public ICallResultMessage<BootNotificationResponse> handle(ICallMessage<BootNotificationRequest> message, String subject) {
+                        // Register the charging station within the registry.
+                        String[] subjectHierarchy = subject.split("\\.");
+                        String csId = subjectHierarchy[5];
 
-            try {
-                callMessage = CallMessageDeserializer.deserialize(jsonPayload, BootNotificationRequest.class);
-            } catch (JsonProcessingException e) {
-                logger.severe(e.getMessage());
-                throw new RuntimeException(e);
-            }
-
-            // Register the charging station within the registry.
-            String[] topicLevels = natsMsg.getSubject().split("\\.");
-            String csId = topicLevels[5];
-            String replyTo = natsMsg.getReplyTo();
-            String responseMsgId = callMessage.getMessageId();
-
-            // Register the charging station within the registry.
-            if (!chargingStationRegistry.containsKey(csId)) {
-                ChargingStationDeviceModel csdm = new ChargingStationDeviceModel(csId,
-                        operatorId,
-                        csmsId,
-                        callMessage.getPayload().getChargingStation());
-                csdm.setRegistrationStatus(RegistrationStatusEnum.ACCEPTED);
-                this.chargingStationRegistry.put(csId, csdm);
-                logger.info(String.format("Registered Charging Station: %s", csId));
-                acceptBootNotificationRequest(natsConnection, replyTo, responseMsgId);
-            } else {
-                logger.info(String.format("Rejected Charging Station: %s because it is already registered.", csId));
-                rejectBootNotificationRequest(natsConnection, replyTo, responseMsgId);
-            }
-
-        });
-        String route = routingMap.getRoute(OCPPMessageType.BootNotificationRequest);
-        logger.info(String.format("Listening for '%s' on subject '%s'",
-                OCPPMessageType.BootNotificationRequest.getValue().concat("Request"), route));
-        dispatcher.subscribe(route);
+                        // Register the charging station within the registry.
+                        if (!chargingStationRegistry.containsKey(csId)) {
+                            ChargingStationDeviceModel csdm = new ChargingStationDeviceModel(csId,
+                                    operatorId,
+                                    csmsId,
+                                    message.getPayload().getChargingStation());
+                            csdm.setRegistrationStatus(RegistrationStatusEnum.ACCEPTED);
+                            chargingStationRegistry.put(csId, csdm);
+                            logger.info(String.format("Registered Charging Station: %s", csId));
+                            return acceptBootNotificationRequest(message.getMessageId());
+                        } else {
+                            logger.info(String.format("Rejected Charging Station: %s because it is already registered.", csId));
+                            return rejectBootNotificationRequest(message.getMessageId());
+                        }
+                    }
+                });
     }
 
-    private void acceptBootNotificationRequest(Connection natsConnection, String replyTo, String responseMsgId) {
-        try {
-            BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
-                    .withStatus(RegistrationStatusEnum.ACCEPTED)
-                    .withCurrentTime(new Date())
-                    .withInterval((int) Duration.ofMinutes(2).toSeconds())
-                    .build();
+    private ICallResultMessage<BootNotificationResponse> acceptBootNotificationRequest(String responseMsgId) {
+        BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
+                .withStatus(RegistrationStatusEnum.ACCEPTED)
+                .withCurrentTime(new Date())
+                .withInterval((int) Duration.ofMinutes(2).toSeconds())
+                .build();
 
-            ICallResultMessage<BootNotificationResponse> callResultMessage =
-                    CallResultMessageImpl.<BootNotificationResponse>newBuilder()
-                            .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                            .withPayLoad(bootNotificationResponse)
-                            .build();
+        ICallResultMessage<BootNotificationResponse> callResultMessage =
+                CallResultMessageImpl.<BootNotificationResponse>newBuilder()
+                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                        .withPayLoad(bootNotificationResponse)
+                        .build();
 
-            String jsonResponse = CallResultMessageSerializer.serialize(callResultMessage);
-
-            Message natsResponseMsg = NatsMessage.builder()
-                    .subject(replyTo)
-                    .data(jsonResponse)
-                    .build();
-
-            natsConnection.publish(natsResponseMsg);
-            logger.info(jsonResponse);
-
-        } catch (JsonProcessingException e) {
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e);
-        }
+        return callResultMessage;
     }
 
-    private void rejectBootNotificationRequest(Connection natsConnection, String replyTo, String responseMsgId) {
-        try {
-            BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
-                    .withStatus(RegistrationStatusEnum.REJECTED)
-                    .withCurrentTime(new Date())
-                    .withInterval((int) Duration.ofMinutes(2).toSeconds())
-                    .build();
+    private ICallResultMessage<BootNotificationResponse> rejectBootNotificationRequest(String responseMsgId) {
+        BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
+                .withStatus(RegistrationStatusEnum.REJECTED)
+                .withCurrentTime(new Date())
+                .withInterval((int) Duration.ofMinutes(2).toSeconds())
+                .build();
 
-            ICallResultMessage<BootNotificationResponse> callResultMessage =
-                    CallResultMessageImpl.<BootNotificationResponse>newBuilder()
-                            .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                            .withPayLoad(bootNotificationResponse)
-                            .build();
+        ICallResultMessage<BootNotificationResponse> callResultMessage =
+                CallResultMessageImpl.<BootNotificationResponse>newBuilder()
+                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                        .withPayLoad(bootNotificationResponse)
+                        .build();
 
-            String jsonResponse = CallResultMessageSerializer.serialize(callResultMessage);
-
-            Message natsResponseMsg = NatsMessage.builder()
-                    .subject(replyTo)
-                    .data(jsonResponse)
-                    .build();
-
-            natsConnection.publish(natsResponseMsg);
-            logger.info(jsonResponse);
-
-        } catch (JsonProcessingException e) {
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e);
-        }
+        return callResultMessage;
     }
 
 
-    private void addStatusNotificationDispatcher(Connection natsConnection) {
-        Dispatcher dispatcher = natsConnection.createDispatcher((natsMsg) -> {
-            String jsonPayload = new String(natsMsg.getData(), StandardCharsets.UTF_8);
-            logger.info(String.format("Received 'StatusNotificationRequest' %s on subject %s", jsonPayload,
-                    natsMsg.getSubject()));
+    private void addStatusNotificationHandler(Connection natsConnection) {
+        ocppServer.addRequestHandler(OCPPMessageType.StatusNotificationRequest,
+                new OCPPRequestHandler<>(StatusNotificationRequest.class, StatusNotificationResponse.class) {
+                    @Override
+                    public String getInboundMessageRoute() {
+                        return routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
+                    }
 
-            ICallMessage<StatusNotificationRequest> callMessage;
+                    @Override
+                    public ICallResultMessage<StatusNotificationResponse> handle(ICallMessage<StatusNotificationRequest> message, String subject) {
+                        String[] subjectHierarchy = subject.split("\\.");
+                        String csId = subjectHierarchy[5];
 
-            try {
-                callMessage = CallMessageDeserializer.deserialize(jsonPayload, StatusNotificationRequest.class);
-            } catch (JsonProcessingException e) {
-                logger.severe(e.getMessage());
-                throw new RuntimeException(e);
-            }
+                        StatusNotificationRequest statusNotificationRequest = message.getPayload();
 
-            // Register the charging station within the registry.
-            String[] topicLevels = natsMsg.getSubject().split("\\.");
-            String csId = topicLevels[5];
-            String replyTo = natsMsg.getReplyTo();
-            String responseMsgId = callMessage.getMessageId();
+                        logger.info(String.format("Processing '%s' payload='%s' for ChargingStation='%s'",
+                                OCPPMessageType.StatusNotificationRequest,
+                                statusNotificationRequest.toString(),
+                                csId));
 
-            StatusNotificationRequest statusNotificationRequest = callMessage.getPayload();
-
-            logger.info(String.format("Processing '%s' payload='%s' for ChargingStation='%s'",
-                    OCPPMessageType.StatusNotificationRequest,
-                    statusNotificationRequest.toString(),
-                    csId));
-
-            acceptStatusNotificationRequest(natsConnection, replyTo, responseMsgId);
-
-        });
-        String route = routingMap.getRoute(OCPPMessageType.StatusNotificationRequest);
-        logger.info(String.format("Listening for '%s' on subject '%s'",
-                OCPPMessageType.StatusNotificationRequest.getValue().concat("Request"), route));
-        dispatcher.subscribe(route);
+                        return acceptStatusNotificationRequest(message.getMessageId());
+                    }
+                });
     }
 
-    private void acceptStatusNotificationRequest(Connection natsConnection, String replyTo, String responseMsgId) {
-        try {
-            StatusNotificationResponse statusNotificationResponse = StatusNotificationResponse.builder()
-                    // No fields required as specified in OCPP 2.0.1.
-                    .build();
+    private ICallResultMessage<StatusNotificationResponse> acceptStatusNotificationRequest(String responseMsgId) {
+        StatusNotificationResponse statusNotificationResponse = StatusNotificationResponse.builder()
+                // No fields required as specified in OCPP 2.0.1.
+                .build();
 
-            ICallResultMessage<StatusNotificationResponse> callResultMessage =
-                    CallResultMessageImpl.<StatusNotificationResponse>newBuilder()
-                            .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                            .withPayLoad(statusNotificationResponse)
-                            .build();
+        ICallResultMessage<StatusNotificationResponse> callResultMessage =
+                CallResultMessageImpl.<StatusNotificationResponse>newBuilder()
+                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                        .withPayLoad(statusNotificationResponse)
+                        .build();
 
-            String jsonResponse = CallResultMessageSerializer.serialize(callResultMessage);
-
-            Message natsResponseMsg = NatsMessage.builder()
-                    .subject(replyTo)
-                    .data(jsonResponse)
-                    .build();
-
-            natsConnection.publish(natsResponseMsg);
-            logger.info(jsonResponse);
-
-        } catch (JsonProcessingException e) {
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e);
-        }
+        return callResultMessage;
     }
 }
