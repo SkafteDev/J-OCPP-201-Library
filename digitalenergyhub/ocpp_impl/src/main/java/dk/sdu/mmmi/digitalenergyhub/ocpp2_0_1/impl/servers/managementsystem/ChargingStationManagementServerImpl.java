@@ -2,9 +2,11 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.IChargingStationProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.ChargingStationProxyImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
@@ -37,12 +39,9 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private final String operatorId;
     private final String csmsId;
-    private final IMessageRouteResolver routeResolver;
-
-    private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
-
     private final Connection natsConnection;
-
+    private final IMessageRouteResolver routeResolver;
+    private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
     private final IOCPPServer ocppServer;
 
     public ChargingStationManagementServerImpl(String operatorId, String csmsId, Connection natsConnection) {
@@ -62,9 +61,9 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
     @Override
     public void serve() {
         // TODO: Add handlers for all incoming message types.
-        addBootNotificationHandler(natsConnection);
-        addStatusNotificationHandler(natsConnection);
-        //addHeartbeatHandler(natsConnection);
+        addBootNotificationHandler();
+        addStatusNotificationHandler();
+        //addHeartbeatHandler();
     }
 
     @Override
@@ -115,32 +114,12 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                     .withPayLoad(payload)
                     .build();
 
-            try {
-                String jsonRequestPayload = CallMessageSerializer.serialize(call);
-                String requestSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest).replace("*", csId);
-                Message natsMessage = NatsMessage.builder()
-                        .subject(requestSubject)
-                        .data(jsonRequestPayload, StandardCharsets.UTF_8)
-                        .build();
+            IMessageRouteResolver routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, csId);
+            IChargingStationProxy csProxy = new ChargingStationProxyImpl(natsConnection, routeResolver);
+            ICallResultMessage<SetChargingProfileResponse> callResult = csProxy.sendSetChargingProfileRequest(call);
 
-                logger.info(String.format("Sending request '%s' with payload %s on subject %s",
-                        SetChargingProfileRequest.class.getName(), jsonRequestPayload, requestSubject));
-                CompletableFuture<Message> response = natsConnection.requestWithTimeout(natsMessage, Duration.ofSeconds(30));
-
-                // Blocks until message is received.
-                // TODO: Join all futures and get the result at a later point in time, to avoid blocking.
-                Message message = response.get();
-                String jsonResponsePayload = new String(message.getData(), StandardCharsets.UTF_8);
-                ICallResultMessage<SetChargingProfileResponse> callResult =
-                        CallResultMessageDeserializer.deserialize(jsonResponsePayload, SetChargingProfileResponse.class);
-
-                logger.info(String.format("Received response '%s' with payload %s on subject %s",
-                        SetChargingProfileResponse.class.getName(), callResult.getPayload().toString(),
-                        message.getSubject()));
-
-            } catch (JsonProcessingException | ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            logger.info(String.format("Received response '%s' with payload %s",
+                    SetChargingProfileResponse.class.getName(), callResult.getPayload().toString()));
         }
     }
 
@@ -357,7 +336,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                 .build();
     }
 
-    private void addBootNotificationHandler(Connection natsConnection) {
+    private void addBootNotificationHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.BootNotificationRequest,
                 new OCPPRequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class) {
                     @Override
@@ -422,7 +401,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
     }
 
 
-    private void addStatusNotificationHandler(Connection natsConnection) {
+    private void addStatusNotificationHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.StatusNotificationRequest,
                 new OCPPRequestHandler<>(StatusNotificationRequest.class, StatusNotificationResponse.class) {
                     @Override
