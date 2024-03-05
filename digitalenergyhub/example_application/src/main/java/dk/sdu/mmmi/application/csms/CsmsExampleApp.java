@@ -23,7 +23,8 @@ public class CsmsExampleApp {
 
     public static void main(String[] args) {
         logger.info("Booting Charging Station Management System...");
-        IChargingStationManagementServer server = boot();
+        String csmsId = args[0];
+        IChargingStationManagementServer server = boot(csmsId);
         logger.info("Booting complete.");
 
         server.serve();   // Handle incoming messages.
@@ -39,10 +40,10 @@ public class CsmsExampleApp {
         System.exit(0);
     }
 
-    private static IChargingStationManagementServer boot() {
+    private static IChargingStationManagementServer boot(String csmsId) {
         URL resource = ClassLoader.getSystemResource("brokerConnectorConfigs.yml");
         IBrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
-        BrokerConnectorConfig brokerConfig = brokerConnectorConfigs.getConfigFromCsmsId("Clever Central CSMS");
+        BrokerConnectorConfig brokerConfig = brokerConnectorConfigs.getConfigFromCsmsId(csmsId);
 
         try {
             Options natsOptions = Options.builder()
