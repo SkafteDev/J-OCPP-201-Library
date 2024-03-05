@@ -2,11 +2,11 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 
-public interface IBrokerConnectorConfigs {
+public interface IBrokerContext {
 
-    BrokerConnectorConfig getConfigFromCsId(String csId);
+    BrokerConfig getConfigFromCsId(String csId);
 
-    BrokerConnectorConfig getConfigFromCsmsId(String csmsId);
+    BrokerConfig getConfigFromCsmsId(String csmsId);
 
     IMessageRouteResolver getCsmsRouteResolver(String csmsId);
 

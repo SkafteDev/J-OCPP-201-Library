@@ -11,7 +11,7 @@
 #
 # All IDs must be globally unique.
 #
-brokerConnectorConfigs:
+brokerContext:
   - brokerUrl: "nats://localhost:4222"
     operatorId: "Clever"
     csmsId: "Clever Central CSMS"

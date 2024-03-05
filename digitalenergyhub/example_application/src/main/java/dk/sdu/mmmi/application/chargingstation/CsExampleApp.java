@@ -3,8 +3,8 @@ package dk.sdu.mmmi.application.chargingstation;
 import dk.sdu.mmmi.application.chargingstation.requesthandlers.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation.ChargingStationApi;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerContextLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerContext;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallMessageImpl;
@@ -25,18 +25,18 @@ public class CsExampleApp {
     public static void main(String[] args) {
         String csId = "ce2b8b0e-db26-4643-a705-c848fab64327"; // This has to be hard coded or configured somewhere...
 
-        URL resource = ClassLoader.getSystemResource("brokerConnectorConfigs.yml");
+        URL resource = ClassLoader.getSystemResource("brokerContext.yml");
 
-        IBrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
+        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
         ChargingStationApi csApi = ChargingStationApi.newBuilder()
-                .withBrokerConnectorConfigs(brokerConnectorConfigs)
+                .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .build();
 
         csApi.getChargingStationServer().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(brokerConnectorConfigs.getChargingStationRouteResolver(csId))
+                new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId))
         );
 
         BootNotificationRequest bootNotificationRequest = BootNotificationRequest.builder()

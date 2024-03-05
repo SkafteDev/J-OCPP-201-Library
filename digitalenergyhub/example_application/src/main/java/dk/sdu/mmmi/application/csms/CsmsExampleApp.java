@@ -1,9 +1,9 @@
 package dk.sdu.mmmi.application.csms;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConfig;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerContextLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerContext;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem.ChargingStationManagementServerImpl;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
@@ -41,9 +41,9 @@ public class CsmsExampleApp {
     }
 
     private static IChargingStationManagementServer boot(String csmsId) {
-        URL resource = ClassLoader.getSystemResource("brokerConnectorConfigs.yml");
-        IBrokerConnectorConfigs brokerConnectorConfigs = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
-        BrokerConnectorConfig brokerConfig = brokerConnectorConfigs.getConfigFromCsmsId(csmsId);
+        URL resource = ClassLoader.getSystemResource("brokerContext.yml");
+        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
+        BrokerConfig brokerConfig = brokerContext.getConfigFromCsmsId(csmsId);
 
         try {
             Options natsOptions = Options.builder()

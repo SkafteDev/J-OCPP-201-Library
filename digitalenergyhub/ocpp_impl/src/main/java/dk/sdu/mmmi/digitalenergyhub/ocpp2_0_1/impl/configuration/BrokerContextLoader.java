@@ -5,15 +5,15 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class BrokerConnectorConfigsLoader {
+public class BrokerContextLoader {
 
-    private BrokerConnectorConfigsLoader() {}
+    private BrokerContextLoader() {}
 
-    public static IBrokerConnectorConfigs fromYAML(String pathName) {
+    public static IBrokerContext fromYAML(String pathName) {
         Yaml yaml = new Yaml();
 
         try(FileInputStream inputStream = new FileInputStream(pathName)) {
-            return yaml.loadAs(inputStream, BrokerConnectorConfigs.class);
+            return yaml.loadAs(inputStream, BrokerContext.class);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

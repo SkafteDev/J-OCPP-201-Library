@@ -5,8 +5,8 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.IChar
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.ChargingStationProxyImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfigsLoader;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerContextLoader;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerContext;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
@@ -36,11 +36,11 @@ public class ChargingStationServerTest {
 
     @BeforeEach
     void setup_chargingstation_and_connect_to_nats() {
-        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
-        String brokerUrl = brokerConnectorLookup.getConfigFromCsId(CS_ID).getBrokerUrl();
+        URL resource = getResource("BrokerContexts/brokerContext.yml");
+        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
+        String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
         Connection natsConnection = getNatsConnection(brokerUrl);
-        IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
+        IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
         csServerImpl = new OCPPServerImpl(natsConnection, routeResolver);
         csServerImpl.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
@@ -73,10 +73,10 @@ public class ChargingStationServerTest {
 
     @Test
     void integration_ChargingStationServer_handle_SetChargingProfileRequest() {
-        URL resource = getResource("RoutingConfigs/brokerConnectorConfigs.yml");
-        IBrokerConnectorConfigs brokerConnectorLookup = BrokerConnectorConfigsLoader.fromYAML(resource.getPath());
-        IMessageRouteResolver routeResolver = brokerConnectorLookup.getChargingStationRouteResolver(CS_ID);
-        String brokerUrl = brokerConnectorLookup.getConfigFromCsId(CS_ID).getBrokerUrl();
+        URL resource = getResource("BrokerContexts/brokerContext.yml");
+        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
+        IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
+        String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
 
         IChargingStationProxy csmsClientApi = new ChargingStationProxyImpl(getNatsConnection(brokerUrl), routeResolver);
 

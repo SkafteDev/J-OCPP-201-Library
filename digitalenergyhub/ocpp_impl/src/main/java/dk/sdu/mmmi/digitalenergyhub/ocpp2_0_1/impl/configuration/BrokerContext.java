@@ -6,23 +6,23 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverIm
 import java.util.List;
 import java.util.Optional;
 
-public class BrokerConnectorConfigs implements IBrokerConnectorConfigs {
-    private List<BrokerConnectorConfig> brokerConnectorConfigs;
+public class BrokerContext implements IBrokerContext {
+    private List<BrokerConfig> brokerContext;
 
     // Getters and setters
-    public List<BrokerConnectorConfig> getBrokerConnectorConfigs() {
-        return brokerConnectorConfigs;
+    public List<BrokerConfig> getBrokerContext() {
+        return brokerContext;
     }
 
-    public void setBrokerConnectorConfigs(List<BrokerConnectorConfig> brokerConnectorConfigs) {
-        this.brokerConnectorConfigs = brokerConnectorConfigs;
+    public void setBrokerContext(List<BrokerConfig> brokerConfigs) {
+        this.brokerContext = brokerConfigs;
     }
 
     @Override
     public IMessageRouteResolver getChargingStationRouteResolver(String csId) {
-        Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
+        Optional<BrokerConfig> matchingEntry = brokerContext.stream()
                 .filter(
-                        brokerConnectorConfig -> brokerConnectorConfig.getChargingStationIds().contains(csId)
+                        brokerConfig -> brokerConfig.getChargingStationIds().contains(csId)
                 )
                 .findFirst();
 
@@ -38,10 +38,10 @@ public class BrokerConnectorConfigs implements IBrokerConnectorConfigs {
     }
 
     @Override
-    public BrokerConnectorConfig getConfigFromCsId(String csId) {
-        Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
+    public BrokerConfig getConfigFromCsId(String csId) {
+        Optional<BrokerConfig> matchingEntry = brokerContext.stream()
                 .filter(
-                        brokerConnectorConfig -> brokerConnectorConfig.getChargingStationIds().contains(csId)
+                        brokerConfig -> brokerConfig.getChargingStationIds().contains(csId)
                 )
                 .findFirst();
 
@@ -53,10 +53,10 @@ public class BrokerConnectorConfigs implements IBrokerConnectorConfigs {
     }
 
     @Override
-    public BrokerConnectorConfig getConfigFromCsmsId(String csmsId) {
-        Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
+    public BrokerConfig getConfigFromCsmsId(String csmsId) {
+        Optional<BrokerConfig> matchingEntry = brokerContext.stream()
                 .filter(
-                        brokerConnectorConfig -> brokerConnectorConfig.getCsmsId().equals(csmsId)
+                        brokerConfig -> brokerConfig.getCsmsId().equals(csmsId)
                 )
                 .findFirst();
 
@@ -69,13 +69,13 @@ public class BrokerConnectorConfigs implements IBrokerConnectorConfigs {
 
     @Override
     public IMessageRouteResolver getCsmsRouteResolver(String csmsId) {
-        Optional<BrokerConnectorConfig> matchingEntry = brokerConnectorConfigs.stream()
+        Optional<BrokerConfig> matchingEntry = brokerContext.stream()
                 .filter(
-                        brokerConnectorConfig -> brokerConnectorConfig.getCsmsId().equals(csmsId))
+                        brokerConfig -> brokerConfig.getCsmsId().equals(csmsId))
                 .findFirst();
 
         if (matchingEntry.isEmpty()) {
-            throw new ChargingStationManagementSystemIdNotFoundException("The Charging Station Management Id was not found within the file. Make sure to provide a valid id contained within the file.");
+            throw new ChargingStationManagementSystemIdNotFoundException(String.format("The Charging Station Management Id csmsId=%s was not found within the file. Make sure to provide a valid id contained within the file.", csmsId));
         }
 
         return new MessageRouteResolverImpl(

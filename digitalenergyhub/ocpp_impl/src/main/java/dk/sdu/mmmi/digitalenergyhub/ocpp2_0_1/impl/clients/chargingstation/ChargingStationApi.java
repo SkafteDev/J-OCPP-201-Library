@@ -3,8 +3,8 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConnectorConfig;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerConnectorConfigs;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConfig;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerContext;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
@@ -48,29 +48,29 @@ public class ChargingStationApi {
 
     public static class ChargingStationApiBuilder {
         private String csId;
-        private IBrokerConnectorConfigs configs;
+        private IBrokerContext configs;
 
         public ChargingStationApiBuilder withCsId(String csId) {
             this.csId = csId;
             return this;
         }
 
-        public ChargingStationApiBuilder withBrokerConnectorConfigs(IBrokerConnectorConfigs configs) {
+        public ChargingStationApiBuilder withBrokerContext(IBrokerContext configs) {
             this.configs = configs;
             return this;
         }
 
         public ChargingStationApi build() {
             if (csId == null) throw new IllegalArgumentException("Charging Station ID must not be null. Provide a Charging Station Id.");
-            if (configs == null) throw new IllegalArgumentException("BrokerConnectorConfigs must not be null. Provide a BrokerConnectorConfigs");
+            if (configs == null) throw new IllegalArgumentException("BrokerContext must not be null. Provide a BrokerContext.");
 
-            BrokerConnectorConfig csBrokerConnectorConfig = configs.getConfigFromCsId(csId);
+            BrokerConfig csBrokerConfig = configs.getConfigFromCsId(csId);
 
             try {
                 Options natsOptions = Options.builder()
-                        .server(csBrokerConnectorConfig.getBrokerUrl())
+                        .server(csBrokerConfig.getBrokerUrl())
                         .connectionName(String.format("Charging Station Server operatorId=%s csmsId=%s csId=%s",
-                                csBrokerConnectorConfig.getOperatorId(), csBrokerConnectorConfig.getCsmsId(), csId))
+                                csBrokerConfig.getOperatorId(), csBrokerConfig.getCsmsId(), csId))
                         .connectionTimeout(Duration.ofMinutes(2))
                         .connectionListener((connection, eventType) -> {
                             logger.info(String.format("NATS.io connection event: %s%n", eventType));

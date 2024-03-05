@@ -2,7 +2,7 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration;
 
 import java.util.List;
 
-public class BrokerConnectorConfig {
+public class BrokerConfig {
     private String brokerUrl;
     private String operatorId;
     private String csmsId;
