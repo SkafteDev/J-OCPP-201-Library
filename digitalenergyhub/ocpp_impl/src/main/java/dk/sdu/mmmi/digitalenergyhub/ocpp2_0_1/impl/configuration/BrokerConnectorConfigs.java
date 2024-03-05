@@ -61,7 +61,7 @@ public class BrokerConnectorConfigs implements IBrokerConnectorConfigs {
                 .findFirst();
 
         if (matchingEntry.isEmpty()) {
-            throw new ChargingStationManagementSystemIdNotFoundException("The Charging Station Management Id was not found within the file. Make sure to provide a valid id contained within the file.");
+            throw new ChargingStationManagementSystemIdNotFoundException(String.format("The Charging Station Management Id csmsId=%s was not found within the file. Make sure to provide a valid id contained within the file.", csmsId));
         }
 
         return matchingEntry.get();
