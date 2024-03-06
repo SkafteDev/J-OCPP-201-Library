@@ -1,8 +1,5 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
 /**
  * If the call can be handled correctly the result will be a regular CALLRESULT. Error situations that are covered by the definition of the
  * OCPP response definition are not considered errors in this context. They are regular results and as such will be treated as a normal

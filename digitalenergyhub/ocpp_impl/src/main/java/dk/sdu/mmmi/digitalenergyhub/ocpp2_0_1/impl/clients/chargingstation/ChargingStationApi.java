@@ -2,10 +2,10 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConfig;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.IBrokerContext;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.configuration.IBrokerContext;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.OCPPServerImpl;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;

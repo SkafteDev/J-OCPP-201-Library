@@ -3,14 +3,14 @@ package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.managementsystem;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.IChargingStationProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.chargingstation.IOCPPServer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.IOCPPServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.managementsystem.IChargingStationManagementServer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.managementsystem.ChargingStationProxyImpl;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.chargingstation.OCPPServerImpl;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.OCPPServerImpl;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.utils.DateUtil;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -332,7 +332,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         ocppServer.addRequestHandler(OCPPMessageType.BootNotificationRequest,
                 new OCPPRequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class) {
                     @Override
-                    public String getInboundMessageRoute() {
+                    public String getRequestSubject() {
                         return routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
                     }
 
@@ -397,7 +397,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         ocppServer.addRequestHandler(OCPPMessageType.StatusNotificationRequest,
                 new OCPPRequestHandler<>(StatusNotificationRequest.class, StatusNotificationResponse.class) {
                     @Override
-                    public String getInboundMessageRoute() {
+                    public String getRequestSubject() {
                         return routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
                     }
 

@@ -1,6 +1,7 @@
-package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration;
+package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.configuration;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration.BrokerConfig;
 
 public interface IBrokerContext {
 

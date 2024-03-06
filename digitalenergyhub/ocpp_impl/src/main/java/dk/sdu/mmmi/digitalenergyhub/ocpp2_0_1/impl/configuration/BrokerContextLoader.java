@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.configuration;
 
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.configuration.IBrokerContext;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;

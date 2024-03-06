@@ -2,7 +2,7 @@ package dk.sdu.mmmi.application.chargingstation.requesthandlers;
 
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.servers.dispatching.OCPPRequestHandler;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.servers.OCPPRequestHandler;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.impl.CallResultMessageImpl;
@@ -46,7 +46,7 @@ public class SetChargingProfileRequestHandler
     }
 
     @Override
-    public String getInboundMessageRoute() {
+    public String getRequestSubject() {
         return routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest);
     }
 }
