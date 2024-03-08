@@ -2,12 +2,13 @@ version: "3.8"
 services:
   # Middleware messaging using NATS.io
   middleware_messaging:
-    image: nats:latest
+    image: nats:2.9.25
     container_name: nats-server
     restart: "no"
-    # Enable JetStream, configure the HTTP management port.
-    command: --jetstream --store_dir /data/jetstream --http_port 8222 -c /container/configs/nats.conf
+    # Use the provided configuration file.
+    command: -c /container/configs/nats.conf
     ports:
+      - "1883:1883" # MQTT support in NATS.io
       - "4222:4222" # For clients
       - "6222:6222" # HTTP management port for information reporting.
       - "8222:8222" # Routing port for clustering
@@ -27,7 +28,6 @@ services:
       - nats_network
     depends_on:
       - middleware_messaging
-
 
 networks:
   nats_network:
