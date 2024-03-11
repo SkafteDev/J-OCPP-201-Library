@@ -293,11 +293,11 @@ public class ChargingStationServerTest {
 
         private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
 
-        private final IMessageRouteResolver routingMap;
+        private final IMessageRouteResolver routeResolver;
 
-        public SetChargingProfileRequestHandler(IMessageRouteResolver routingMap) {
+        public SetChargingProfileRequestHandler(IMessageRouteResolver routeResolver) {
             super(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
-            this.routingMap = routingMap;
+            this.routeResolver = routeResolver;
         }
 
         @Override
@@ -326,7 +326,7 @@ public class ChargingStationServerTest {
 
         @Override
         public String getRequestSubject() {
-            return routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest);
+            return routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
         }
     }
 }

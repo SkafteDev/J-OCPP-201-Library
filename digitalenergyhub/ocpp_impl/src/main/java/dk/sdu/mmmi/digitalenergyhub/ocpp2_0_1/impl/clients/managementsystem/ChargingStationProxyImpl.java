@@ -24,11 +24,11 @@ import java.util.logging.Logger;
 public class ChargingStationProxyImpl implements IChargingStationProxy {
     private final Logger logger = Logger.getLogger(ChargingStationProxyImpl.class.getName());
     private final Connection natsConnection;
-    private final IMessageRouteResolver routingMap;
+    private final IMessageRouteResolver routeResolver;
 
-    public ChargingStationProxyImpl(Connection natsConnection, IMessageRouteResolver routingMap) {
+    public ChargingStationProxyImpl(Connection natsConnection, IMessageRouteResolver routeResolver) {
         this.natsConnection = natsConnection;
-        this.routingMap = routingMap;
+        this.routeResolver = routeResolver;
     }
 
     @Override
@@ -189,7 +189,7 @@ public class ChargingStationProxyImpl implements IChargingStationProxy {
     public ICallResultMessage<SetChargingProfileResponse> sendSetChargingProfileRequest(ICallMessage<SetChargingProfileRequest> request) {
         try {
             String jsonRequestPayload = CallMessageSerializer.serialize(request);
-            String requestSubject = routingMap.getRoute(OCPPMessageType.SetChargingProfileRequest);
+            String requestSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
             Message natsMessage = NatsMessage.builder()
                     .subject(requestSubject)
                     .data(jsonRequestPayload, StandardCharsets.UTF_8)
