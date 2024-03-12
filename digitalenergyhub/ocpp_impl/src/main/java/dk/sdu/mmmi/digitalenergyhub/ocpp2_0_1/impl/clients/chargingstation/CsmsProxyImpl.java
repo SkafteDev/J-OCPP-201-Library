@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.OCPPRequester;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
@@ -170,7 +171,15 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
     @Override
     public ICallResultMessage<HeartbeatResponse> sendHeartbeatRequest(ICallMessage<HeartbeatRequest> req) {
-        throw new UnsupportedOperationException("Operation not implemented.");
+        var requester = new OCPPRequester<>(HeartbeatRequest.class, HeartbeatResponse.class);
+
+        String requestSubject = routeResolver.getRoute(OCPPMessageType.HeartbeatRequest);
+        String responseSubject = routeResolver.getRoute(OCPPMessageType.HeartbeatResponse);
+
+        ICallResultMessage<HeartbeatResponse> response = requester.request(req, requestSubject, responseSubject,
+                natsConnection);
+
+        return response;
     }
 
     @Override

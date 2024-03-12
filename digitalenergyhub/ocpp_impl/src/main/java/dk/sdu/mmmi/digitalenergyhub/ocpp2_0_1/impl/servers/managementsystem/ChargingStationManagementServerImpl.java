@@ -49,7 +49,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         // TODO: Add handlers for all incoming message types.
         addBootNotificationHandler();
         addStatusNotificationHandler();
-        //addHeartbeatHandler();
+        addHeartbeatHandler();
     }
 
     @Override
@@ -427,6 +427,45 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                 CallResultMessageImpl.<StatusNotificationResponse>newBuilder()
                         .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
                         .withPayLoad(statusNotificationResponse)
+                        .build();
+
+        return callResultMessage;
+    }
+
+    private void addHeartbeatHandler() {
+        ocppServer.addRequestHandler(OCPPMessageType.HeartbeatRequest,
+                new OCPPRequestHandler<>(HeartbeatRequest.class, HeartbeatResponse.class) {
+                    @Override
+                    public String getRequestSubject() {
+                        return routeResolver.getRoute(OCPPMessageType.HeartbeatRequest);
+                    }
+
+                    @Override
+                    public ICallResultMessage<HeartbeatResponse> handle(ICallMessage<HeartbeatRequest> message, String subject) {
+                        String[] subjectHierarchy = subject.split("\\.");
+                        String csId = subjectHierarchy[5];
+
+                        HeartbeatRequest heartbeatRequest = message.getPayload();
+
+                        logger.info(String.format("Processing '%s' payload='%s' for ChargingStation='%s'",
+                                OCPPMessageType.HeartbeatRequest,
+                                heartbeatRequest.toString(),
+                                csId));
+
+                        return acceptHeartbeatRequest(message.getMessageId());
+                    }
+                });
+    }
+
+    private ICallResultMessage<HeartbeatResponse> acceptHeartbeatRequest(String responseMsgId) {
+        HeartbeatResponse response = HeartbeatResponse.builder()
+                .withCurrentTime(DateUtil.now())
+                .build();
+
+        ICallResultMessage<HeartbeatResponse> callResultMessage =
+                CallResultMessageImpl.<HeartbeatResponse>newBuilder()
+                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                        .withPayLoad(response)
                         .build();
 
         return callResultMessage;

@@ -130,6 +130,29 @@ public class ChargingStationClientTest {
         assertEquals(MessageType.CALLRESULT, statusNotificationResponse.getMessageTypeId());
     }
 
+    @Test
+    void integration_cs_to_csms_HeartbeatRequest() {
+        URL resource = getResource("BrokerContexts/brokerContext.yml");
+        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
+        BrokerConfig csBrokerConfig = brokerContext.getConfigFromCsId(CS_ID);
+
+        Connection natsConnection = getNatsConnection(csBrokerConfig.getBrokerUrl());
+
+        IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
+
+        ICsmsProxy csClient = new CsmsProxyImpl(natsConnection, routeResolver);
+
+        ICallMessage<HeartbeatRequest> heartbeatRequest = createHeartbeatRequest();
+
+        ICallResultMessage<HeartbeatResponse> heartbeatResponse =
+                csClient.sendHeartbeatRequest(heartbeatRequest);
+
+        // MessageId's of request/response must be equal for tracability.
+        assertEquals(heartbeatRequest.getMessageId(), heartbeatResponse.getMessageId());
+        // Expect a call result.
+        assertEquals(MessageType.CALLRESULT, heartbeatResponse.getMessageTypeId());
+    }
+
 
     private static ICallMessage<BootNotificationRequest> createBootNotificationRequest() {
         BootNotificationRequest bootNotificationRequest = new BootNotificationRequest.BootNotificationRequestBuilder()
@@ -162,6 +185,18 @@ public class ChargingStationClientTest {
                 .withMessageId("53d9c081-aa03-4456-a5f4-811fc870f0bd")
                 .asAction(OCPPMessageType.StatusNotificationRequest.getValue())
                 .withPayLoad(statusNotificationRequest)
+                .build();
+
+        return callMessage;
+    }
+
+    private static ICallMessage<HeartbeatRequest> createHeartbeatRequest() {
+        HeartbeatRequest heartbeatRequest = HeartbeatRequest.builder().build();
+
+        ICallMessage<HeartbeatRequest> callMessage = CallMessageImpl.<HeartbeatRequest>newBuilder()
+                .withMessageId("3211b8d5-16aa-4dec-877a-9a9b114e86b3")
+                .asAction(OCPPMessageType.HeartbeatRequest.getValue())
+                .withPayLoad(heartbeatRequest)
                 .build();
 
         return callMessage;
