@@ -12,6 +12,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessa
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
 import io.nats.client.Message;
+import io.nats.client.impl.Headers;
 import io.nats.client.impl.NatsMessage;
 
 import java.nio.charset.StandardCharsets;
@@ -190,8 +191,13 @@ public class ChargingStationProxyImpl implements IChargingStationProxy {
         try {
             String jsonRequestPayload = CallMessageSerializer.serialize(request);
             String requestSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
+            String responseSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileResponse);
             Message natsMessage = NatsMessage.builder()
                     .subject(requestSubject)
+                    .replyTo(responseSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
+                    .headers(new Headers()
+                            .add("replyTo", responseSubject) // Put the response subject into the header for traceability purposes.
+                    )
                     .data(jsonRequestPayload, StandardCharsets.UTF_8)
                     .build();
 

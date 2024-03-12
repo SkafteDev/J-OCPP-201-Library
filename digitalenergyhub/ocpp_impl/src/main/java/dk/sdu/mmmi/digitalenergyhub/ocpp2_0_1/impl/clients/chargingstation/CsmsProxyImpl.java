@@ -11,6 +11,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessa
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
 import io.nats.client.Message;
+import io.nats.client.impl.Headers;
 import io.nats.client.impl.NatsMessage;
 
 import java.nio.charset.StandardCharsets;
@@ -41,7 +42,8 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
     @Override
     public ICallResultMessage<BootNotificationResponse> sendBootNotificationRequest(ICallMessage<BootNotificationRequest> req) {
-        String subject = routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
+        String requestSubject = routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
+        String responseSubject = routeResolver.getRoute(OCPPMessageType.BootNotificationResponse);
 
         String jsonPayloadRequest = null;
 
@@ -54,7 +56,11 @@ public class CsmsProxyImpl implements ICsmsProxy {
         }
 
         Message natsRequest = NatsMessage.builder()
-                .subject(subject)
+                .subject(requestSubject)
+                .replyTo(responseSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
+                .headers(new Headers()
+                        .add("replyTo", responseSubject) // Put the response subject into the header for traceability purposes.
+                )
                 .data(jsonPayloadRequest, StandardCharsets.UTF_8)
                 .build();
 
@@ -107,7 +113,8 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
     @Override
     public ICallResultMessage<StatusNotificationResponse> sendStatusNotificationRequest(ICallMessage<StatusNotificationRequest> req) {
-        String subject = routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
+        String requestSubject = routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
+        String responseSubject = routeResolver.getRoute(OCPPMessageType.StatusNotificationResponse);
 
         String jsonPayloadRequest = null;
 
@@ -120,7 +127,11 @@ public class CsmsProxyImpl implements ICsmsProxy {
         }
 
         Message natsRequest = NatsMessage.builder()
-                .subject(subject)
+                .subject(requestSubject)
+                .replyTo(responseSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
+                .headers(new Headers()
+                        .add("replyTo", responseSubject) // Put the response subject into the header for traceability purposes.
+                )
                 .data(jsonPayloadRequest, StandardCharsets.UTF_8)
                 .build();
 

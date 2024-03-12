@@ -8,6 +8,7 @@ import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallResul
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
+import io.nats.client.Nats;
 import io.nats.client.impl.NatsMessage;
 
 import java.nio.charset.StandardCharsets;
@@ -62,7 +63,18 @@ public abstract class OCPPRequestHandler<INBOUND, OUTBOUND> {
                     .data(jsonResponsePayload)
                     .build();
 
+            // Publish the response on the subject that the requester is listening on.
             natsConnection.publish(natsResponse);
+
+            // Publish the response on the subject used for traceability.
+            String replyTo = natsMsg.getHeaders().getFirst("replyTo");
+            if (!replyTo.equals(null) || !replyTo.isEmpty()){
+                NatsMessage duplicateResponse = NatsMessage.builder()
+                        .subject(replyTo)
+                        .data(jsonResponsePayload)
+                        .build();
+                natsConnection.publish(duplicateResponse);
+            }
 
         });
         dispatcher.subscribe(getRequestSubject());
