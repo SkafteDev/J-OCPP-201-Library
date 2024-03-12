@@ -99,9 +99,20 @@ public class OCPPRequester<OUTBOUND, INBOUND> {
                     message.getSubject()));
 
             return callResult;
-
-        } catch (JsonProcessingException | ExecutionException | InterruptedException | CancellationException e) {
-            throw new OCPPRequestException(e.getMessage(), e);
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO: Handle if the CompletableFuture is interrupted or fails.
+            logger.severe(e.getMessage());
+            throw new OCPPRequestException(e.getMessage(), e.getCause());
+        } catch (JsonProcessingException e) {
+            // TODO: Handle if the deserialization fails for CallResult, try and deserialize to CallError
+            logger.severe(e.getMessage());
+            throw new OCPPRequestException(e.getMessage(), e.getCause());
+        } catch (CancellationException e) {
+            // TODO: Handle if the CompletableFuture got cancelled. This can happen if there are no subscribers to
+            //  handle the request.
+            logger.severe("The request got cancelled. This exception may happen if there are no subscribers to handle" +
+                    " the request.");
+            throw new OCPPRequestException(e.getMessage(), e.getCause());
         }
     }
 }

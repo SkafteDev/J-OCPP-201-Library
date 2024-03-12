@@ -27,7 +27,6 @@ public class CsmsProxyImpl implements ICsmsProxy {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     private final Connection natsConnection;
-    private final Duration defaultTimeout = Duration.ofSeconds(30);
 
     private final IMessageRouteResolver routeResolver;
 
@@ -46,50 +45,12 @@ public class CsmsProxyImpl implements ICsmsProxy {
         String requestSubject = routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
         String responseSubject = routeResolver.getRoute(OCPPMessageType.BootNotificationResponse);
 
-        String jsonPayloadRequest = null;
+        var requester = new OCPPRequester<>(BootNotificationRequest.class, BootNotificationResponse.class);
 
-        try {
-            jsonPayloadRequest = CallMessageSerializer.serialize(req);
-        } catch (JsonProcessingException e) {
-            // TODO: Handle if the serialization fails.
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        ICallResultMessage<BootNotificationResponse> response = requester.request(req, requestSubject, responseSubject,
+                natsConnection);
 
-        Message natsRequest = NatsMessage.builder()
-                .subject(requestSubject)
-                .replyTo(responseSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
-                .headers(new Headers()
-                        .add("replyTo", responseSubject) // Put the response subject into the header for traceability purposes.
-                )
-                .data(jsonPayloadRequest, StandardCharsets.UTF_8)
-                .build();
-
-        try {
-            CompletableFuture<Message> natsResponse = natsConnection.requestWithTimeout(natsRequest, defaultTimeout);
-            Message message = natsResponse.get();
-
-            String jsonPayloadResponse = new String (message.getData(), StandardCharsets.UTF_8);
-
-            ICallResultMessage<BootNotificationResponse> callResult = CallResultMessageDeserializer.deserialize(jsonPayloadResponse,
-                    BootNotificationResponse.class);
-
-            return callResult;
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO: Handle if the CompletableFuture is interrupted or fails.
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        } catch (JsonProcessingException e) {
-            // TODO: Handle if the deserialization fails for CallResult, try and deserialize to CallError
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        } catch (CancellationException e) {
-            // TODO: Handle if the CompletableFuture got cancelled. This can happen if there are no subscribers to
-            //  handle the request.
-            logger.severe("The request got cancelled. This exception may happen if there are no subscribers to handle" +
-                    " the request.");
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        }
+        return response;
     }
 
     @Override
@@ -114,54 +75,15 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
     @Override
     public ICallResultMessage<StatusNotificationResponse> sendStatusNotificationRequest(ICallMessage<StatusNotificationRequest> req) {
+        var requester = new OCPPRequester<>(StatusNotificationRequest.class, StatusNotificationResponse.class);
+
         String requestSubject = routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
         String responseSubject = routeResolver.getRoute(OCPPMessageType.StatusNotificationResponse);
 
-        String jsonPayloadRequest = null;
+        ICallResultMessage<StatusNotificationResponse> response = requester.request(req, requestSubject, responseSubject,
+                natsConnection);
 
-        try {
-            jsonPayloadRequest = CallMessageSerializer.serialize(req);
-        } catch (JsonProcessingException e) {
-            // TODO: Handle if the serialization fails.
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e.getMessage(), e);
-        }
-
-        Message natsRequest = NatsMessage.builder()
-                .subject(requestSubject)
-                .replyTo(responseSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
-                .headers(new Headers()
-                        .add("replyTo", responseSubject) // Put the response subject into the header for traceability purposes.
-                )
-                .data(jsonPayloadRequest, StandardCharsets.UTF_8)
-                .build();
-
-        try {
-            CompletableFuture<Message> natsResponse = natsConnection.requestWithTimeout(natsRequest, defaultTimeout);
-            Message message = natsResponse.get();
-
-            String jsonPayloadResponse = new String (message.getData(), StandardCharsets.UTF_8);
-
-            ICallResultMessage<StatusNotificationResponse> callResult =
-                    CallResultMessageDeserializer.deserialize(jsonPayloadResponse,
-                            StatusNotificationResponse.class);
-
-            return callResult;
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO: Handle if the CompletableFuture is interrupted or fails.
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        } catch (JsonProcessingException e) {
-            // TODO: Handle if the deserialization fails for CallResult, try and deserialize to CallError
-            logger.severe(e.getMessage());
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        } catch (CancellationException e) {
-            // TODO: Handle if the CompletableFuture got cancelled. This can happen if there are no subscribers to
-            //  handle the request.
-            logger.severe("The request got cancelled. This exception may happen if there are no subscribers to handle" +
-                    " the request.");
-            throw new RuntimeException(e.getMessage(), e.getCause());
-        }
+        return response;
     }
 
     @Override

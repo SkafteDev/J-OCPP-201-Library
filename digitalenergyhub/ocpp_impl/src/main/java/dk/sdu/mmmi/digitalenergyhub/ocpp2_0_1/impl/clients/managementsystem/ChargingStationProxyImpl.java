@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.managementsystem.IChargingStationProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.OCPPRequester;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
@@ -134,20 +135,6 @@ public class ChargingStationProxyImpl implements IChargingStationProxy {
 
     @Override
     public ICallResultMessage<GetVariablesResponse> sendGetVariablesRequest(ICallMessage<GetVariablesRequest> req) {
-        // ICallMessage<GetVariablesRequest> callMsg = CallMessageImpl.<GetVariablesRequest>newBuilder().build();
-
-        // Starting here:
-
-        // Serialize to JSON format.
-        // Optionally, validate format before sending.
-
-        // Send the msg to the NATS.io broker as a request with a pre-programmed timeout.
-
-        // Await a response from NATS.io.
-
-        // Deserialize the response from NATS.io.
-
-        // Return the response...
         return null;
     }
 
@@ -188,39 +175,14 @@ public class ChargingStationProxyImpl implements IChargingStationProxy {
 
     @Override
     public ICallResultMessage<SetChargingProfileResponse> sendSetChargingProfileRequest(ICallMessage<SetChargingProfileRequest> request) {
-        try {
-            String jsonRequestPayload = CallMessageSerializer.serialize(request);
-            String requestSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
-            String responseSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileResponse);
-            Message natsMessage = NatsMessage.builder()
-                    .subject(requestSubject)
-                    .replyTo(responseSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
-                    .headers(new Headers()
-                            .add("replyTo", responseSubject) // Put the response subject into the header for traceability purposes.
-                    )
-                    .data(jsonRequestPayload, StandardCharsets.UTF_8)
-                    .build();
+        var requester = new OCPPRequester<>(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
 
-            logger.info(String.format("Sending request '%s' with payload %s on subject %s",
-                    SetChargingProfileRequest.class.getName(), jsonRequestPayload, requestSubject));
-            CompletableFuture<Message> response = natsConnection.requestWithTimeout(natsMessage, Duration.ofSeconds(30));
+        String requestSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
+        String responseSubject = routeResolver.getRoute(OCPPMessageType.SetChargingProfileResponse);
 
-            // Blocks until message is received.
-            // TODO: Join all futures and get the result at a later point in time, to avoid blocking.
-            Message message = response.get();
-            String jsonResponsePayload = new String(message.getData(), StandardCharsets.UTF_8);
-            ICallResultMessage<SetChargingProfileResponse> callResult =
-                    CallResultMessageDeserializer.deserialize(jsonResponsePayload, SetChargingProfileResponse.class);
+        ICallResultMessage<SetChargingProfileResponse> response = requester.request(request, requestSubject, responseSubject, natsConnection);
 
-            logger.info(String.format("Received response '%s' with payload %s on subject %s",
-                    SetChargingProfileResponse.class.getName(), callResult.getPayload().toString(),
-                    message.getSubject()));
-
-            return callResult;
-
-        } catch (JsonProcessingException | ExecutionException | InterruptedException | CancellationException e) {
-            throw new OCPPRequestException(e.getMessage(), e);
-        }
+        return response;
     }
 
     @Override
