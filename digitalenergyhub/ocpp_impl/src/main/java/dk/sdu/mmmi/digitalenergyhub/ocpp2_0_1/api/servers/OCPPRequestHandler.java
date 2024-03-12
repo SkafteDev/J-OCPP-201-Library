@@ -88,8 +88,8 @@ public abstract class OCPPRequestHandler<INBOUND, OUTBOUND> {
     }
 
     /**
-     * Serializes the {@link dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage} to JSON.
-     * @param message The {@link dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage} to serialize.
+     * Serializes the {@link dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage} to JSON.
+     * @param message The {@link dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage} to serialize.
      * @return The serialized message in JSON.
      */
     protected String serialize(ICallResultMessage<OUTBOUND> message) {
