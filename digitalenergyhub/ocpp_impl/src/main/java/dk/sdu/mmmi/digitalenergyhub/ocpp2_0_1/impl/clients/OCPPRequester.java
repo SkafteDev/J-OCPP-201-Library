@@ -27,6 +27,7 @@ public class OCPPRequester<OUTBOUND, INBOUND> {
 
     /**
      * Instantiate a new OCPPRequester with the OUTBOUND and INBOUND payload types.
+     *
      * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
      * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
      */
@@ -35,45 +36,48 @@ public class OCPPRequester<OUTBOUND, INBOUND> {
         this.inboundPayloadType = inPayloadType;
     }
 
+    /**
+     * Sets the timeout for the request.
+     * @param timeout
+     */
     public void setTimeout(Duration timeout) {
         this.timeout = timeout;
     }
 
     /**
      * Serializes the {@link dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage} to JSON.
+     *
      * @param message The {@link dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage} to serialize.
      * @return The serialized message in JSON.
      */
-    protected String serialize(ICallMessage<OUTBOUND> message) {
-        try {
-            return CallMessageSerializer.serialize(message);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
+    protected String serialize(ICallMessage<OUTBOUND> message) throws JsonProcessingException {
+        return CallMessageSerializer.serialize(message);
     }
 
     /**
      * Deserializes the raw payload in Json.
+     *
      * @param rawJsonPayload
      * @return
      */
-    protected ICallResultMessage<INBOUND> deserialize(String rawJsonPayload) {
-        ICallResultMessage<INBOUND> deserialized;
-
-        try {
-            deserialized = CallResultMessageDeserializer.deserialize(rawJsonPayload, inboundPayloadType);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-
-        return deserialized;
+    protected ICallResultMessage<INBOUND> deserialize(String rawJsonPayload) throws JsonProcessingException {
+        return CallResultMessageDeserializer.deserialize(rawJsonPayload, inboundPayloadType);
     }
 
 
+    /**
+     * Sends the request to the subject on the provided connection.
+     * This call is synchronous and waits for a response until the timeout is met.
+     * @param request The request to send
+     * @param requestSubject The subject the request is sent to
+     * @param replyToSubject The subject that the receiver is expected to reply to.
+     * @param natsConnection The NATS.io connection that is used to send the request and receive the response.
+     * @return
+     */
     public ICallResultMessage<INBOUND> request(ICallMessage<OUTBOUND> request, String requestSubject,
                                                String replyToSubject, Connection natsConnection) {
         try {
-            String jsonRequestPayload = CallMessageSerializer.serialize(request);
+            String jsonRequestPayload = serialize(request);
             Message natsMessage = NatsMessage.builder()
                     .subject(requestSubject)
                     .replyTo(replyToSubject) // This is overwritten to a unique UUID by NATS.io when using their // request API.
@@ -88,11 +92,9 @@ public class OCPPRequester<OUTBOUND, INBOUND> {
             CompletableFuture<Message> response = natsConnection.requestWithTimeout(natsMessage, timeout);
 
             // Blocks until message is received.
-            // TODO: Join all futures and get the result at a later point in time, to avoid blocking.
             Message message = response.get();
             String jsonResponsePayload = new String(message.getData(), StandardCharsets.UTF_8);
-            ICallResultMessage<INBOUND> callResult =
-                    CallResultMessageDeserializer.deserialize(jsonResponsePayload, inboundPayloadType);
+            ICallResultMessage<INBOUND> callResult = deserialize(jsonResponsePayload);
 
             logger.info(String.format("Received response '%s' with payload %s on subject %s",
                     inboundPayloadType.getName(), callResult.getPayload().toString(),
