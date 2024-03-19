@@ -8,7 +8,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 
-public class SimulationClient {
+public class AnyLogicClient {
     public static void main(String[] args) {
         io.nats.client.Connection nc = NatsUtils.createConnection(Options.builder()
                 .server("nats://localhost:4222")

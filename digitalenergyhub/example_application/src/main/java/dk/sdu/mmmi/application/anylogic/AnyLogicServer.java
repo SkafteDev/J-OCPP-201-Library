@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
 
-public class SimulationStarter {
+public class AnyLogicServer {
     public static void main(String[] args) {
         io.nats.client.Connection nc = NatsUtils.createConnection(Options.builder()
                 .server("nats://localhost:4222")
