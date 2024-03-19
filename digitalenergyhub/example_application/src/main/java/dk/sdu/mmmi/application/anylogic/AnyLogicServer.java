@@ -1,47 +1,45 @@
 package dk.sdu.mmmi.application.anylogic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.Options;
 import io.nats.client.Subscription;
 
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
-import java.util.Date;
+import java.util.Properties;
 
 public class AnyLogicServer {
-    public static void main(String[] args) {
-        io.nats.client.Connection nc = NatsUtils.createConnection(Options.builder()
-                .server("nats://localhost:4222")
+    public static void main(String[] args) throws IOException {
+
+        InputStream resourceStream = AnyLogicServer.class.getClassLoader().getResourceAsStream("anylogic.properties");
+        Properties properties = new Properties();
+        properties.load(resourceStream);
+        String natsUrl = properties.getProperty("anylogic.brokerurl");
+        String anyLogicExecutable = properties.getProperty("anylogic.executable");
+        String anyLogicModel = properties.getProperty("anylogic.model");
+        String anylogicExperiment = properties.getProperty("anylogic.experiment");
+        String anylogicInstanceId = properties.getProperty("anylogic.instanceid");
+
+        Connection nc = NatsUtils.createConnection(Options.builder()
+                .server(natsUrl)
                 .build()
         );
 
+
         try {
-            Subscription sub = nc.subscribe("anylogic.commands.start");
+            System.out.println("AnyLogic Server started.");
+
+            String subject = "anylogic.{instanceid}.commands.open".replace("{instanceid}", anylogicInstanceId);
+            Subscription sub = nc.subscribe(subject);
             Message msg = sub.nextMessage(Duration.ZERO);
-            String jsonPayload = new String(msg.getData(), StandardCharsets.UTF_8);
 
-            System.out.println(jsonPayload);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(jsonPayload);
-
-            String startDateStr = jsonNode.get("startDate").asText();
-            String stopDateStr = jsonNode.get("stopDate").asText();
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-            Date startDate = dateFormat.parse(startDateStr);
-            Date stopDate = dateFormat.parse(stopDateStr);
-
-            System.out.println(startDate);
-            System.out.println(stopDate);
+            new AnyLogicCLI(anyLogicExecutable)
+                    .run(anyLogicModel, anylogicExperiment);
 
             nc.close();
-        } catch (JsonProcessingException | InterruptedException | ParseException e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
