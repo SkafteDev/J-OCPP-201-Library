@@ -1,25 +1,15 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.chargingstation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.OCPPRequester;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallMessage;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.deserializers.CallResultMessageDeserializer;
-import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers.CallMessageSerializer;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
-import io.nats.client.Message;
-import io.nats.client.impl.Headers;
-import io.nats.client.impl.NatsMessage;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 public class CsmsProxyImpl implements ICsmsProxy {
@@ -47,10 +37,15 @@ public class CsmsProxyImpl implements ICsmsProxy {
 
         var requester = new OCPPRequester<>(BootNotificationRequest.class, BootNotificationResponse.class);
 
-        ICallResultMessage<BootNotificationResponse> response = requester.request(req, requestSubject, responseSubject,
-                natsConnection);
+        try {
+            ICallResultMessage<BootNotificationResponse> response = requester.request(req, requestSubject, responseSubject,
+                    natsConnection);
 
-        return response;
+            return response;
+        } catch (OCPPRequestException ex) {
+            logger.info(ex.getMessage());
+            return null;
+        }
     }
 
     @Override
@@ -80,10 +75,15 @@ public class CsmsProxyImpl implements ICsmsProxy {
         String requestSubject = routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
         String responseSubject = routeResolver.getRoute(OCPPMessageType.StatusNotificationResponse);
 
-        ICallResultMessage<StatusNotificationResponse> response = requester.request(req, requestSubject, responseSubject,
-                natsConnection);
+        try {
+            ICallResultMessage<StatusNotificationResponse> response = requester.request(req, requestSubject, responseSubject,
+                    natsConnection);
 
-        return response;
+            return response;
+        } catch (OCPPRequestException ex) {
+            logger.info(ex.getMessage());
+            return null;
+        }
     }
 
     @Override
@@ -98,10 +98,15 @@ public class CsmsProxyImpl implements ICsmsProxy {
         String requestSubject = routeResolver.getRoute(OCPPMessageType.HeartbeatRequest);
         String responseSubject = routeResolver.getRoute(OCPPMessageType.HeartbeatResponse);
 
-        ICallResultMessage<HeartbeatResponse> response = requester.request(req, requestSubject, responseSubject,
-                natsConnection);
+        try {
+            ICallResultMessage<HeartbeatResponse> response = requester.request(req, requestSubject, responseSubject,
+                    natsConnection);
 
-        return response;
+            return response;
+        } catch (OCPPRequestException ex) {
+            logger.info(ex.getMessage());
+            return null;
+        }
     }
 
     @Override
