@@ -159,169 +159,121 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(0 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 01:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(1 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 02:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(2 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 03:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(3 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 04:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(4 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 05:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(5 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 06:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(6 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 07:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(7 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 08:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(8 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 09:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(9 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 10:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(10 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 11:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(11 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 12:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(12 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 13:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(13 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 14:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(14 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 15:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(15 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 16:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(16 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 17:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(17 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 18:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(18 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 19:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(19 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 20:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(20 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 21:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(21 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 22:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(22 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 23:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(23 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build()
                                         )).build()
                         ))
