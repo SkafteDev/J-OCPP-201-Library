@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="624.0" prefWidth="520.0" spacing="20.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.sdu.mmmi.anylogic_remote_ui.RemoteUIController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+    <!-- Server settings -->
+    <TitledPane animated="false" collapsible="false" text="Server settings">
+        <content>
+            <GridPane prefHeight="80.0" prefWidth="413.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="165.0" minWidth="10.0" prefWidth="100.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="240.0" minWidth="10.0" prefWidth="240.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                </rowConstraints>
+                <Label text="NATS.io address:" GridPane.rowIndex="0" />
+                <TextField fx:id="txtNatsUrl" text="nats://localhost:4222" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <Label text="Server instance ID:" GridPane.rowIndex="1" />
+                <TextField fx:id="txtServerInstanceId" prefHeight="25.0" prefWidth="227.0" text="MyServer1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            </GridPane>
+        </content>
+    </TitledPane>
+
+    <TitledPane animated="false" collapsible="false" text="Remote commands">
+        <content>
+            <GridPane prefHeight="178.0" prefWidth="478.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="213.0" minWidth="10.0" prefWidth="159.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="353.0" minWidth="10.0" prefWidth="299.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+               <RowConstraints minHeight="10.0" prefHeight="30.0" />
+               <RowConstraints minHeight="10.0" prefHeight="30.0" />
+               <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                </rowConstraints>
+                <Button onAction="#onStartAnyLogic" prefHeight="25.0" prefWidth="142.0" text="Start AnyLogic" GridPane.columnIndex="1" />
+                <Separator prefWidth="200.0" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+            <Label text="Experiment start date:" GridPane.rowIndex="2" />
+            <Label text="Experiment stop date:" GridPane.rowIndex="3" />
+            <Button mnemonicParsing="false" onAction="#onRunExperiment" prefHeight="25.0" prefWidth="142.0" text="Run experiment" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <DatePicker fx:id="dtExperimentStartDate" prefHeight="25.0" prefWidth="142.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <DatePicker fx:id="dtExperimentStopDate" layoutX="179.0" layoutY="83.0" prefHeight="25.0" prefWidth="142.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            </GridPane>
+        </content>
+    </TitledPane>
+    <TitledPane collapsible="false" prefHeight="200.0" prefWidth="200.0" text="Output">
+        <ScrollPane prefHeight="200.0" prefWidth="200.0">
+            <content>
+                <TextArea fx:id="txtOutput" editable="false" prefHeight="174.0" prefWidth="464.0" />
+            </content>
+        </ScrollPane>
+    </TitledPane>
+</VBox>

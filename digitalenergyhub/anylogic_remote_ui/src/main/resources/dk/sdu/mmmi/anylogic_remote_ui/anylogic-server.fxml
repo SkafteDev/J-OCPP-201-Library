@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="580.0" prefWidth="507.0" spacing="20.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.sdu.mmmi.anylogic_remote_ui.ServerUIController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <!-- AnyLogic settings -->
+    <TitledPane fx:id="grpAnyLogicSettings" animated="false" collapsible="false" text="AnyLogic settings">
+        <content>
+            <GridPane>
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="165.0" minWidth="10.0" prefWidth="100.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="240.0" minWidth="10.0" prefWidth="240.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    <RowConstraints />
+                </rowConstraints>
+                <Label text="Executable path:" GridPane.rowIndex="0" />
+                <TextField fx:id="txtAnyLogicExePath" text="C:/Program Files/AnyLogic 8.8 Personal Learning Edition/anylogic.exe" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label text="Model file:" GridPane.rowIndex="1" />
+                <TextField fx:id="txtAnyLogicModelFile" text="C:/Users/csbc/git/DEH-Charging-stations-simulation/RealTimeModel/RealTimeModel.alp" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                <Label text="Experiment:" GridPane.rowIndex="2" />
+                <TextField fx:id="txtAnyLogicExperiment" text="Simulation" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+            </GridPane>
+        </content>
+    </TitledPane>
+
+    <!-- Server settings -->
+    <TitledPane fx:id="grpServerSettings" animated="false" collapsible="false" text="Server settings">
+        <content>
+            <GridPane prefWidth="436.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="165.0" minWidth="10.0" prefWidth="100.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="240.0" minWidth="10.0" prefWidth="240.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                </rowConstraints>
+                <Label text="NATS.io address:" GridPane.rowIndex="0" />
+                <TextField fx:id="txtNatsUrl" text="nats://localhost:4222" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <Label text="Server instance ID:" GridPane.rowIndex="1" />
+                <TextField fx:id="txtServerInstanceId" text="MyServer1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            </GridPane>
+        </content>
+    </TitledPane>
+
+    <TitledPane fx:id="grpOutput" collapsible="false" prefHeight="200.0" prefWidth="200.0" text="Output">
+        <ScrollPane prefHeight="200.0" prefWidth="200.0">
+            <content>
+                <TextArea fx:id="txtOutput" wrapText="true" editable="false" prefHeight="174.0" prefWidth="464.0" />
+            </content>
+        </ScrollPane>
+    </TitledPane>
+
+    <Button fx:id="btnStartServer" onAction="#onStartAnyLogic" text="Start server" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+</VBox>

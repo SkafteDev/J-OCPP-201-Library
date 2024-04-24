@@ -1,0 +1,59 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+mainframe **sd** AnyLogic control
+
+actor Operator
+actor User
+participant ":AnyLogicClient" as ALC
+participant ":AnyLogicServer" as ALS
+participant ":AnyLogicCLI" as ALCLI
+participant ":AnyLogic" as AL
+participant ":NATS.io" as NATS
+
+Operator -> ALS: start server
+activate ALS
+ALS ->o NATS: subscribe to "anylogic.{instanceid}.requests.startprocess"
+deactivate ALS
+
+User -> ALC: start anylogic process
+activate ALC
+ALC ->o NATS: request to "anylogic.{instanceid}.requests.startprocess"
+
+NATS o-> ALS: dispatch request on "anylogic.{instanceid}.commands.open"
+activate ALS
+ALS -> ALCLI: run(anyLogicPath, simulation, experiment)
+deactivate ALS
+
+activate ALCLI
+ALCLI -> AL: start process "anylogic.exe -run simulation experiment"
+activate AL
+
+AL --> ALCLI: processHandle
+ALCLI --> ALS
+deactivate ALCLI
+activate ALS
+AL ->o NATS: subscribe to "anylogic.{instanceid}.requests.runexperiment"
+
+ALS ->o NATS: response to "anylogic.{instanceid}.requests.startprocess"
+deactivate ALS
+
+NATS o-> ALC: response on inbox "success"
+ALC --> User: anylogic process started
+deactivate ALC
+
+User -> ALC: runExperiment(startdate, enddate)
+activate ALC
+ALC ->o NATS: request to "anylogic.{instanceid}.requests.runexperiment" startdate, enddate
+
+NATS o-> AL: dispatch request "anylogic.{instanceid}.requests.runexperiment" startdate, enddate
+AL -> AL: runSimulation(startdate, enddate)
+AL ->o NATS: response to request "anylogic.{instanceid}.requests.runexperiment" startdate, enddate
+
+NATS o-> ALC: response to  "anylogic.{instanceid}.requests.runexperiment" startdate, enddate
+ALC -> User: experiment started
+deactivate ALC
+
+@enduml

@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.application.anylogic;
+package dk.sdu.mmmi.anylogic;
 
 import io.nats.client.Connection;
 import io.nats.client.Options;

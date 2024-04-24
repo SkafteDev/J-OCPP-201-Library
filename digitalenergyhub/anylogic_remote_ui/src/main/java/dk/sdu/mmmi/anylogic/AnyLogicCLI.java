@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.application.anylogic;
+package dk.sdu.mmmi.anylogic;
 
 import java.io.IOException;
 
@@ -7,6 +7,8 @@ import java.io.IOException;
  */
 public class AnyLogicCLI {
     private final String anylogicExecutablePath;
+
+    private Process anyLogicProcess;
 
     /**
      * Constructs a new AnyLogicCLI
@@ -23,7 +25,7 @@ public class AnyLogicCLI {
      * @param modelPath The absolute path e.g. C:/Users/csbc/MyAnyLogicModel/MyAnyLogicModel.alp
      * @param experimentName The name of the experiment e.g. MyExperiment
      */
-    public void run(String modelPath, String experimentName) {
+    public boolean run(String modelPath, String experimentName) {
         String cmd = String.format("%s -run \"%s\" \"%s\"",
                 anylogicExecutablePath,
                 modelPath,
@@ -32,9 +34,32 @@ public class AnyLogicCLI {
         Runtime runtime = Runtime.getRuntime();
 
         try {
-            Process anyLogicProcess = runtime.exec(cmd);
+            if (!isAlive()) {
+                this.anyLogicProcess = runtime.exec(cmd);
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return false;
+        }
+
+        return true;
+    }
+
+    public void close() {
+        if (anyLogicProcess != null) {
+            anyLogicProcess.destroyForcibly();
+
+            // Wait for process to close before returning
+            while (anyLogicProcess.isAlive()) {}
+
+            this.anyLogicProcess = null;
+        }
+    }
+
+    public boolean isAlive() {
+        if (anyLogicProcess != null) {
+            return anyLogicProcess.isAlive();
+        } else {
+            return false;
         }
     }
 
