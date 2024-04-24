@@ -32,7 +32,7 @@ public class ChargingStationDemo {
         /*
          * (1) Instantiate the API to communicate between CS <-> CSMS.
          */
-        String csId = "ce2b8b0e-db26-4643-a705-c848fab64327"; // This has to be hard coded or configured directly on the charging station's firmware...
+        String csId = "f8125503-8d0f-467f-abad-b830ca6782e2"; // This has to be hard coded or configured directly on the charging station's firmware...
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
@@ -56,7 +56,7 @@ public class ChargingStationDemo {
         BootNotificationRequest bootNotificationRequest = BootNotificationRequest.builder()
                 .withChargingStation(ChargingStation.builder()
                         .withVendorName("ABB")
-                        .withSerialNumber("47888eec-b9e5-4d67-9f36-136126e158c8")
+                        .withSerialNumber("f8125503-8d0f-467f-abad-b830ca6782e2")
                         .withModel("ABB TAC-W11-G5-R-0")
                         .withFirmwareVersion("3.1.3")
                         .build())
@@ -76,7 +76,6 @@ public class ChargingStationDemo {
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
         ICallResultMessage<BootNotificationResponse> response = csApi.getCsmsProxy().sendBootNotificationRequest(bootRequest);
-        System.out.println(response.getPayload().toString());
 
 
         /*
