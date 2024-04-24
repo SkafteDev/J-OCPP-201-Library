@@ -25,13 +25,15 @@ CS1->CS1: addRequestHandlers
 note left: Adds request handler for\n**SetChargingProfileRequest**.
 CS1->CSMS: bootNotificationRequest(csData)
 CSMS->CSMS: registerCS
-CSMS-->CS1: bootNotificationResponse "OK"
+CSMS-->CS1: bootNotificationResponse "Accepted"
 
 == Repetition ==
 group smart charging control loop [until CSMS exits]
-    CSMS->CS1: SetChargingProfileRequest(chargingProfile)
-    CS1->CS1: handleRequest(chargingProfile)
-    CS1-->CSMS: SetChargingProfileResponse "OK"
+    group loop [for all CS]
+        CSMS->CS1: SetChargingProfileRequest(chargingProfile)
+        CS1->CS1: handleRequest(chargingProfile)
+        CS1-->CSMS: SetChargingProfileResponse "Accepted"
+    end
     CSMS->CSMS: wait(duration)
     note left: **duration = 15 [s]** for demonstration purposes.
 end
