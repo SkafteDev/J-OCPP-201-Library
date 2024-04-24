@@ -12,14 +12,14 @@ import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 
-public class AnyLogicProxy {
+public class AnyLogicClient {
 
     private final String anylogicInstanceId;
     private Connection natsConnection;
 
-    public AnyLogicProxy() throws IOException {
+    public AnyLogicClient() throws IOException {
 
-        InputStream resourceStream = AnyLogicProxy.class.getClassLoader().getResourceAsStream("anylogic.properties");
+        InputStream resourceStream = AnyLogicClient.class.getClassLoader().getResourceAsStream("anylogic.properties");
         Properties properties = new Properties();
         properties.load(resourceStream);
         String natsUrl = properties.getProperty("anylogic.brokerurl");
@@ -73,7 +73,7 @@ public class AnyLogicProxy {
     }
 
     public static void main(String[] args) throws IOException {
-        AnyLogicProxy proxy = new AnyLogicProxy();
+        AnyLogicClient proxy = new AnyLogicClient();
         proxy.openExperiment();
         proxy.runExperiment("01-03-2024","31-03-2024");
     }
