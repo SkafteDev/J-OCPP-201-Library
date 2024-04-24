@@ -9,8 +9,9 @@ The Java framework contains:
 
 * **Serializers/deserializers** for generic CALL, CALLRESULT and CALLERROR types. These types can be serialized from POJO to JSON and vice-versa with deserialization.
 
-* **A proxy interface (IChargingStationClient)** that represents a Charging Station Management System and the calls that may be invoked from a Charging Station -> Charging Station Management System.
-
-* **A proxy interface (ICsmsClient)** that represents a Charging Station and the calls that may be invoked from a Charging Station Management System -> Charging Station.
+* **Proxy interfaces** for both CSMS and CS that define the calls that may be invoked from a Charging Station -> Charging Station Management System and vice versa.
 
 * **A dispatch and request handler implementation ontop of NATS.io** to register/unregister how to dispatch inbound messages (requests) and generate outbound messages (responses).
+
+# More info
+For more info, see the repository wiki pages.
