@@ -97,7 +97,7 @@ public class OCPPRequester<OUTBOUND, INBOUND> {
             ICallResultMessage<INBOUND> callResult = deserialize(jsonResponsePayload);
 
             logger.info(String.format("Received response '%s' with payload %s on subject %s",
-                    inboundPayloadType.getName(), callResult.getPayload().toString(),
+                    inboundPayloadType.getName(), jsonResponsePayload,
                     message.getSubject()));
 
             return callResult;
