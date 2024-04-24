@@ -32,7 +32,7 @@ public class OCPPServerImpl implements IOCPPServer {
             return;
         }
 
-        logger.warning(String.format("Added request handler for OCPPMessageType=%s.", requestType.getValue()));
+        logger.info(String.format("Added request handler for OCPPMessageType=%s.", requestType.getValue()));
         requestHandler.register(natsConnection);
         this.requestHandlers.put(requestType, requestHandler);
     }
