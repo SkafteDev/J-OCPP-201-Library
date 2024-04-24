@@ -16,8 +16,23 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
-public class CsmsExampleApp {
-    private static final Logger logger = Logger.getLogger(CsmsExampleApp.class.getName());
+/**
+ * This example demonstrates the use case of:
+ *
+ * 1) Running an implementation of a CSMS.
+ *
+ *    The example implementation is capable of:
+ *
+ *      Receiving requests from a charging station:
+ *      - BootNotificationRequest
+ *      - Heartbeat
+ *      - StatusNotification
+ *
+ *      Sending requests to a charging station:
+ *      - SetChargingProfileRequest
+ */
+public class ManagementSystemDemo {
+    private static final Logger logger = Logger.getLogger(ManagementSystemDemo.class.getName());
 
     private static final String quitToken = "q";
 
