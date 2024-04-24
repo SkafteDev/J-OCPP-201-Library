@@ -18,15 +18,22 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 
-public class CsExampleApp {
+/**
+ * This example demonstrates the use case of:
+ *
+ * 1) Sending a BootNotificationRequest from CS -> CSMS.
+ * 2) Receiving SetProfileChargingProfileRequest from CSMS -> CS
+ */
+public class ChargingStationDemo {
 
     private static final String quitToken = "q";
 
     public static void main(String[] args) {
-        String csId = "ce2b8b0e-db26-4643-a705-c848fab64327"; // This has to be hard coded or configured somewhere...
-
+        /*
+         * (1) Instantiate the API to communicate between CS <-> CSMS.
+         */
+        String csId = "ce2b8b0e-db26-4643-a705-c848fab64327"; // This has to be hard coded or configured directly on the charging station's firmware...
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
-
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
         ChargingStationApi csApi = ChargingStationApi.newBuilder()
@@ -34,11 +41,18 @@ public class CsExampleApp {
                 .withCsId(csId)
                 .build();
 
+        /*
+         * (2) Add request handlers for the requests this charging station can handle.
+         *     In this example, the CS can only handle SetChargingProfileRequest.
+         */
         csApi.getChargingStationServer().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId))
         );
 
+        /*
+         * (3) Build the BootNotificationRequest (payload) object to be sent to the CSMS.
+         */
         BootNotificationRequest bootNotificationRequest = BootNotificationRequest.builder()
                 .withChargingStation(ChargingStation.builder()
                         .withVendorName("ABB")
@@ -49,16 +63,25 @@ public class CsExampleApp {
                 .withReason(BootReasonEnum.POWER_UP)
                 .build();
 
+        /*
+         * (4) Encapsulate the BootNotificationRequest payload within an RPC CALL.
+         */
         ICallMessage<BootNotificationRequest> bootRequest = CallMessageImpl.<BootNotificationRequest>newBuilder()
                 .withMessageId(UUID.randomUUID().toString())
                 .asAction(OCPPMessageType.BootNotificationRequest.getValue())
                 .withPayLoad(bootNotificationRequest)
                 .build();
 
+        /*
+         * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
+         */
         ICallResultMessage<BootNotificationResponse> response = csApi.getCsmsProxy().sendBootNotificationRequest(bootRequest);
         System.out.println(response.getPayload().toString());
 
 
+        /*
+         * (6) Prevent the program for exiting to simulate that the CS is now awaiting requests from the CSMS.
+         */
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;
         Scanner s = new Scanner(System.in);
