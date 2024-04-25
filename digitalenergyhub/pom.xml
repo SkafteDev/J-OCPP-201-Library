@@ -41,7 +41,6 @@
         <module>ocpp_schemas</module>
         <module>ocpp_impl</module>
         <module>example_application</module>
-        <module>anylogic_remote_ui</module>
     </modules>
 
 
