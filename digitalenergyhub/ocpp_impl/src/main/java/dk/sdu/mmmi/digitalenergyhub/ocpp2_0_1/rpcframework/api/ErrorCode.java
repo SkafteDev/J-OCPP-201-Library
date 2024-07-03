@@ -69,4 +69,14 @@ public enum ErrorCode {
     public String getValue() {
         return value;
     }
+
+    public static ErrorCode fromString(String value) {
+        for (ErrorCode errorCode : ErrorCode.values()) {
+            if (value.equalsIgnoreCase(errorCode.getValue())) {
+                return errorCode;
+            }
+        }
+
+        throw new IllegalArgumentException("Enum contains no constant matching " + value);
+    }
 }

@@ -13,7 +13,7 @@ public class CallResultMessageImpl<T> implements ICallResultMessage<T> {
     }
 
     protected CallResultMessageImpl(String messageId) {
-        this.payload = null;
+        this(null, messageId);
     }
 
     @Override

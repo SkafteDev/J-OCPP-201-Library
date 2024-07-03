@@ -1,11 +1,16 @@
 package dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.serializers;
 
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallError;
 import dk.sdu.mmmi.digitalenergyhub.ocpp2_0_1.rpcframework.api.ICallResultMessage;
 
 import java.io.IOException;
@@ -25,13 +30,28 @@ public class CallResultMessageSerializer<T> extends StdSerializer<ICallResultMes
     public void serialize(ICallResultMessage<T> callResultMessage, JsonGenerator jsonGenerator,
                           SerializerProvider serializerProvider) throws IOException {
 
-        jsonGenerator.writeStartArray();
+        if (callResultMessage instanceof ICallError) {
+            ICallError callError = (ICallError)callResultMessage;
+            jsonGenerator.writeStartArray(); // Start
+            jsonGenerator.writeNumber(callError.getMessageTypeId().getValue());
+            jsonGenerator.writeString(callError.getMessageId());
+            jsonGenerator.writeString(callError.getErrorCode());
+            jsonGenerator.writeString(callError.getErrorDescription());
 
-        jsonGenerator.writeNumber(callResultMessage.getMessageTypeId().getValue());
-        jsonGenerator.writeString(callResultMessage.getMessageId());
-        jsonGenerator.writeObject(callResultMessage.getPayload());
+            if (!isValid(callError.getErrorDetails())) {
+                String errMsg = "The errorDetails field [4] must be of type JSON object.";
+                throw new JsonParseException(errMsg);
+            }
 
-        jsonGenerator.writeEndArray();
+            jsonGenerator.writeRaw("," + callError.getErrorDetails());
+            jsonGenerator.writeEndArray(); // End
+        } else { // Type is ICallResultMessage
+            jsonGenerator.writeStartArray(); // Start
+            jsonGenerator.writeNumber(callResultMessage.getMessageTypeId().getValue());
+            jsonGenerator.writeString(callResultMessage.getMessageId());
+            jsonGenerator.writeObject(callResultMessage.getPayload());
+            jsonGenerator.writeEndArray(); // End
+        }
     }
 
     /**
@@ -54,5 +74,17 @@ public class CallResultMessageSerializer<T> extends StdSerializer<ICallResultMes
         } catch (JsonProcessingException e) {
             throw e;
         }
+    }
+
+    private boolean isValid(String json) {
+        ObjectMapper mapper = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
+        try {
+            mapper.readTree(json);
+        } catch (JacksonException e) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -92,10 +92,14 @@ public class CallErrorImpl extends CallResultMessageImpl<Object> implements ICal
 
             if (errorDescription == null) {
                 callError.errorDescription = "";
+            } else {
+                callError.errorDescription = this.errorDescription;
             }
 
-            if (errorDetails == null) {
+            if (errorDetails == null || errorDetails.isEmpty()) {
                 callError.errorDetails = "{}";
+            } else {
+                callError.errorDetails = this.errorDetails;
             }
 
             return callError;
