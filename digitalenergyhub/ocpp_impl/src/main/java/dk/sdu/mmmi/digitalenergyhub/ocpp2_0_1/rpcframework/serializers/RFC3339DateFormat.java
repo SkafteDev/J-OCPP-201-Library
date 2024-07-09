@@ -11,11 +11,11 @@ public class RFC3339DateFormat {
     private RFC3339DateFormat() {}
 
     /**
-     * Returns the RFC3339 date format for UTC.
+     * Returns the RFC3339 date format for the JVM default time zone.
      * @return
      */
     public static SimpleDateFormat getDateFormat() {
-        return getDateFormat(TimeZone.getTimeZone("UTC"));
+        return getDateFormat(TimeZone.getDefault());
     }
 
     /**
