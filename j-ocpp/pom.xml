@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dk.sdu.mmmi</groupId>
+    <artifactId>j-ocpp</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <!-- Global properties -->
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gitlab.packages.url>https://gitlab.sdu.dk/api/v4/projects/7130/packages/maven</gitlab.packages.url>
+    </properties>
+
+    <!-- Distribution management (publishing JARs to GitLab)-->
+    <repositories>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>${gitlab.packages.url}</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>${gitlab.packages.url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitlab-maven</id>
+            <url>${gitlab.packages.url}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+    <!-- Sub modules -->
+    <modules>
+        <module>j-ocpp-schemas</module>
+        <module>j-ocpp-core</module>
+        <module>j-ocpp-example-application</module>
+    </modules>
+
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+                <!-- Surefire is needed to ensure that tests are executed properly in CI/CD -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
