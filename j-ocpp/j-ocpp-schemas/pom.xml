@@ -6,7 +6,7 @@
     <parent>
         <groupId>dk.sdu.mmmi</groupId>
         <artifactId>j-ocpp</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <artifactId>j-ocpp-schemas</artifactId>
