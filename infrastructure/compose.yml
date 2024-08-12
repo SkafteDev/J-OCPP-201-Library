@@ -29,8 +29,34 @@ services:
     depends_on:
       - middleware_messaging
 
+  # InfluxDB for storing NATS.io messages
+  influxdb:
+    image: influxdb:2.7.9-alpine
+    env_file:
+      - influxv2.env
+    volumes:
+      # Mount for influxdb data directory and configuration
+      - influxdbv2:/var/lib/influxdb2:rw
+    ports:
+      - "8086:8086"
+    networks:
+      - nats_network
+  # Telegraf is responsible for connecting to NATS.io and feed messages to InfluxDB.
+  telegraf:
+      image: telegraf:1.31.2-alpine
+      depends_on:
+        - influxdb
+      volumes:
+        # Mount for telegraf config
+        - ./configs/telegraf_ocpp.conf:/etc/telegraf/telegraf.conf:ro
+      env_file:
+        - influxv2.env
+      networks:
+        - nats_network
+
 networks:
   nats_network:
 
 volumes:
   nats-data:
+  influxdbv2:
