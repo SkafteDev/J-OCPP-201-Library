@@ -59,7 +59,7 @@ tests:integration:
     - 'docker info'
     - 'docker compose version'
     - 'docker compose -f infrastructure/compose.yml create --remove-orphans' # Creates the containers and removes orphans (old unused containers).
-    - 'docker compose -f infrastructure/compose.yml up  --timestamps --wait --wait-timeout 30' # Spin up integration testing environment
+    - 'docker compose -f infrastructure/compose.yml up middleware_messaging middleware_messaging_inspector --timestamps --wait --wait-timeout 30' # Spin up integration testing environment
   script:
     # Reference:
     # -am will make all the other sub-modules.
