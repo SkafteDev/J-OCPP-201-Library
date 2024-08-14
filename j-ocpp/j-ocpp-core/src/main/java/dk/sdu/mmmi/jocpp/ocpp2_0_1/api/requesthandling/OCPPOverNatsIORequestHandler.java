@@ -14,8 +14,8 @@ import io.nats.client.impl.NatsMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-public abstract class OCPPRequestHandler<TRequest, TResponse> {
-    private final Logger logger = Logger.getLogger(OCPPRequestHandler.class.getName());
+public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
+    private final Logger logger = Logger.getLogger(OCPPOverNatsIORequestHandler.class.getName());
 
     // Store the payload type for the inbound request. Needed for serialization.
     private final Class<TRequest> inboundPayloadType;
@@ -31,7 +31,7 @@ public abstract class OCPPRequestHandler<TRequest, TResponse> {
      * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
      * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
      */
-    public OCPPRequestHandler(Class<TRequest> inPayloadType, Class<TResponse> outPayloadType) {
+    public OCPPOverNatsIORequestHandler(Class<TRequest> inPayloadType, Class<TResponse> outPayloadType) {
         this.inboundPayloadType = inPayloadType;
         this.outboundPayloadType = outPayloadType;
     }

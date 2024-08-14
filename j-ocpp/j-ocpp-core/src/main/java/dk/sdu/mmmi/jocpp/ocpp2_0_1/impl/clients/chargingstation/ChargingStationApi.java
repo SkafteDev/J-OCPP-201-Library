@@ -1,10 +1,10 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPRequestHandlerRegistry;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
@@ -16,13 +16,13 @@ import java.util.logging.Logger;
 
 public class ChargingStationApi {
 
-    private final ICsmsProxy csmsProxy;
+    private final ICsms csmsProxy;
     private final IRequestHandlerRegistry csServer;
     private final Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationApi.class.getName());
 
-    public ChargingStationApi(ICsmsProxy proxy,
+    public ChargingStationApi(ICsms proxy,
                               IRequestHandlerRegistry server,
                               Connection natsConnection) {
         this.csmsProxy = proxy;
@@ -34,7 +34,7 @@ public class ChargingStationApi {
         return natsConnection;
     }
 
-    public ICsmsProxy getCsmsProxy() {
+    public ICsms getCsmsProxy() {
         return this.csmsProxy;
     }
 
@@ -81,8 +81,8 @@ public class ChargingStationApi {
 
                 IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-                IRequestHandlerRegistry server = new OCPPRequestHandlerRegistry(natsClientConnection, csRouteResolver);
-                ICsmsProxy clientApi = new CsmsProxyImpl(natsClientConnection, csRouteResolver);
+                IRequestHandlerRegistry server = new OCPPOverNatsIORequestHandlerRegistry(natsClientConnection, csRouteResolver);
+                ICsms clientApi = new CsmsNatsIOProxy(natsClientConnection, csRouteResolver);
 
                 return new ChargingStationApi(clientApi, server, natsClientConnection);
             } catch (IOException | InterruptedException e) {

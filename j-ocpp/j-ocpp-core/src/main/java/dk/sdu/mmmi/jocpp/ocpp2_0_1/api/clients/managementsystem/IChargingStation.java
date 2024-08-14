@@ -11,7 +11,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
  * a Charging Station.
  *
  */
-public interface IChargingStationProxy {
+public interface IChargingStation {
     ICallResult<CancelReservationResponse> sendCancelReservationRequest(ICall<CancelReservationRequest> request);
     ICallResult<CertificateSignedResponse> sendCertificateSignedRequest(ICall<CertificateSignedRequest> request);
     ICallResult<ChangeAvailabilityResponse> sendChangeAvailabilityRequest(ICall<ChangeAvailabilityRequest> request);

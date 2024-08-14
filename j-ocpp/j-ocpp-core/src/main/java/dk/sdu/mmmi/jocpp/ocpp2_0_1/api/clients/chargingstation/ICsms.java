@@ -18,7 +18,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
  * Authentication API
  * etc.
  */
-public interface ICsmsProxy {
+public interface ICsms {
     ICallResult<AuthorizeResponse> sendAuthorizeRequest(ICall<AuthorizeRequest> req);
     ICallResult<BootNotificationResponse> sendBootNotificationRequest(ICall<BootNotificationRequest> req);
     ICallResult<ClearedChargingLimitResponse> sendClearedChargingLimitRequest(ICall<ClearedChargingLimitRequest> req);

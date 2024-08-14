@@ -18,9 +18,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class OCPPRequester<TRequest, TResponse> {
+public class OCPPOverNatsIORequester<TRequest, TResponse> {
 
-    private final Logger logger = Logger.getLogger(OCPPRequester.class.getName());
+    private final Logger logger = Logger.getLogger(OCPPOverNatsIORequester.class.getName());
     private final Class<TRequest> outboundPayloadType;
     private final Class<TResponse> inboundPayloadType;
     private Duration timeout = Duration.ofSeconds(30); // Default timeout
@@ -31,7 +31,7 @@ public class OCPPRequester<TRequest, TResponse> {
      * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
      * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
      */
-    public OCPPRequester(Class<TRequest> outPayloadType, Class<TResponse> inPayloadType) {
+    public OCPPOverNatsIORequester(Class<TRequest> outPayloadType, Class<TResponse> inPayloadType) {
         this.outboundPayloadType = outPayloadType;
         this.inboundPayloadType = inPayloadType;
     }

@@ -2,9 +2,9 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.managementsystem.IChargingStationProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.managementsystem.IChargingStation;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPRequester;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequester;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
@@ -12,18 +12,18 @@ import io.nats.client.Connection;
 
 import java.util.logging.Logger;
 
-public class ChargingStationProxyImpl implements IChargingStationProxy {
-    private final Logger logger = Logger.getLogger(ChargingStationProxyImpl.class.getName());
+public class ChargingStationNatsIOProxy implements IChargingStation {
+    private final Logger logger = Logger.getLogger(ChargingStationNatsIOProxy.class.getName());
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;
 
-    public ChargingStationProxyImpl(Connection natsConnection, IMessageRouteResolver routeResolver) {
+    public ChargingStationNatsIOProxy(Connection natsConnection, IMessageRouteResolver routeResolver) {
         this.natsConnection = natsConnection;
         this.routeResolver = routeResolver;
     }
 
     private <TRequest, TResponse> ICallResult<TResponse> sendRequest(ICall<TRequest> req, Class<TRequest> requestClass, Class<TResponse> responseClass) {
-        var requester = new OCPPRequester<>(requestClass, responseClass);
+        var requester = new OCPPOverNatsIORequester<>(requestClass, responseClass);
 
         String requestSubject = routeResolver.getRoute(OCPPMessageType.valueOf(requestClass.getSimpleName()));
         String responseSubject = routeResolver.getRoute(OCPPMessageType.valueOf(responseClass.getSimpleName()));

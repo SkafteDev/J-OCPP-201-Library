@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.application.chargingstation.requesthandlers;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPRequestHandler;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallResultImpl;
@@ -13,7 +13,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.SetChargingProfileResponse;
 import java.util.logging.Logger;
 
 public class SetChargingProfileRequestHandler
-        extends OCPPRequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
+        extends OCPPOverNatsIORequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
 
     private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
 

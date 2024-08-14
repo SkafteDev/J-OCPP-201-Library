@@ -1,13 +1,13 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsmsProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPRequestHandler;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPRequestHandlerRegistry;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.CsmsProxyImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequestHandlerRegistry;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.CsmsNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -55,7 +55,7 @@ public class ChargingStationClientTest {
         HeartbeatRequestHandler hbrHandler = new HeartbeatRequestHandler(HeartbeatRequest.class, HeartbeatResponse.class);
         hbrHandler.setMessageRouteResolver(routeResolver);
 
-        csServerImpl = new OCPPRequestHandlerRegistry(natsConnection, routeResolver);
+        csServerImpl = new OCPPOverNatsIORequestHandlerRegistry(natsConnection, routeResolver);
         csServerImpl.addRequestHandler(OCPPMessageType.BootNotificationRequest,bnrHandler);
         csServerImpl.addRequestHandler(OCPPMessageType.StatusNotificationRequest, snrHandler);
         csServerImpl.addRequestHandler(OCPPMessageType.HeartbeatRequest, hbrHandler);
@@ -82,7 +82,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsmsProxy csClient = new CsmsProxyImpl(natsConnection, routeResolver);
+        ICsms csClient = new CsmsNatsIOProxy(natsConnection, routeResolver);
 
         ICall<BootNotificationRequest> bootNotificationRequest = createBootNotificationRequest();
 
@@ -123,7 +123,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsmsProxy csClient = new CsmsProxyImpl(natsConnection, routeResolver);
+        ICsms csClient = new CsmsNatsIOProxy(natsConnection, routeResolver);
 
         ICall<StatusNotificationRequest> statusNotificationRequest = createStatusNotificationRequest();
 
@@ -150,7 +150,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsmsProxy csClient = new CsmsProxyImpl(natsConnection, routeResolver);
+        ICsms csClient = new CsmsNatsIOProxy(natsConnection, routeResolver);
 
         ICall<HeartbeatRequest> heartbeatRequest = createHeartbeatRequest();
 
@@ -212,7 +212,7 @@ public class ChargingStationClientTest {
         return callMessage;
     }
 
-    static class BootNotificationRequestHandler extends OCPPRequestHandler<BootNotificationRequest, BootNotificationResponse> {
+    static class BootNotificationRequestHandler extends OCPPOverNatsIORequestHandler<BootNotificationRequest, BootNotificationResponse> {
         private IMessageRouteResolver messageRouteResolver;
 
         /**
@@ -256,7 +256,7 @@ public class ChargingStationClientTest {
         }
     }
 
-    static class StatusNotificationRequestHandler extends OCPPRequestHandler<StatusNotificationRequest, StatusNotificationResponse> {
+    static class StatusNotificationRequestHandler extends OCPPOverNatsIORequestHandler<StatusNotificationRequest, StatusNotificationResponse> {
         private IMessageRouteResolver messageRouteResolver;
 
         /**
@@ -299,7 +299,7 @@ public class ChargingStationClientTest {
         }
     }
 
-    static class HeartbeatRequestHandler extends OCPPRequestHandler<HeartbeatRequest, HeartbeatResponse> {
+    static class HeartbeatRequestHandler extends OCPPOverNatsIORequestHandler<HeartbeatRequest, HeartbeatResponse> {
         private IMessageRouteResolver messageRouteResolver;
 
         /**

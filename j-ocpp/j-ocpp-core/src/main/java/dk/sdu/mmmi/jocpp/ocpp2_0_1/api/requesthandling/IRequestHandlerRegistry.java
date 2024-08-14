@@ -8,7 +8,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
  */
 public interface IRequestHandlerRegistry {
 
-    <TRequest, TResponse> void addRequestHandler(OCPPMessageType msgType, OCPPRequestHandler<TRequest, TResponse> requestHandler);
+    <TRequest, TResponse> void addRequestHandler(OCPPMessageType msgType, OCPPOverNatsIORequestHandler<TRequest, TResponse> requestHandler);
 
     void removeRequestHandler(OCPPMessageType msgType);
 
