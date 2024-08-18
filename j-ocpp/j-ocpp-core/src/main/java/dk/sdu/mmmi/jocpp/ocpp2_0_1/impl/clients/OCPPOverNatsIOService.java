@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPRequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import io.nats.client.Connection;
 
@@ -10,22 +10,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class OCPPOverNatsIORequestHandlerRegistry implements IRequestHandlerRegistry {
+public class OCPPOverNatsIOService implements IRequestHandlerRegistry {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final IMessageRouteResolver msgRouteResolver;
 
     protected Connection natsConnection;
 
-    protected Map<OCPPMessageType, OCPPOverNatsIORequestHandler<?, ?>> requestHandlers;
+    protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;
 
-    public OCPPOverNatsIORequestHandlerRegistry(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
+    public OCPPOverNatsIOService(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
         this.natsConnection = natsConnection;
         this.msgRouteResolver = msgRouteResolver;
         this.requestHandlers = new HashMap<>();
     }
 
     @Override
-    public <TRequest, TResponse> void addRequestHandler(OCPPMessageType requestType, OCPPOverNatsIORequestHandler<TRequest, TResponse> requestHandler) {
+    public <TRequest, TResponse> void addRequestHandler(OCPPMessageType requestType, OCPPRequestHandler<TRequest, TResponse> requestHandler) {
         if (requestHandlers.containsKey(requestType)) {
             logger.warning(String.format("Request handler for OCPPMessageType=%s already exists. Aborting.",
                     requestType.getValue()));
@@ -33,7 +33,7 @@ public class OCPPOverNatsIORequestHandlerRegistry implements IRequestHandlerRegi
         }
 
         logger.info(String.format("Added request handler for OCPPMessageType=%s.", requestType.getValue()));
-        requestHandler.register(natsConnection);
+        requestHandler.activate();
         this.requestHandlers.put(requestType, requestHandler);
     }
 

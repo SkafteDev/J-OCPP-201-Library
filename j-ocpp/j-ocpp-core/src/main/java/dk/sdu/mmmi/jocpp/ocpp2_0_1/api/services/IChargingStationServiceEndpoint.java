@@ -1,17 +1,14 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.managementsystem;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 
 /**
- * This interface defines the Charging Station Management System Client API.
- *
- * The operations in this interface represents the requests that a Charging Station Management System can invoke on
- * a Charging Station.
- *
+ * This Java interface defines a CS Service interface.
+ * The operations in this interface represents the requests that a Charging Station Management System can invoke on a Charging Station.
  */
-public interface IChargingStation {
+public interface IChargingStationServiceEndpoint {
     ICallResult<CancelReservationResponse> sendCancelReservationRequest(ICall<CancelReservationRequest> request);
     ICallResult<CertificateSignedResponse> sendCertificateSignedRequest(ICall<CertificateSignedRequest> request);
     ICallResult<ChangeAvailabilityResponse> sendChangeAvailabilityRequest(ICall<ChangeAvailabilityRequest> request);

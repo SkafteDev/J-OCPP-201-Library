@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.application.chargingstation.requesthandlers.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationApi;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsIOClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -36,7 +36,7 @@ public class ChargingStationDemo {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
-        ChargingStationApi csApi = ChargingStationApi.newBuilder()
+        ChargingStationNatsIOClient csNatsClient = ChargingStationNatsIOClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .build();
@@ -45,7 +45,7 @@ public class ChargingStationDemo {
          * (2) Add request handlers for the requests this charging station can handle.
          *     In this example, the CS can only handle SetChargingProfileRequest.
          */
-        csApi.getChargingStationServer().addRequestHandler(
+        csNatsClient.getService().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId))
         );
@@ -75,7 +75,7 @@ public class ChargingStationDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csApi.getCsmsProxy().sendBootNotificationRequest(bootRequest);
+        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsProxy().sendBootNotificationRequest(bootRequest);
 
 
         /*

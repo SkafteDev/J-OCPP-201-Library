@@ -1,24 +1,14 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 
 /**
- * This interface defines the Charging Station Client API.
- *
+ * This Java interface defines a CSMS Service interface.
  * The operations in this interface represents the requests that a Charging Station can invoke on a Charging Station Management System.
- *
- * The interface consists of sub-interfaces, each mapping to a functional block in the OCPP 2.0.1 specification.
- *
- * For example:
- * Provisioning API
- * SmartCharging API
- * Authentication API
- * etc.
  */
-public interface ICsms {
+public interface ICsmsServiceEndpoint {
     ICallResult<AuthorizeResponse> sendAuthorizeRequest(ICall<AuthorizeRequest> req);
     ICallResult<BootNotificationResponse> sendBootNotificationRequest(ICall<BootNotificationRequest> req);
     ICallResult<ClearedChargingLimitResponse> sendClearedChargingLimitRequest(ICall<ClearedChargingLimitRequest> req);
@@ -42,12 +32,4 @@ public interface ICsms {
     ICallResult<SignCertificateResponse> sendSignCertificateRequest(ICall<SignCertificateRequest> req);
     ICallResult<StatusNotificationResponse> sendStatusNotificationRequest(ICall<StatusNotificationRequest> req);
     ICallResult<TransactionEventResponse> sendTransactionEventRequest(ICall<TransactionEventRequest> req);
-
-    /**
-     * This operation is NOT part of OCPP 2.0.1.
-     *
-     * This operation returns a message routing map that can be used to look up the route for a specific message type.
-     * @return
-     */
-    IMessageRouteResolver getRouteResolver();
 }

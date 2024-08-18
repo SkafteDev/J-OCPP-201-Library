@@ -1,10 +1,10 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequestHandlerRegistry;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
@@ -14,19 +14,21 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.logging.Logger;
 
-public class ChargingStationApi {
-
-    private final ICsms csmsProxy;
-    private final IRequestHandlerRegistry csServer;
+public class ChargingStationNatsIOClient {
+    private final IMessageRouteResolver routeResolver;
+    private final ICsmsServiceEndpoint csmsProxy;
+    private final IRequestHandlerRegistry csService;
     private final Connection natsConnection;
 
-    private static final Logger logger = Logger.getLogger(ChargingStationApi.class.getName());
+    private static final Logger logger = Logger.getLogger(ChargingStationNatsIOClient.class.getName());
 
-    public ChargingStationApi(ICsms proxy,
-                              IRequestHandlerRegistry server,
-                              Connection natsConnection) {
+    public ChargingStationNatsIOClient(IMessageRouteResolver routeResolver,
+                                       ICsmsServiceEndpoint proxy,
+                                       IRequestHandlerRegistry requestHandlerRegistry,
+                                       Connection natsConnection) {
+        this.routeResolver = routeResolver;
         this.csmsProxy = proxy;
-        this.csServer = server;
+        this.csService = requestHandlerRegistry;
         this.natsConnection = natsConnection;
     }
 
@@ -34,33 +36,43 @@ public class ChargingStationApi {
         return natsConnection;
     }
 
-    public ICsms getCsmsProxy() {
+    public ICsmsServiceEndpoint getCsmsProxy() {
         return this.csmsProxy;
     }
 
-    public IRequestHandlerRegistry getChargingStationServer() {
-        return this.csServer;
+    public IRequestHandlerRegistry getService() {
+        return this.csService;
     }
 
-    public static ChargingStationApiBuilder newBuilder() {
-        return new ChargingStationApiBuilder();
+    /**
+     * This operation is NOT part of OCPP 2.0.1.
+     *
+     * This operation returns a message routing map that can be used to look up the route for a specific message type.
+     * @return
+     */
+    public IMessageRouteResolver getRouteResolver() {
+        return this.routeResolver;
     }
 
-    public static class ChargingStationApiBuilder {
+    public static ChargingStationNatsIOClientBuilder newBuilder() {
+        return new ChargingStationNatsIOClientBuilder();
+    }
+
+    public static class ChargingStationNatsIOClientBuilder {
         private String csId;
         private IBrokerContext configs;
 
-        public ChargingStationApiBuilder withCsId(String csId) {
+        public ChargingStationNatsIOClientBuilder withCsId(String csId) {
             this.csId = csId;
             return this;
         }
 
-        public ChargingStationApiBuilder withBrokerContext(IBrokerContext configs) {
+        public ChargingStationNatsIOClientBuilder withBrokerContext(IBrokerContext configs) {
             this.configs = configs;
             return this;
         }
 
-        public ChargingStationApi build() {
+        public ChargingStationNatsIOClient build() {
             if (csId == null) throw new IllegalArgumentException("Charging Station ID must not be null. Provide a Charging Station Id.");
             if (configs == null) throw new IllegalArgumentException("BrokerContext must not be null. Provide a BrokerContext.");
 
@@ -81,10 +93,10 @@ public class ChargingStationApi {
 
                 IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-                IRequestHandlerRegistry server = new OCPPOverNatsIORequestHandlerRegistry(natsClientConnection, csRouteResolver);
-                ICsms clientApi = new CsmsNatsIOProxy(natsClientConnection, csRouteResolver);
+                IRequestHandlerRegistry csService = new OCPPOverNatsIOService(natsClientConnection, csRouteResolver);
+                ICsmsServiceEndpoint csmsProxy = new CsmsProxyNatsIO(natsClientConnection, csRouteResolver);
 
-                return new ChargingStationApi(clientApi, server, natsClientConnection);
+                return new ChargingStationNatsIOClient(csRouteResolver, csmsProxy, csService, natsClientConnection);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }

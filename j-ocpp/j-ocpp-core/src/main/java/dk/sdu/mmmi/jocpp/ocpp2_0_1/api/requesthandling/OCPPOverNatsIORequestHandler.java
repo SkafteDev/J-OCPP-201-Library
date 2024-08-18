@@ -14,7 +14,7 @@ import io.nats.client.impl.NatsMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
+public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> implements OCPPRequestHandler<TRequest, TResponse> {
     private final Logger logger = Logger.getLogger(OCPPOverNatsIORequestHandler.class.getName());
 
     // Store the payload type for the inbound request. Needed for serialization.
@@ -25,24 +25,26 @@ public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
 
     // The underlying dispatcher. In this case io.nats.client.Dispatcher.
     private Dispatcher dispatcher;
+    private Connection natsConnection;
 
     /**
      * Instantiate a new OCPPRequestHandler with the INBOUND and OUTBOUND payload types.
      * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
      * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
      */
-    public OCPPOverNatsIORequestHandler(Class<TRequest> inPayloadType, Class<TResponse> outPayloadType) {
+    public OCPPOverNatsIORequestHandler(Class<TRequest> inPayloadType, Class<TResponse> outPayloadType, Connection natsConnection) {
         this.inboundPayloadType = inPayloadType;
         this.outboundPayloadType = outPayloadType;
+        this.natsConnection = natsConnection;
     }
 
     /**
      * Registers this request handler on the provided Connection.
      * The handler will start serving requests on the provided connection.
-     * @param natsConnection
      * @see Connection
      */
-    public void register(Connection natsConnection) {
+    @Override
+    public void activate() {
         if (dispatcher != null) return;
 
         this.dispatcher = natsConnection.createDispatcher((natsMsg) -> {
@@ -83,7 +85,8 @@ public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
     /**
      * Unregister the request handler and stop serving requests.
      */
-    public void unregister() {
+    @Override
+    public void deactivate() {
         dispatcher.unsubscribe(getRequestSubject());
     }
 
@@ -92,7 +95,8 @@ public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
      * @param message The {@link ICallResult} to serialize.
      * @return The serialized message in JSON.
      */
-    protected String serialize(ICallResult<TResponse> message) {
+    @Override
+    public String serialize(ICallResult<TResponse> message) {
         try {
             return CallResultSerializer.serialize(message);
         } catch (JsonProcessingException e) {
@@ -105,7 +109,8 @@ public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
      * @param rawJsonPayload
      * @return
      */
-    protected ICall<TRequest> deserialize(String rawJsonPayload) {
+    @Override
+    public ICall<TRequest> deserialize(String rawJsonPayload) {
         ICall<TRequest> deserialized;
 
         try {
@@ -117,25 +122,5 @@ public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> {
         return deserialized;
     }
 
-    /**
-     * The method that contains the logic for how to handle the
-     * {@link ICall} payload.
-     * The method must handle the CALL and provide a CALLRESULT
-     * {@link ICallResult}
-     * @param message {@link ICall}
-     * @param subject The subject that the message was received on.
-     * @return {@link ICallResult}
-     */
-    public abstract ICallResult<TResponse> handle(ICall<TRequest> message, String subject);
 
-
-    /**
-     * The subject on which this request handler listen for incoming requests.
-     * Must be overridden in subclasses.
-     * E.g. operators.<opId>.csms.<csmsId>.cs.<csId>.requests.bootnotification
-     *
-     * Use the helper class {@link IMessageRouteResolver}.
-     * @return
-     */
-    public abstract String getRequestSubject();
 }

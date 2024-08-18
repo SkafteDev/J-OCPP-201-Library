@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.jocpp.application.csms;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.managementsystem.IChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStationServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
@@ -9,7 +9,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequestHandlerRegistry;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
@@ -41,7 +41,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         this.routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, "*");
         this.chargingStationRegistry = new HashMap<>();
 
-        this.ocppServer = new OCPPOverNatsIORequestHandlerRegistry(natsConnection, routeResolver);
+        this.ocppServer = new OCPPOverNatsIOService(natsConnection, routeResolver);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
             try {
                 IMessageRouteResolver routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, csId);
-                IChargingStation csProxy = new ChargingStationNatsIOProxy(natsConnection, routeResolver);
+                IChargingStationServiceEndpoint csProxy = new ChargingStationNatsIOProxy(natsConnection, routeResolver);
                 ICallResult<SetChargingProfileResponse> callResult = csProxy.sendSetChargingProfileRequest(call);
 
                 logger.info(String.format("Received response '%s' with payload %s",
@@ -282,7 +282,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private void addBootNotificationHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.BootNotificationRequest,
-                new OCPPOverNatsIORequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class) {
+                new OCPPOverNatsIORequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class, natsConnection) {
                     @Override
                     public String getRequestSubject() {
                         return routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
@@ -347,7 +347,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private void addStatusNotificationHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.StatusNotificationRequest,
-                new OCPPOverNatsIORequestHandler<>(StatusNotificationRequest.class, StatusNotificationResponse.class) {
+                new OCPPOverNatsIORequestHandler<>(StatusNotificationRequest.class, StatusNotificationResponse.class, natsConnection) {
                     @Override
                     public String getRequestSubject() {
                         return routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
@@ -386,7 +386,7 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private void addHeartbeatHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.HeartbeatRequest,
-                new OCPPOverNatsIORequestHandler<>(HeartbeatRequest.class, HeartbeatResponse.class) {
+                new OCPPOverNatsIORequestHandler<>(HeartbeatRequest.class, HeartbeatResponse.class, natsConnection) {
                     @Override
                     public String getRequestSubject() {
                         return routeResolver.getRoute(OCPPMessageType.HeartbeatRequest);

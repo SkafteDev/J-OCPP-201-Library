@@ -1,12 +1,12 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.managementsystem.IChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStationServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequestHandlerRegistry;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -30,10 +30,10 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class ChargingStationServerTest {
+public class ChargingStationServiceTest {
     private static final String CS_ID = "ce2b8b0e-db26-4643-a705-c848fab64327";
 
-    private IRequestHandlerRegistry csServerImpl;
+    private IRequestHandlerRegistry csService;
 
     @BeforeEach
     void setup_chargingstation_and_connect_to_nats() {
@@ -43,13 +43,13 @@ public class ChargingStationServerTest {
         Connection natsConnection = getNatsConnection(brokerUrl);
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        csServerImpl = new OCPPOverNatsIORequestHandlerRegistry(natsConnection, routeResolver);
-        csServerImpl.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(csServerImpl.getMsgRouteResolver()));
+        csService = new OCPPOverNatsIOService(natsConnection, routeResolver);
+        csService.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
+                new SetChargingProfileRequestHandler(csService.getMsgRouteResolver(), natsConnection));
     }
 
     private static URL getResource(String resourceFile) {
-        ClassLoader classLoader = ChargingStationServerTest.class.getClassLoader();
+        ClassLoader classLoader = ChargingStationServiceTest.class.getClassLoader();
         URL resourceUrl = classLoader.getResource(resourceFile);
 
         if (resourceUrl == null) {
@@ -73,13 +73,13 @@ public class ChargingStationServerTest {
     }
 
     @Test
-    void integration_ChargingStationServer_handle_SetChargingProfileRequest() {
+    void integration_csms_to_cs_SetChargingProfileRequest() {
         URL resource = getResource("BrokerContexts/brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
         String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
 
-        IChargingStation csmsClientApi = new ChargingStationNatsIOProxy(getNatsConnection(brokerUrl), routeResolver);
+        IChargingStationServiceEndpoint csmsClientApi = new ChargingStationNatsIOProxy(getNatsConnection(brokerUrl), routeResolver);
 
         ChargingProfile chargingProfile = getChargingProfile();
 
@@ -296,8 +296,8 @@ public class ChargingStationServerTest {
 
         private final IMessageRouteResolver routeResolver;
 
-        public SetChargingProfileRequestHandler(IMessageRouteResolver routeResolver) {
-            super(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
+        public SetChargingProfileRequestHandler(IMessageRouteResolver routeResolver, Connection natsConnection) {
+            super(SetChargingProfileRequest.class, SetChargingProfileResponse.class, natsConnection);
             this.routeResolver = routeResolver;
         }
 

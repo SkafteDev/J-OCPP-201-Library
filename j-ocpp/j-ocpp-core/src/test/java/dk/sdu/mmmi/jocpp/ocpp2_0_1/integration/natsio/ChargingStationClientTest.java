@@ -1,13 +1,13 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequestHandlerRegistry;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.CsmsNatsIOProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.CsmsProxyNatsIO;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -35,8 +35,7 @@ public class ChargingStationClientTest {
     private static final String CS_ID = "ce2b8b0e-db26-4643-a705-c848fab64327";
 
     private static final String CSMS_ID = "Clever CSMS";
-
-    private IRequestHandlerRegistry csServerImpl;
+    private IRequestHandlerRegistry csService;
 
     @BeforeEach
     void setup_and_connect_csms_to_nats() {
@@ -46,23 +45,23 @@ public class ChargingStationClientTest {
         Connection natsConnection = getNatsConnection(brokerUrl);
         IMessageRouteResolver routeResolver = brokerContext.getCsmsRouteResolver(CSMS_ID);
 
-        BootNotificationRequestHandler bnrHandler = new BootNotificationRequestHandler(BootNotificationRequest.class, BootNotificationResponse.class);
+        BootNotificationRequestHandler bnrHandler = new BootNotificationRequestHandler(BootNotificationRequest.class, BootNotificationResponse.class, natsConnection);
         bnrHandler.setMessageRouteResolver(routeResolver);
 
-        StatusNotificationRequestHandler snrHandler = new StatusNotificationRequestHandler(StatusNotificationRequest.class, StatusNotificationResponse.class);
+        StatusNotificationRequestHandler snrHandler = new StatusNotificationRequestHandler(StatusNotificationRequest.class, StatusNotificationResponse.class, natsConnection);
         snrHandler.setMessageRouteResolver(routeResolver);
 
-        HeartbeatRequestHandler hbrHandler = new HeartbeatRequestHandler(HeartbeatRequest.class, HeartbeatResponse.class);
+        HeartbeatRequestHandler hbrHandler = new HeartbeatRequestHandler(HeartbeatRequest.class, HeartbeatResponse.class, natsConnection);
         hbrHandler.setMessageRouteResolver(routeResolver);
 
-        csServerImpl = new OCPPOverNatsIORequestHandlerRegistry(natsConnection, routeResolver);
-        csServerImpl.addRequestHandler(OCPPMessageType.BootNotificationRequest,bnrHandler);
-        csServerImpl.addRequestHandler(OCPPMessageType.StatusNotificationRequest, snrHandler);
-        csServerImpl.addRequestHandler(OCPPMessageType.HeartbeatRequest, hbrHandler);
+        csService = new OCPPOverNatsIOService(natsConnection, routeResolver);
+        csService.addRequestHandler(OCPPMessageType.BootNotificationRequest, bnrHandler);
+        csService.addRequestHandler(OCPPMessageType.StatusNotificationRequest, snrHandler);
+        csService.addRequestHandler(OCPPMessageType.HeartbeatRequest, hbrHandler);
     }
 
     private static URL getResource(String resourceFile) {
-        ClassLoader classLoader = ChargingStationServerTest.class.getClassLoader();
+        ClassLoader classLoader = ChargingStationServiceTest.class.getClassLoader();
         URL resourceUrl = classLoader.getResource(resourceFile);
 
         if (resourceUrl == null) {
@@ -82,7 +81,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsms csClient = new CsmsNatsIOProxy(natsConnection, routeResolver);
+        ICsmsServiceEndpoint csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
 
         ICall<BootNotificationRequest> bootNotificationRequest = createBootNotificationRequest();
 
@@ -123,7 +122,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsms csClient = new CsmsNatsIOProxy(natsConnection, routeResolver);
+        ICsmsServiceEndpoint csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
 
         ICall<StatusNotificationRequest> statusNotificationRequest = createStatusNotificationRequest();
 
@@ -150,7 +149,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsms csClient = new CsmsNatsIOProxy(natsConnection, routeResolver);
+        ICsmsServiceEndpoint csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
 
         ICall<HeartbeatRequest> heartbeatRequest = createHeartbeatRequest();
 
@@ -221,8 +220,8 @@ public class ChargingStationClientTest {
          * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
          * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
          */
-        public BootNotificationRequestHandler(Class<BootNotificationRequest> inPayloadType, Class<BootNotificationResponse> outPayloadType) {
-            super(inPayloadType, outPayloadType);
+        public BootNotificationRequestHandler(Class<BootNotificationRequest> inPayloadType, Class<BootNotificationResponse> outPayloadType, Connection natsConnection) {
+            super(inPayloadType, outPayloadType, natsConnection);
         }
 
         public void setMessageRouteResolver(IMessageRouteResolver resolver) {
@@ -265,8 +264,8 @@ public class ChargingStationClientTest {
          * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
          * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
          */
-        public StatusNotificationRequestHandler(Class<StatusNotificationRequest> inPayloadType, Class<StatusNotificationResponse> outPayloadType) {
-            super(inPayloadType, outPayloadType);
+        public StatusNotificationRequestHandler(Class<StatusNotificationRequest> inPayloadType, Class<StatusNotificationResponse> outPayloadType, Connection natsConnection) {
+            super(inPayloadType, outPayloadType, natsConnection);
         }
 
         public void setMessageRouteResolver(IMessageRouteResolver resolver) {
@@ -308,8 +307,8 @@ public class ChargingStationClientTest {
          * @param inPayloadType  E.g. BootNotificationRequest, StatusNotificationRequest, SetChargingProfileRequest etc.
          * @param outPayloadType E.g. BootNotificationResponse, StatusNotificationResponse, SetChargingProfileResponse etc.
          */
-        public HeartbeatRequestHandler(Class<HeartbeatRequest> inPayloadType, Class<HeartbeatResponse> outPayloadType) {
-            super(inPayloadType, outPayloadType);
+        public HeartbeatRequestHandler(Class<HeartbeatRequest> inPayloadType, Class<HeartbeatResponse> outPayloadType, Connection natsConnection) {
+            super(inPayloadType, outPayloadType, natsConnection);
         }
 
         public void setMessageRouteResolver(IMessageRouteResolver resolver) {

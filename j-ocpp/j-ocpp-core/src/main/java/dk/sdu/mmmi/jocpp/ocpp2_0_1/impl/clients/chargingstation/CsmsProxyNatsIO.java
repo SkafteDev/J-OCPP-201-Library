@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.chargingstation.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequester;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
@@ -12,7 +12,7 @@ import io.nats.client.Connection;
 
 import java.util.logging.Logger;
 
-public class CsmsNatsIOProxy implements ICsms {
+public class CsmsProxyNatsIO implements ICsmsServiceEndpoint {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -20,7 +20,7 @@ public class CsmsNatsIOProxy implements ICsms {
 
     private final IMessageRouteResolver routeResolver;
 
-    public CsmsNatsIOProxy(Connection natsConnection, IMessageRouteResolver routingResolver) {
+    public CsmsProxyNatsIO(Connection natsConnection, IMessageRouteResolver routingResolver) {
         this.natsConnection = natsConnection;
         this.routeResolver = routingResolver;
     }
@@ -153,10 +153,5 @@ public class CsmsNatsIOProxy implements ICsms {
     @Override
     public ICallResult<SignCertificateResponse> sendSignCertificateRequest(ICall<SignCertificateRequest> req) {
         return sendRequest(req, SignCertificateRequest.class, SignCertificateResponse.class);
-    }
-
-    @Override
-    public IMessageRouteResolver getRouteResolver() {
-        return this.routeResolver;
     }
 }
