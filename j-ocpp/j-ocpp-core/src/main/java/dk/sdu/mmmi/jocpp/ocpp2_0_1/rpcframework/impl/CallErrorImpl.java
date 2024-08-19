@@ -4,7 +4,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallError;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.MessageType;
 
-public class CallErrorImpl extends CallResultImpl<Object> implements ICallError {
+public class CallErrorImpl extends CallResultImpl implements ICallError {
 
     private String errorCode;
     private String errorDescription;

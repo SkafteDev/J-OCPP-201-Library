@@ -27,7 +27,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api;
  * ]
  *
  */
-public interface ICallError extends ICallResult<Object> {
+public interface ICallError extends ICallResult {
 
     @Override
     default MessageType getMessageTypeId() {

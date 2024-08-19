@@ -217,4 +217,24 @@ public class MessageRouteResolverImpl implements IMessageRouteResolver {
         return routes.get(msgType);
     }
 
+    public String getRequestRoute() {
+        String route = requestTemplate.replace(OPERATOR_ID_TOKEN, operatorId)
+                .replace(CSMS_ID_TOKEN, csmsId)
+                .replace(CS_ID_TOKEN, csId)
+                .replace(REQUEST_TYPE_TOKEN, "*");
+
+
+        return route.toLowerCase().replace(" ", "");
+    }
+
+    public String getResponseRoute() {
+        String route = responseTemplate.replace(OPERATOR_ID_TOKEN, operatorId)
+                .replace(CSMS_ID_TOKEN, csmsId)
+                .replace(CS_ID_TOKEN, csId)
+                .replace(RESPONSE_TYPE_TOKEN, "*");
+
+
+        return route.toLowerCase().replace(" ", "");
+    }
+
 }

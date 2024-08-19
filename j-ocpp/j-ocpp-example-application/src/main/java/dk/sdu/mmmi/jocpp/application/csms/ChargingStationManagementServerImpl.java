@@ -1,7 +1,10 @@
 package dk.sdu.mmmi.jocpp.application.csms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStationServiceEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
@@ -10,20 +13,25 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStation
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallError;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallErrorImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallResultImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.util.JacksonUtil;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
+import io.nats.client.Dispatcher;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class ChargingStationManagementServerImpl implements IChargingStationManagementServer {
+public class ChargingStationManagementServerImpl implements IChargingStationManagementServer, ICsmsService {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -32,6 +40,9 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;
     private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
+
+    private final Map<String, ICsmsServiceEndpoint> endpoints;
+
     private final IRequestHandlerRegistry ocppServer;
 
     public ChargingStationManagementServerImpl(String operatorId, String csmsId, Connection natsConnection) {
@@ -40,16 +51,66 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         this.natsConnection = natsConnection;
         this.routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, "*");
         this.chargingStationRegistry = new HashMap<>();
+        this.endpoints = new HashMap<>();
 
         this.ocppServer = new OCPPOverNatsIOService(natsConnection, routeResolver);
     }
 
     @Override
     public void serve() {
+        addConnectionHandler();
+
         // TODO: Add handlers for all incoming message types.
         addBootNotificationHandler();
         addStatusNotificationHandler();
         addHeartbeatHandler();
+    }
+
+    private void addConnectionHandler() {
+        // Connect handler
+        Dispatcher dispatcher = natsConnection.createDispatcher(handshakeReq -> {
+            String replyTo = handshakeReq.getReplyTo();
+
+            // Deserialize the handshake
+            String json = new String(handshakeReq.getData(), StandardCharsets.UTF_8);
+
+            ObjectMapper mapper = JacksonUtil.getDefault();
+
+            try {
+                HandshakeRequest handshakeRequest = mapper.readValue(json, HandshakeRequestImpl.class);
+                System.out.println(handshakeRequest);
+                // TODO: Add endpoint to the internal map.bash
+                ICsmsServiceEndpoint endpoint = connect(handshakeRequest);
+
+                MessageRouteResolverImpl routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, handshakeRequest.getIdentity());
+                HandshakeResponseImpl accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.newHandshakeResponseImpl()
+                        .withHandshakeResult("Accepted")
+                        .withEndpoint(routeResolver.getRequestRoute() + ", " + routeResolver.getResponseRoute())
+                        .build();
+
+                String jsonResponse = mapper.writerFor(HandshakeResponseImpl.class).writeValueAsString(accepted);
+                natsConnection.publish(replyTo, jsonResponse.getBytes(StandardCharsets.UTF_8));
+
+            } catch (JsonProcessingException e) {
+                HandshakeResponseImpl rejected = HandshakeResponseImpl.HandshakeResponseImplBuilder.newHandshakeResponseImpl()
+                        .withHandshakeResult("Rejected")
+                        .withDescription("An error occurred during handshake.")
+                        .build();
+
+                String jsonResponse = null;
+                try {
+                    jsonResponse = mapper.writerFor(HandshakeResponseImpl.class).writeValueAsString(rejected);
+                } catch (JsonProcessingException ex) {
+                    throw new RuntimeException(ex);
+                }
+                natsConnection.publish(replyTo, jsonResponse.getBytes(StandardCharsets.UTF_8));
+            }
+        });
+
+        // Subscribe to the connection subject to handle the handshake request.
+        String operatorId = this.operatorId.replace(" ", "").toLowerCase();
+        String csmsId = this.csmsId.replace(" ", "").toLowerCase();
+        dispatcher.subscribe(String.format("operators.%s.csms.%s.connect", operatorId, csmsId));
     }
 
     @Override
@@ -295,55 +356,22 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                         String csId = subjectHierarchy[5];
 
                         // Register the charging station within the registry.
-                        if (!chargingStationRegistry.containsKey(csId)) {
-                            ChargingStationDeviceModel csdm = new ChargingStationDeviceModel(csId,
-                                    operatorId,
-                                    csmsId,
-                                    message.getPayload().getChargingStation());
-                            csdm.setRegistrationStatus(RegistrationStatusEnum.ACCEPTED);
-                            chargingStationRegistry.put(csId, csdm);
-                            logger.info(String.format("Registered Charging Station: %s", csId));
-                            return acceptBootNotificationRequest(message.getMessageId());
+                        if (endpoints.containsKey(csId)) {
+                            logger.info(String.format("Dispatching BootNotificationRequest: %s", csId));
+                            return endpoints.get(csId).sendBootNotificationRequest(message);
                         } else {
-                            logger.info(String.format("Rejected Charging Station: %s because it is already registered.", csId));
-                            return rejectBootNotificationRequest(message.getMessageId());
+                            logger.info(String.format("Dispatch error. CS '%s' is not connected.", csId));
+                            ICallError callError = CallErrorImpl.newCallErrorBuilder()
+                                    .withMessageId(message.getMessageId())
+                                    .withErrorCode(ErrorCode.GENERIC_ERROR)
+                                    .withErrorDescription("Not connected.")
+                                    .build();
+
+                            return callError;
                         }
                     }
                 });
     }
-
-    private ICallResult<BootNotificationResponse> acceptBootNotificationRequest(String responseMsgId) {
-        BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
-                .withStatus(RegistrationStatusEnum.ACCEPTED)
-                .withCurrentTime(ZonedDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
-                .withInterval((int) Duration.ofMinutes(2).toSeconds())
-                .build();
-
-        ICallResult<BootNotificationResponse> callResultMessage =
-                CallResultImpl.<BootNotificationResponse>newBuilder()
-                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                        .withPayLoad(bootNotificationResponse)
-                        .build();
-
-        return callResultMessage;
-    }
-
-    private ICallResult<BootNotificationResponse> rejectBootNotificationRequest(String responseMsgId) {
-        BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
-                .withStatus(RegistrationStatusEnum.REJECTED)
-                .withCurrentTime(ZonedDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
-                .withInterval((int) Duration.ofMinutes(2).toSeconds())
-                .build();
-
-        ICallResult<BootNotificationResponse> callResultMessage =
-                CallResultImpl.<BootNotificationResponse>newBuilder()
-                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                        .withPayLoad(bootNotificationResponse)
-                        .build();
-
-        return callResultMessage;
-    }
-
 
     private void addStatusNotificationHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.StatusNotificationRequest,
@@ -358,30 +386,21 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                         String[] subjectHierarchy = subject.split("\\.");
                         String csId = subjectHierarchy[5];
 
-                        StatusNotificationRequest statusNotificationRequest = message.getPayload();
+                        if (endpoints.containsKey(csId)) {
+                            logger.info(String.format("Dispatching StatusNotificationRequest: %s", csId));
+                            return endpoints.get(csId).sendStatusNotificationRequest(message);
+                        } else {
+                            logger.info(String.format("Dispatch error. CS '%s' is not connected.", csId));
+                            ICallError callError = CallErrorImpl.newCallErrorBuilder()
+                                    .withMessageId(message.getMessageId())
+                                    .withErrorCode(ErrorCode.GENERIC_ERROR)
+                                    .withErrorDescription("Not connected.")
+                                    .build();
 
-                        logger.info(String.format("Processing '%s' payload='%s' for ChargingStation='%s'",
-                                OCPPMessageType.StatusNotificationRequest,
-                                statusNotificationRequest.toString(),
-                                csId));
-
-                        return acceptStatusNotificationRequest(message.getMessageId());
+                            return callError;
+                        }
                     }
                 });
-    }
-
-    private ICallResult<StatusNotificationResponse> acceptStatusNotificationRequest(String responseMsgId) {
-        StatusNotificationResponse statusNotificationResponse = StatusNotificationResponse.builder()
-                // No fields required as specified in OCPP 2.0.1.
-                .build();
-
-        ICallResult<StatusNotificationResponse> callResultMessage =
-                CallResultImpl.<StatusNotificationResponse>newBuilder()
-                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                        .withPayLoad(statusNotificationResponse)
-                        .build();
-
-        return callResultMessage;
     }
 
     private void addHeartbeatHandler() {
@@ -397,29 +416,29 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
                         String[] subjectHierarchy = subject.split("\\.");
                         String csId = subjectHierarchy[5];
 
-                        HeartbeatRequest heartbeatRequest = message.getPayload();
+                        if (endpoints.containsKey(csId)) {
+                            logger.info(String.format("Dispatching HeartbeatRequest: %s", csId));
+                            return endpoints.get(csId).sendHeartbeatRequest(message);
+                        } else {
+                            logger.info(String.format("Dispatch error. CS '%s' is not connected.", csId));
+                            ICallError callError = CallErrorImpl.newCallErrorBuilder()
+                                    .withMessageId(message.getMessageId())
+                                    .withErrorCode(ErrorCode.GENERIC_ERROR)
+                                    .withErrorDescription("Not connected.")
+                                    .build();
 
-                        logger.info(String.format("Processing '%s' payload='%s' for ChargingStation='%s'",
-                                OCPPMessageType.HeartbeatRequest,
-                                heartbeatRequest.toString(),
-                                csId));
-
-                        return acceptHeartbeatRequest(message.getMessageId());
+                            return callError;
+                        }
                     }
                 });
     }
 
-    private ICallResult<HeartbeatResponse> acceptHeartbeatRequest(String responseMsgId) {
-        HeartbeatResponse response = HeartbeatResponse.builder()
-                .withCurrentTime(ZonedDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
-                .build();
+    @Override
+    public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
+        // TODO: Add validation of whether to accept/reject the incoming connection.
+        ICsmsServiceEndpoint csmsServiceEndpoint = new CsmsServiceEndpoint(handshakeRequest);
+        this.endpoints.put(handshakeRequest.getIdentity(), csmsServiceEndpoint);
 
-        ICallResult<HeartbeatResponse> callResultMessage =
-                CallResultImpl.<HeartbeatResponse>newBuilder()
-                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
-                        .withPayLoad(response)
-                        .build();
-
-        return callResultMessage;
+        return csmsServiceEndpoint;
     }
 }

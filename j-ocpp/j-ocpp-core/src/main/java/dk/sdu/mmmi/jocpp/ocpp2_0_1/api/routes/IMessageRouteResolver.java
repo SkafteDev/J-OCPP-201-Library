@@ -15,4 +15,8 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
  */
 public interface IMessageRouteResolver {
     String getRoute(OCPPMessageType msgType);
+
+    String getRequestRoute();
+
+    String getResponseRoute();
 }

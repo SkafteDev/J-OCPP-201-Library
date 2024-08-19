@@ -9,6 +9,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallResultImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.ChargingProfileStatusEnum;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.SetChargingProfileRequest;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.SetChargingProfileResponse;
+import io.nats.client.Connection;
 
 import java.util.logging.Logger;
 
@@ -19,8 +20,8 @@ public class SetChargingProfileRequestHandler
 
     private final IMessageRouteResolver routeResolver;
 
-    public SetChargingProfileRequestHandler(IMessageRouteResolver routeResolver) {
-        super(SetChargingProfileRequest.class, SetChargingProfileResponse.class);
+    public SetChargingProfileRequestHandler(IMessageRouteResolver routeResolver, Connection natsConnection) {
+        super(SetChargingProfileRequest.class, SetChargingProfileResponse.class, natsConnection);
         this.routeResolver = routeResolver;
     }
 

@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.jocpp.application.csms;
 
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
@@ -11,16 +12,23 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 /**
- * This class is intended to represent a single connection
+ * This class is intended to represent a service endpoint from CS -> CSMS
  */
 public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
 
-    //TODO: Implement a statechart that tracks whether a given request can be handled.
-    //TODO: Implement a field that identifies the endpoint.
-    private final String csIdentifier;
+    /**
+     * TODO:Implement a statechart that tracks whether a given request can be serviced.
+     * Only a single request can be serviced at any given moment.
+     */
 
-    public CsmsServiceEndpoint(String csIdentifier) {
-        this.csIdentifier = csIdentifier;
+    private final ICsmsService.HandshakeRequest handshakeRequest;
+
+    public CsmsServiceEndpoint(ICsmsService.HandshakeRequest handshakeRequest) {
+        this.handshakeRequest = handshakeRequest;
+    }
+
+    public ICsmsService.HandshakeRequest getHandshakeInfo() {
+        return handshakeRequest;
     }
 
     @Override
@@ -34,9 +42,11 @@ public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
     }
 
     private ICallResult<BootNotificationResponse> acceptBootNotificationRequest(String responseMsgId) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
+
         BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
                 .withStatus(RegistrationStatusEnum.ACCEPTED)
-                .withCurrentTime(ZonedDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                .withCurrentTime(now)
                 .withInterval((int) Duration.ofMinutes(2).toSeconds())
                 .build();
 
@@ -50,9 +60,11 @@ public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
     }
 
     private ICallResult<BootNotificationResponse> rejectBootNotificationRequest(String responseMsgId) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
+
         BootNotificationResponse bootNotificationResponse = BootNotificationResponse.builder()
                 .withStatus(RegistrationStatusEnum.REJECTED)
-                .withCurrentTime(ZonedDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                .withCurrentTime(now)
                 .withInterval((int) Duration.ofMinutes(2).toSeconds())
                 .build();
 
@@ -87,7 +99,23 @@ public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
 
     @Override
     public ICallResult<HeartbeatResponse> sendHeartbeatRequest(ICall<HeartbeatRequest> req) {
-        return null;
+        return acceptHeartbeatRequest(req.getMessageId());
+    }
+
+    private ICallResult<HeartbeatResponse> acceptHeartbeatRequest(String responseMsgId) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
+
+        HeartbeatResponse response = HeartbeatResponse.builder()
+                .withCurrentTime(now)
+                .build();
+
+        ICallResult<HeartbeatResponse> callResultMessage =
+                CallResultImpl.<HeartbeatResponse>newBuilder()
+                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                        .withPayLoad(response)
+                        .build();
+
+        return callResultMessage;
     }
 
     @Override
@@ -162,7 +190,21 @@ public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
 
     @Override
     public ICallResult<StatusNotificationResponse> sendStatusNotificationRequest(ICall<StatusNotificationRequest> req) {
-        return null;
+        return acceptStatusNotificationRequest(req.getMessageId());
+    }
+
+    private ICallResult<StatusNotificationResponse> acceptStatusNotificationRequest(String responseMsgId) {
+        StatusNotificationResponse statusNotificationResponse = StatusNotificationResponse.builder()
+                // No fields required as specified in OCPP 2.0.1.
+                .build();
+
+        ICallResult<StatusNotificationResponse> callResultMessage =
+                CallResultImpl.<StatusNotificationResponse>newBuilder()
+                        .withMessageId(responseMsgId) // NB! Important to reuse the message ID for traceability
+                        .withPayLoad(statusNotificationResponse)
+                        .build();
+
+        return callResultMessage;
     }
 
     @Override

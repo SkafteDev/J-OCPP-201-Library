@@ -47,7 +47,7 @@ public class ChargingStationDemo {
          */
         csNatsClient.getService().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId))
+                new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId), csNatsClient.getNatsConnection())
         );
 
         /*
