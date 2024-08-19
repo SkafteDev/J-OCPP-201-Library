@@ -2,7 +2,6 @@ package dk.sdu.mmmi.jocpp.application.csms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
@@ -78,23 +77,43 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
             try {
                 HandshakeRequest handshakeRequest = mapper.readValue(json, HandshakeRequestImpl.class);
-                System.out.println(handshakeRequest);
-                // TODO: Add endpoint to the internal map.bash
+                /*
+                 * Handshake validation
+                 */
+                if (!validate(handshakeRequest)) {
+                    HandshakeResponseImpl rejected = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
+                            .withHandshakeResult(HandshakeResult.REJECTED)
+                            .withReason("Invalid handshake request.")
+                            .build();
+
+                    String jsonResponse = null;
+                    try {
+                        jsonResponse = mapper.writerFor(HandshakeResponseImpl.class).writeValueAsString(rejected);
+                    } catch (JsonProcessingException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    natsConnection.publish(replyTo, jsonResponse.getBytes(StandardCharsets.UTF_8));
+                }
+
+                /*
+                 * Create the endpoint and add it to the internal connections.
+                 */
                 ICsmsServiceEndpoint endpoint = connect(handshakeRequest);
 
                 MessageRouteResolverImpl routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, handshakeRequest.getIdentity());
-                HandshakeResponseImpl accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.newHandshakeResponseImpl()
-                        .withHandshakeResult("Accepted")
-                        .withEndpoint(routeResolver.getRequestRoute() + ", " + routeResolver.getResponseRoute())
+                HandshakeResponse accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
+                        .withHandshakeResult(HandshakeResult.ACCEPTED)
+                        .withEndpoint(routeResolver.getRequestRoute())
+                        .withOcppVersion(HandshakeOcppVersion.OCPP_201)
                         .build();
 
-                String jsonResponse = mapper.writerFor(HandshakeResponseImpl.class).writeValueAsString(accepted);
+                String jsonResponse = mapper.writeValueAsString(accepted);
                 natsConnection.publish(replyTo, jsonResponse.getBytes(StandardCharsets.UTF_8));
 
             } catch (JsonProcessingException e) {
-                HandshakeResponseImpl rejected = HandshakeResponseImpl.HandshakeResponseImplBuilder.newHandshakeResponseImpl()
-                        .withHandshakeResult("Rejected")
-                        .withDescription("An error occurred during handshake.")
+                HandshakeResponseImpl rejected = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
+                        .withHandshakeResult(HandshakeResult.REJECTED)
+                        .withReason("An error occurred during handshake.")
                         .build();
 
                 String jsonResponse = null;
@@ -111,6 +130,17 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
         String operatorId = this.operatorId.replace(" ", "").toLowerCase();
         String csmsId = this.csmsId.replace(" ", "").toLowerCase();
         dispatcher.subscribe(String.format("operators.%s.csms.%s.connect", operatorId, csmsId));
+    }
+
+    private boolean validate(HandshakeRequest handshakeRequest) {
+        try {
+            Objects.requireNonNull(handshakeRequest.getIdentity());
+            Objects.requireNonNull(handshakeRequest.getOcppVersion());
+        } catch (NullPointerException e) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -435,7 +465,6 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     @Override
     public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
-        // TODO: Add validation of whether to accept/reject the incoming connection.
         ICsmsServiceEndpoint csmsServiceEndpoint = new CsmsServiceEndpoint(handshakeRequest);
         this.endpoints.put(handshakeRequest.getIdentity(), csmsServiceEndpoint);
 

@@ -9,19 +9,23 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "handshakeResult",
+        "ocppVersion",
         "endpoint",
-        "description"
+        "reason"
 })
 public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
 
     @JsonProperty("handshakeResult")
-    private String handshakeResult;
+    private HandshakeResult handshakeResult;
+
+    @JsonProperty("ocppVersion")
+    private HandshakeOcppVersion ocppVersion;
 
     @JsonProperty("endpoint")
     private String endpoint;
 
-    @JsonProperty("description")
-    private String description;
+    @JsonProperty("reason")
+    private String reason;
 
     // Empty constructor is required for serialization/deserialization
     public HandshakeResponseImpl() {}
@@ -29,19 +33,25 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
     @JsonProperty("endpoint")
     @Override
     public String getEndPoint() {
-        return null;
+        return endpoint;
     }
 
     @JsonProperty("handshakeResult")
     @Override
-    public String getHandshakeResult() {
-        return null;
+    public HandshakeResult getHandshakeResult() {
+        return handshakeResult;
     }
 
-    @JsonProperty("description")
+    @JsonProperty("ocppVersion")
     @Override
-    public String getDescription() {
-        return null;
+    public HandshakeOcppVersion getOcppVersion() {
+        return ocppVersion;
+    }
+
+    @JsonProperty("reason")
+    @Override
+    public String getReason() {
+        return reason;
     }
 
     @Override
@@ -49,37 +59,39 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
         if (this == o) return true;
         if (!(o instanceof HandshakeResponseImpl)) return false;
         HandshakeResponseImpl that = (HandshakeResponseImpl) o;
-        return Objects.equals(handshakeResult, that.handshakeResult) && Objects.equals(endpoint, that.endpoint) && Objects.equals(description, that.description);
+        return Objects.equals(handshakeResult, that.handshakeResult) && Objects.equals(ocppVersion, that.ocppVersion) && Objects.equals(endpoint, that.endpoint) && Objects.equals(reason, that.reason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(handshakeResult, endpoint, description);
-    }
-
-    @Override
-    public String toString() {
-        return "HandshakeResponseImpl{" +
-                "handshakeResult='" + handshakeResult + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                ", description='" + description + '\'' +
-                '}';
+        return Objects.hash(handshakeResult, ocppVersion, endpoint, reason);
     }
 
     public static final class HandshakeResponseImplBuilder {
-        private String handshakeResult;
+        private String reason;
+        private HandshakeResult handshakeResult;
+        private HandshakeOcppVersion ocppVersion;
         private String endpoint;
-        private String description;
 
         private HandshakeResponseImplBuilder() {
         }
 
-        public static HandshakeResponseImplBuilder newHandshakeResponseImpl() {
+        public static HandshakeResponseImplBuilder aHandshakeResponseImpl() {
             return new HandshakeResponseImplBuilder();
         }
 
-        public HandshakeResponseImplBuilder withHandshakeResult(String handshakeResult) {
+        public HandshakeResponseImplBuilder withReason(String reason) {
+            this.reason = reason;
+            return this;
+        }
+
+        public HandshakeResponseImplBuilder withHandshakeResult(HandshakeResult handshakeResult) {
             this.handshakeResult = handshakeResult;
+            return this;
+        }
+
+        public HandshakeResponseImplBuilder withOcppVersion(HandshakeOcppVersion ocppVersion) {
+            this.ocppVersion = ocppVersion;
             return this;
         }
 
@@ -88,16 +100,12 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
             return this;
         }
 
-        public HandshakeResponseImplBuilder withDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
         public HandshakeResponseImpl build() {
             HandshakeResponseImpl handshakeResponseImpl = new HandshakeResponseImpl();
             handshakeResponseImpl.handshakeResult = this.handshakeResult;
-            handshakeResponseImpl.description = this.description;
+            handshakeResponseImpl.ocppVersion = this.ocppVersion;
             handshakeResponseImpl.endpoint = this.endpoint;
+            handshakeResponseImpl.reason = this.reason;
             return handshakeResponseImpl;
         }
     }
