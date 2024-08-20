@@ -45,7 +45,7 @@ public class ChargingStationDemo {
          * (2) Add request handlers for the requests this charging station can handle.
          *     In this example, the CS can only handle SetChargingProfileRequest.
          */
-        csNatsClient.getService().addRequestHandler(
+        csNatsClient.getCsService().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId), csNatsClient.getNatsConnection())
         );
@@ -75,7 +75,7 @@ public class ChargingStationDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsProxy().sendBootNotificationRequest(bootRequest);
+        ICallResult<BootNotificationResponse> response = csNatsClient.getEndpoint().sendBootNotificationRequest(bootRequest);
 
 
         /*

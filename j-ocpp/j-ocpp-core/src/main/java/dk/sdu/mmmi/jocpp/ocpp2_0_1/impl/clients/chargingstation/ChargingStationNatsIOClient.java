@@ -1,5 +1,6 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
@@ -14,33 +15,45 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.logging.Logger;
 
-public class ChargingStationNatsIOClient {
+public class ChargingStationNatsIOClient implements ICSClient {
     private final IMessageRouteResolver routeResolver;
     private final ICsmsServiceEndpoint csmsProxy;
     private final IRequestHandlerRegistry csService;
-    private final Connection natsConnection;
+    private Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationNatsIOClient.class.getName());
+    private final Options natsOptions;
 
     public ChargingStationNatsIOClient(IMessageRouteResolver routeResolver,
                                        ICsmsServiceEndpoint proxy,
                                        IRequestHandlerRegistry requestHandlerRegistry,
-                                       Connection natsConnection) {
+                                       Options natsOptions) {
         this.routeResolver = routeResolver;
         this.csmsProxy = proxy;
         this.csService = requestHandlerRegistry;
-        this.natsConnection = natsConnection;
+        this.natsOptions = natsOptions;
     }
 
     public Connection getNatsConnection() {
         return natsConnection;
     }
 
-    public ICsmsServiceEndpoint getCsmsProxy() {
+    @Override
+    public void connect() {
+        try {
+            this.natsConnection = Nats.connect(this.natsOptions);
+        } catch (IOException | InterruptedException e ) {
+            logger.severe(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public ICsmsServiceEndpoint getEndpoint() {
         return this.csmsProxy;
     }
 
-    public IRequestHandlerRegistry getService() {
+    public IRequestHandlerRegistry getCsService() {
         return this.csService;
     }
 
@@ -96,7 +109,7 @@ public class ChargingStationNatsIOClient {
                 IRequestHandlerRegistry csService = new OCPPOverNatsIOService(natsClientConnection, csRouteResolver);
                 ICsmsServiceEndpoint csmsProxy = new CsmsProxyNatsIO(natsClientConnection, csRouteResolver);
 
-                return new ChargingStationNatsIOClient(csRouteResolver, csmsProxy, csService, natsClientConnection);
+                return new ChargingStationNatsIOClient(csRouteResolver, csmsProxy, csService, natsOptions);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
