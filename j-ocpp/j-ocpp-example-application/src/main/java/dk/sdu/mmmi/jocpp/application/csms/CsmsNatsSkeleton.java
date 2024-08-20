@@ -3,15 +3,16 @@ package dk.sdu.mmmi.jocpp.application.csms;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallError;
@@ -22,7 +23,10 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.util.JacksonUtil;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
+import io.nats.client.Nats;
+import io.nats.client.Options;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.ZoneId;
@@ -30,7 +34,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class ChargingStationManagementServerImpl implements IChargingStationManagementServer, ICsmsService {
+public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -44,15 +48,24 @@ public class ChargingStationManagementServerImpl implements IChargingStationMana
 
     private final IRequestHandlerRegistry ocppServer;
 
-    public ChargingStationManagementServerImpl(String operatorId, String csmsId, Connection natsConnection) {
-        this.operatorId = operatorId;
-        this.csmsId = csmsId;
-        this.natsConnection = natsConnection;
+    public CsmsNatsSkeleton(BrokerConfig brokerConfig, Options natsOptions) {
+        this.natsConnection = getNatsIoConnection(natsOptions);
+        this.operatorId = brokerConfig.getOperatorId();
+        this.csmsId = brokerConfig.getCsmsId();
         this.routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, "*");
         this.chargingStationRegistry = new HashMap<>();
         this.endpoints = new HashMap<>();
 
         this.ocppServer = new OCPPOverNatsIOService(natsConnection, routeResolver);
+    }
+
+    private Connection getNatsIoConnection(Options natsOptions) {
+        try {
+            return Nats.connect(natsOptions);
+        } catch (IOException | InterruptedException e) {
+            logger.severe(e.getMessage());
+            throw new RuntimeException("Failed to connect to Nats.IO.", e);
+        }
     }
 
     @Override

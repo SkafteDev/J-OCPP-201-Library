@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.application.csms;
 
 import java.time.Duration;
 
-public interface IChargingStationManagementServer {
+public interface ICsmsServer {
 
     void serve();
 

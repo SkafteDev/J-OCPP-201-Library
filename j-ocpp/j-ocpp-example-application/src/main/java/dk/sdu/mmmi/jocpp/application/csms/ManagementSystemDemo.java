@@ -37,7 +37,7 @@ public class ManagementSystemDemo {
     public static void main(String[] args) {
         logger.info("Booting Charging Station Management System...");
         String csmsId = args[0];
-        IChargingStationManagementServer server = boot(csmsId);
+        ICsmsServer server = boot(csmsId);
         logger.info("Booting complete.");
 
         server.serve();   // Handle incoming messages.
@@ -53,31 +53,22 @@ public class ManagementSystemDemo {
         System.exit(0);
     }
 
-    private static IChargingStationManagementServer boot(String csmsId) {
+    private static ICsmsServer boot(String csmsId) {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
         BrokerConfig brokerConfig = brokerContext.getConfigFromCsmsId(csmsId);
 
-        try {
-            Options natsOptions = Options.builder()
-                    .server(brokerConfig.getBrokerUrl())
-                    .connectionName(String.format("CSMS %s %s", brokerConfig.getOperatorId(), brokerConfig.getCsmsId()))
-                    .connectionTimeout(Duration.ofMinutes(2))
-                    .connectionListener((connection, eventType) -> {
-                        logger.info(String.format("NATS.io connection event: %s%n", eventType));
-                    })
-                    .build();
+        Options natsOptions = Options.builder()
+                .server(brokerConfig.getBrokerUrl())
+                .connectionName(String.format("CSMS %s %s", brokerConfig.getOperatorId(), brokerConfig.getCsmsId()))
+                .connectionTimeout(Duration.ofMinutes(2))
+                .connectionListener((connection, eventType) -> {
+                    logger.info(String.format("NATS.io connection event: %s%n", eventType));
+                })
+                .build();
 
-            Connection natsConnection = Nats.connect(natsOptions);
-            IChargingStationManagementServer server = new ChargingStationManagementServerImpl(
-                    brokerConfig.getOperatorId(),
-                    brokerConfig.getCsmsId(),
-                    natsConnection);
+        ICsmsServer server = new CsmsNatsSkeleton(brokerConfig, natsOptions);
 
-            return server;
-        } catch (IOException | InterruptedException e) {
-            logger.severe(e.getMessage());
-            throw new RuntimeException("Failed to boot CSMS.", e);
-        }
+        return server;
     }
 }
