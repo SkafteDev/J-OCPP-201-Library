@@ -45,19 +45,10 @@ public class ChargingStationOverNatsDemo {
         ICSClient csNatsClient = ChargingStationNatsIOClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
+                .withCsServiceInterface(new CSServiceEndpointImpl())
                 .build();
         // Connect the CS client to the CSMS before sending requests.
         csNatsClient.connect();
-
-        /*
-         * (2) Add request handlers for the requests this charging station can handle.
-         *     In this example, the CS can only handle SetChargingProfileRequest.
-         */
-        csNatsClient.getCsEndpoint().addRequestHandler(
-                OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId),
-                        ((ChargingStationNatsIOClient)csNatsClient).getNatsConnection())
-        );
 
         /*
          * (3) Build the BootNotificationRequest (payload) object to be sent to the CSMS.

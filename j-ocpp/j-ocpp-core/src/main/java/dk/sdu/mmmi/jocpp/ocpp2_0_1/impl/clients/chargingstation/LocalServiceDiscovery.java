@@ -1,6 +1,6 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStationServiceEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ public class LocalServiceDiscovery {
     private static LocalServiceDiscovery instance;
 
     private final Map<String, ICsmsService> csmsServices = new HashMap<>();
-    private final Map<String, IChargingStationServiceEndpoint> csEndpoints = new HashMap<>();
+    private final Map<String, ICsServiceEndpoint> csEndpoints = new HashMap<>();
 
     private LocalServiceDiscovery() {
     }
@@ -77,7 +77,7 @@ public class LocalServiceDiscovery {
      * @param csId
      * @param csEndpoint
      */
-    public void registerCsEndpoint(String csId, IChargingStationServiceEndpoint csEndpoint) {
+    public void registerCsEndpoint(String csId, ICsServiceEndpoint csEndpoint) {
         if (csEndpoints.containsKey(csId)) {
             throw new RuntimeException(String.format("CS id already used: %s", csId));
         }
@@ -103,7 +103,7 @@ public class LocalServiceDiscovery {
      * @param csId
      * @return
      */
-    public IChargingStationServiceEndpoint getCsEndpoint(String csId) {
+    public ICsServiceEndpoint getCsEndpoint(String csId) {
         if (!csEndpoints.containsKey(csId)) {
             return null;
         }

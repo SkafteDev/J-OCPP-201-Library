@@ -6,7 +6,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.CsmsProxyNatsIO;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
@@ -54,7 +54,7 @@ public class ChargingStationClientTest {
         HeartbeatRequestHandler hbrHandler = new HeartbeatRequestHandler(HeartbeatRequest.class, HeartbeatResponse.class, natsConnection);
         hbrHandler.setMessageRouteResolver(routeResolver);
 
-        csService = new OCPPOverNatsIOService(routeResolver);
+        csService = new OCPPOverNatsDispatcher(routeResolver);
         csService.addRequestHandler(OCPPMessageType.BootNotificationRequest, bnrHandler);
         csService.addRequestHandler(OCPPMessageType.StatusNotificationRequest, snrHandler);
         csService.addRequestHandler(OCPPMessageType.HeartbeatRequest, hbrHandler);

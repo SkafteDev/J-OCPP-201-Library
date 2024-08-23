@@ -4,19 +4,18 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPRequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import io.nats.client.Connection;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class OCPPOverNatsIOService implements IRequestHandlerRegistry {
+public class OCPPOverNatsDispatcher implements IRequestHandlerRegistry {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final IMessageRouteResolver msgRouteResolver;
 
     protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;
 
-    public OCPPOverNatsIOService(IMessageRouteResolver msgRouteResolver) {
+    public OCPPOverNatsDispatcher(IMessageRouteResolver msgRouteResolver) {
         this.msgRouteResolver = msgRouteResolver;
         this.requestHandlers = new HashMap<>();
     }

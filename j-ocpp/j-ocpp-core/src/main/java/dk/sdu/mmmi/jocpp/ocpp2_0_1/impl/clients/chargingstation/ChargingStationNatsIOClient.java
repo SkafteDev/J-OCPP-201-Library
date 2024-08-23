@@ -2,14 +2,20 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.util.JacksonUtil;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.SetChargingProfileRequest;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.SetChargingProfileResponse;
 import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.Nats;
@@ -25,14 +31,17 @@ import java.util.logging.Logger;
 public class ChargingStationNatsIOClient implements ICSClient {
     private final IMessageRouteResolver routeResolver;
     private ICsmsServiceEndpoint csmsProxy;
-    private IRequestHandlerRegistry csService;
+    private IRequestHandlerRegistry requestDispatchers;
+    private ICsServiceEndpoint csServiceEndpoint;
     private Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationNatsIOClient.class.getName());
     private final Options natsOptions;
 
-    public ChargingStationNatsIOClient(IMessageRouteResolver routeResolver,
+    public ChargingStationNatsIOClient(ICsServiceEndpoint csServiceEndpoint,
+                                       IMessageRouteResolver routeResolver,
                                        Options natsOptions) {
+        this.csServiceEndpoint = csServiceEndpoint;
         this.routeResolver = routeResolver;
         this.natsOptions = natsOptions;
     }
@@ -45,7 +54,7 @@ public class ChargingStationNatsIOClient implements ICSClient {
     public void connect() {
         try {
             this.natsConnection = Nats.connect(this.natsOptions);
-            this.csService = new OCPPOverNatsIOService(routeResolver);
+            initRequestDispatchers();
 
             // TODO: Send handshake to external server
             ICsmsService csmsServiceProxy = new ICsmsService() {
@@ -94,13 +103,29 @@ public class ChargingStationNatsIOClient implements ICSClient {
         }
     }
 
+    private void initRequestDispatchers() {
+        this.requestDispatchers = new OCPPOverNatsDispatcher(routeResolver);
+        requestDispatchers.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
+                new OCPPOverNatsIORequestHandler<>(SetChargingProfileRequest.class, SetChargingProfileResponse.class, natsConnection) {
+                    @Override
+                    public ICallResult<SetChargingProfileResponse> handle(ICall<SetChargingProfileRequest> message, String subject) {
+                        return csServiceEndpoint.sendSetChargingProfileRequest(message);
+                    }
+
+                    @Override
+                    public String getRequestSubject() {
+                        return routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
+                    }
+                });
+    }
+
     @Override
     public ICsmsServiceEndpoint getCsmsEndpoint() {
         return this.csmsProxy;
     }
 
-    public IRequestHandlerRegistry getCsEndpoint() {
-        return this.csService;
+    public ICsServiceEndpoint getCsEndpoint() {
+        return this.csServiceEndpoint;
     }
 
     /**
@@ -120,9 +145,15 @@ public class ChargingStationNatsIOClient implements ICSClient {
     public static class ChargingStationNatsIOClientBuilder {
         private String csId;
         private IBrokerContext configs;
+        private ICsServiceEndpoint csServiceEndpoint;
 
         public ChargingStationNatsIOClientBuilder withCsId(String csId) {
             this.csId = csId;
+            return this;
+        }
+
+        public ChargingStationNatsIOClientBuilder withCsServiceInterface(ICsServiceEndpoint csServiceEndpoint) {
+            this.csServiceEndpoint = csServiceEndpoint;
             return this;
         }
 
@@ -150,7 +181,7 @@ public class ChargingStationNatsIOClient implements ICSClient {
 
             IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-            return new ChargingStationNatsIOClient(csRouteResolver, natsOptions);
+            return new ChargingStationNatsIOClient(csServiceEndpoint, csRouteResolver, natsOptions);
 
         }
     }

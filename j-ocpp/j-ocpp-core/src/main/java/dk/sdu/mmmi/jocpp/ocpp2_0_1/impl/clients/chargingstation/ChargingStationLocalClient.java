@@ -1,10 +1,6 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPRequestHandler;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 
 public class ChargingStationLocalClient implements ICSClient {
@@ -12,39 +8,12 @@ public class ChargingStationLocalClient implements ICSClient {
     private final String csId;
     private ICsmsServiceEndpoint csmsEndpoint;
     private final ICsmsService csmsService;
-    private final IChargingStationServiceEndpoint csEndpoint;
+    private final ICsServiceEndpoint csEndpoint;
 
-    private IRequestHandlerRegistry csRequestHandlerMock;
-
-    public ChargingStationLocalClient(String csIdentity, String csmsId, IChargingStationServiceEndpoint csEndpoint) {
+    public ChargingStationLocalClient(String csIdentity, String csmsId, ICsServiceEndpoint csEndpoint) {
         this.csId = csIdentity;
         this.csmsService = LocalServiceDiscovery.getInstance().getCsms(csmsId);
-        this.csRequestHandlerMock = createMock();
         this.csEndpoint = csEndpoint;
-    }
-
-    private IRequestHandlerRegistry createMock() {
-        return new IRequestHandlerRegistry() {
-            @Override
-            public <TRequest, TResponse> void addRequestHandler(OCPPMessageType msgType, OCPPRequestHandler<TRequest, TResponse> requestHandler) {
-                // Do nothing...
-            }
-
-            @Override
-            public void removeRequestHandler(OCPPMessageType msgType) {
-                // Do nothing...
-            }
-
-            @Override
-            public boolean existsRequestHandler(OCPPMessageType msgType) {
-                return false;
-            }
-
-            @Override
-            public IMessageRouteResolver getMsgRouteResolver() {
-                return null;
-            }
-        };
     }
 
     @Override
@@ -70,7 +39,7 @@ public class ChargingStationLocalClient implements ICSClient {
     }
 
     @Override
-    public IRequestHandlerRegistry getCsEndpoint() {
-        return this.csRequestHandlerMock;
+    public ICsServiceEndpoint getCsEndpoint() {
+        return this.csEndpoint;
     }
 }

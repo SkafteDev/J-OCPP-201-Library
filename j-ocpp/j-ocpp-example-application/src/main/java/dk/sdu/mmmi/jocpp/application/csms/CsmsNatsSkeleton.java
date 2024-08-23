@@ -7,7 +7,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
@@ -56,7 +56,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
         this.chargingStationRegistry = new HashMap<>();
         this.endpoints = new HashMap<>();
 
-        this.ocppServer = new OCPPOverNatsIOService(routeResolver);
+        this.ocppServer = new OCPPOverNatsDispatcher(routeResolver);
     }
 
     private Connection getNatsIoConnection(Options natsOptions) {
@@ -214,7 +214,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
 
             try {
                 IMessageRouteResolver routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, csId);
-                IChargingStationServiceEndpoint csProxy = new ChargingStationNatsIOProxy(natsConnection, routeResolver);
+                ICsServiceEndpoint csProxy = new ChargingStationNatsIOProxy(natsConnection, routeResolver);
                 ICallResult<SetChargingProfileResponse> callResult = csProxy.sendSetChargingProfileRequest(call);
 
                 logger.info(String.format("Received response '%s' with payload %s",
@@ -239,9 +239,9 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
             double taskLength = Math.random() * 30d;
             Thread.sleep((int) taskLength);
 
-            for (ChargingStationDeviceModel csDeviceModel : chargingStationRegistry.values()) {
+            for (String csIdentifier : endpoints.keySet()) {
                 ChargingProfile chargingProfile = getChargingProfile();
-                profileMap.put(csDeviceModel.getCsId(), chargingProfile);
+                profileMap.put(csIdentifier, chargingProfile);
             }
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);

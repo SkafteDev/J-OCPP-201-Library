@@ -1,12 +1,12 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStationServiceEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIOService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -43,7 +43,7 @@ public class ChargingStationServiceTest {
         Connection natsConnection = getNatsConnection(brokerUrl);
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        csService = new OCPPOverNatsIOService(routeResolver);
+        csService = new OCPPOverNatsDispatcher(routeResolver);
         csService.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(csService.getMsgRouteResolver(), natsConnection));
     }
@@ -79,7 +79,7 @@ public class ChargingStationServiceTest {
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
         String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
 
-        IChargingStationServiceEndpoint csmsClientApi = new ChargingStationNatsIOProxy(getNatsConnection(brokerUrl), routeResolver);
+        ICsServiceEndpoint csmsClientApi = new ChargingStationNatsIOProxy(getNatsConnection(brokerUrl), routeResolver);
 
         ChargingProfile chargingProfile = getChargingProfile();
 
