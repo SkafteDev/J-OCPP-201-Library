@@ -31,19 +31,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class ChargingStationNatsIOClient implements ICSClient {
+public class ChargingStationNatsClient implements ICSClient {
     private final IMessageRouteResolver routeResolver;
     private ICsmsServiceEndpoint csmsProxy;
     private IRequestHandlerRegistry requestDispatchers;
     private ICsServiceEndpoint csServiceEndpoint;
     private Connection natsConnection;
 
-    private static final Logger logger = Logger.getLogger(ChargingStationNatsIOClient.class.getName());
+    private static final Logger logger = Logger.getLogger(ChargingStationNatsClient.class.getName());
     private final Options natsOptions;
 
-    public ChargingStationNatsIOClient(ICsServiceEndpoint csServiceEndpoint,
-                                       IMessageRouteResolver routeResolver,
-                                       Options natsOptions) {
+    public ChargingStationNatsClient(ICsServiceEndpoint csServiceEndpoint,
+                                     IMessageRouteResolver routeResolver,
+                                     Options natsOptions) {
         this.csServiceEndpoint = csServiceEndpoint;
         this.routeResolver = routeResolver;
         this.natsOptions = natsOptions;
@@ -278,7 +278,7 @@ public class ChargingStationNatsIOClient implements ICSClient {
             return this;
         }
 
-        public ChargingStationNatsIOClient build() {
+        public ChargingStationNatsClient build() {
             if (csId == null) throw new IllegalArgumentException("Charging Station ID must not be null. Provide a Charging Station Id.");
             if (configs == null) throw new IllegalArgumentException("BrokerContext must not be null. Provide a BrokerContext.");
 
@@ -297,7 +297,7 @@ public class ChargingStationNatsIOClient implements ICSClient {
 
             IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-            return new ChargingStationNatsIOClient(csServiceEndpoint, csRouteResolver, natsOptions);
+            return new ChargingStationNatsClient(csServiceEndpoint, csRouteResolver, natsOptions);
 
         }
     }

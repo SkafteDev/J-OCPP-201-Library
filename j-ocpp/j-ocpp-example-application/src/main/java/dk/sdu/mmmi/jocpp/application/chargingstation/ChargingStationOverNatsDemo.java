@@ -1,9 +1,8 @@
 package dk.sdu.mmmi.jocpp.application.chargingstation;
 
-import dk.sdu.mmmi.jocpp.application.chargingstation.requesthandlers.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsIOClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -42,7 +41,7 @@ public class ChargingStationOverNatsDemo {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
-        ICSClient csNatsClient = ChargingStationNatsIOClient.newBuilder()
+        ICSClient csNatsClient = ChargingStationNatsClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .withCsServiceInterface(new CSServiceEndpointImpl())
