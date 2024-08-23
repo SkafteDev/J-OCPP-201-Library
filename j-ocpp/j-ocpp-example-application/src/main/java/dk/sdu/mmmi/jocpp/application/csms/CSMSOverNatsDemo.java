@@ -3,11 +3,8 @@ package dk.sdu.mmmi.jocpp.application.csms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
-import io.nats.client.Connection;
-import io.nats.client.Nats;
 import io.nats.client.Options;
 
-import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Objects;
@@ -29,8 +26,8 @@ import java.util.logging.Logger;
  *      Sending requests to a charging station:
  *      - SetChargingProfileRequest
  */
-public class ManagementSystemDemo {
-    private static final Logger logger = Logger.getLogger(ManagementSystemDemo.class.getName());
+public class CSMSOverNatsDemo {
+    private static final Logger logger = Logger.getLogger(CSMSOverNatsDemo.class.getName());
 
     private static final String quitToken = "q";
 

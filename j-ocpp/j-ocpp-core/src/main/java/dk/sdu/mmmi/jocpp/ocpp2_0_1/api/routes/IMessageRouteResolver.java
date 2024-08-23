@@ -19,4 +19,10 @@ public interface IMessageRouteResolver {
     String getRequestRoute();
 
     String getResponseRoute();
+
+    String getConnectRoute();
+
+    String getCsIdentity();
+
+    String getCsmsIdentity();
 }

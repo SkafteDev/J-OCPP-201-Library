@@ -54,7 +54,7 @@ public class ChargingStationClientTest {
         HeartbeatRequestHandler hbrHandler = new HeartbeatRequestHandler(HeartbeatRequest.class, HeartbeatResponse.class, natsConnection);
         hbrHandler.setMessageRouteResolver(routeResolver);
 
-        csService = new OCPPOverNatsIOService(natsConnection, routeResolver);
+        csService = new OCPPOverNatsIOService(routeResolver);
         csService.addRequestHandler(OCPPMessageType.BootNotificationRequest, bnrHandler);
         csService.addRequestHandler(OCPPMessageType.StatusNotificationRequest, snrHandler);
         csService.addRequestHandler(OCPPMessageType.HeartbeatRequest, hbrHandler);

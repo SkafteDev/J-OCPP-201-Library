@@ -56,7 +56,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
         this.chargingStationRegistry = new HashMap<>();
         this.endpoints = new HashMap<>();
 
-        this.ocppServer = new OCPPOverNatsIOService(natsConnection, routeResolver);
+        this.ocppServer = new OCPPOverNatsIOService(routeResolver);
     }
 
     private Connection getNatsIoConnection(Options natsOptions) {
@@ -85,6 +85,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
 
             // Deserialize the handshake
             String json = new String(handshakeReq.getData(), StandardCharsets.UTF_8);
+            logger.info(String.format("Received handshake: %s", json));
 
             ObjectMapper mapper = JacksonUtil.getDefault();
 
@@ -105,12 +106,15 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
+                    logger.info(String.format("Invalid handshake. Sending response: %s", jsonResponse));
                     natsConnection.publish(replyTo, jsonResponse.getBytes(StandardCharsets.UTF_8));
                 }
 
                 /*
                  * Create the endpoint and add it to the internal connections.
                  */
+                logger.info(String.format("Handshake accepted. Instantiating endpoint for CS: %s",
+                        handshakeRequest.getIdentity()));
                 ICsmsServiceEndpoint endpoint = connect(handshakeRequest);
 
                 MessageRouteResolverImpl routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, handshakeRequest.getIdentity());
@@ -121,6 +125,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
                         .build();
 
                 String jsonResponse = mapper.writeValueAsString(accepted);
+                logger.info(String.format("Sending handshake response: %s", jsonResponse));
                 natsConnection.publish(replyTo, jsonResponse.getBytes(StandardCharsets.UTF_8));
 
             } catch (JsonProcessingException e) {
@@ -142,7 +147,9 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
         // Subscribe to the connection subject to handle the handshake request.
         String operatorId = this.operatorId.replace(" ", "").toLowerCase();
         String csmsId = this.csmsId.replace(" ", "").toLowerCase();
-        dispatcher.subscribe(String.format("operators.%s.csms.%s.connect", operatorId, csmsId));
+        String connectSubject = String.format("operators.%s.csms.%s.connect", operatorId, csmsId);
+        logger.info(String.format("Added connect handler on subject: %s", connectSubject));
+        dispatcher.subscribe(connectSubject);
     }
 
     private boolean validate(HandshakeRequest handshakeRequest) {
@@ -478,6 +485,14 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
 
     @Override
     public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
+        if (this.endpoints.containsKey(handshakeRequest.getIdentity())) {
+            logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getIdentity()));
+
+            return this.endpoints.get(handshakeRequest.getIdentity());
+        }
+
+        logger.info(String.format("Creating new endpoint for CS with identity: %s",
+                handshakeRequest.getIdentity()));
         ICsmsServiceEndpoint csmsServiceEndpoint = new CsmsServiceEndpoint(handshakeRequest);
         this.endpoints.put(handshakeRequest.getIdentity(), csmsServiceEndpoint);
 

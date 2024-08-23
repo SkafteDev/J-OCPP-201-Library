@@ -19,8 +19,9 @@ public class MessageRouteResolverImpl implements IMessageRouteResolver {
     private final String csId;
     private String requestTemplate;
     private String responseTemplate;
+    private String connectTemplate;
 
-    private final Map<OCPPMessageType, String> routes;
+    private final Map<OCPPMessageType, String> routes;;
 
 
     /**
@@ -192,6 +193,12 @@ public class MessageRouteResolverImpl implements IMessageRouteResolver {
                 CS_ID_TOKEN + "." +
                 "responses." +
                 RESPONSE_TYPE_TOKEN;
+
+        this.connectTemplate = "operators." +
+                OPERATOR_ID_TOKEN + "." +
+                "csms." +
+                CSMS_ID_TOKEN + "." +
+                "connect";
     }
 
     private String createRoute(OCPPMessageType ocppMessageType) {
@@ -235,6 +242,26 @@ public class MessageRouteResolverImpl implements IMessageRouteResolver {
 
 
         return route.toLowerCase().replace(" ", "");
+    }
+
+    @Override
+    public String getConnectRoute() {
+        String.format("operators.%s.csms.%s.connect", operatorId, csmsId);
+
+        String route = connectTemplate.replace(OPERATOR_ID_TOKEN, operatorId)
+                .replace(CSMS_ID_TOKEN, csmsId);
+
+        return route.toLowerCase().replace(" ", "");
+    }
+
+    @Override
+    public String getCsIdentity() {
+        return this.csId;
+    }
+
+    @Override
+    public String getCsmsIdentity() {
+        return this.csmsId;
     }
 
 }

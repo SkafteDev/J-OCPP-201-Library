@@ -43,7 +43,7 @@ public class ChargingStationServiceTest {
         Connection natsConnection = getNatsConnection(brokerUrl);
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        csService = new OCPPOverNatsIOService(natsConnection, routeResolver);
+        csService = new OCPPOverNatsIOService(routeResolver);
         csService.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
                 new SetChargingProfileRequestHandler(csService.getMsgRouteResolver(), natsConnection));
     }

@@ -2,6 +2,7 @@ package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.application.chargingstation.requesthandlers.SetChargingProfileRequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsIOClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
@@ -23,8 +24,13 @@ import java.util.UUID;
  *
  * 1) Sending a BootNotificationRequest from CS -> CSMS.
  * 2) Receiving SetProfileChargingProfileRequest from CSMS -> CS
+ *
+ * Prerequisites:
+ * 1) The machine must be able to connect to a NATS.io server.
+ * 2) A CSMS over NATS.io implementation must be ready to receive requests from the CS.
+ *
  */
-public class ChargingStationDemo {
+public class ChargingStationOverNatsDemo {
 
     private static final String quitToken = "q";
 
@@ -36,18 +42,21 @@ public class ChargingStationDemo {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
-        ChargingStationNatsIOClient csNatsClient = ChargingStationNatsIOClient.newBuilder()
+        ICSClient csNatsClient = ChargingStationNatsIOClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .build();
+        // Connect the CS client to the CSMS before sending requests.
+        csNatsClient.connect();
 
         /*
          * (2) Add request handlers for the requests this charging station can handle.
          *     In this example, the CS can only handle SetChargingProfileRequest.
          */
-        csNatsClient.getCsService().addRequestHandler(
+        csNatsClient.getCsEndpoint().addRequestHandler(
                 OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId), csNatsClient.getNatsConnection())
+                new SetChargingProfileRequestHandler(brokerContext.getChargingStationRouteResolver(csId),
+                        ((ChargingStationNatsIOClient)csNatsClient).getNatsConnection())
         );
 
         /*
@@ -75,7 +84,7 @@ public class ChargingStationDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csNatsClient.getEndpoint().sendBootNotificationRequest(bootRequest);
+        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsEndpoint().sendBootNotificationRequest(bootRequest);
 
 
         /*

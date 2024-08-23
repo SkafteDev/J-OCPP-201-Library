@@ -14,12 +14,9 @@ public class OCPPOverNatsIOService implements IRequestHandlerRegistry {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final IMessageRouteResolver msgRouteResolver;
 
-    protected Connection natsConnection;
-
     protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;
 
-    public OCPPOverNatsIOService(Connection natsConnection, IMessageRouteResolver msgRouteResolver) {
-        this.natsConnection = natsConnection;
+    public OCPPOverNatsIOService(IMessageRouteResolver msgRouteResolver) {
         this.msgRouteResolver = msgRouteResolver;
         this.requestHandlers = new HashMap<>();
     }

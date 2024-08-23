@@ -65,12 +65,12 @@ public class ChargingStationLocalClient implements ICSClient {
     }
 
     @Override
-    public ICsmsServiceEndpoint getEndpoint() {
+    public ICsmsServiceEndpoint getCsmsEndpoint() {
         return this.csmsEndpoint;
     }
 
     @Override
-    public IRequestHandlerRegistry getCsService() {
+    public IRequestHandlerRegistry getCsEndpoint() {
         return this.csRequestHandlerMock;
     }
 }
