@@ -33,7 +33,8 @@ public class ChargingStationNatsIOProxy implements ICsServiceEndpoint {
             return response;
         } catch (OCPPRequestException ex) {
             logger.info(ex.getMessage());
-            return null;
+            throw new OCPPRequestException(String.format("Failed to send/receive OCPP request on subjects reqSubject='%s', " +
+                    "respSubject=%s", requestSubject, responseSubject), ex);
         }
     }
 
