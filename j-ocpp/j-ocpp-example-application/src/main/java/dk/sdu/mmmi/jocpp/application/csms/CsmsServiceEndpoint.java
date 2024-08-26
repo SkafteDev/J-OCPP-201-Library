@@ -13,6 +13,8 @@ import java.time.ZonedDateTime;
 
 /**
  * This class is intended to represent a service endpoint from CS -> CSMS
+ *
+ * One CS has exactly one CSMS service endpoint.
  */
 public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
 
