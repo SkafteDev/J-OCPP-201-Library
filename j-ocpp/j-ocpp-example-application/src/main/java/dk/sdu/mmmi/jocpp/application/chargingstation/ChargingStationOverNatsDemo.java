@@ -2,6 +2,7 @@ package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
@@ -41,7 +42,7 @@ public class ChargingStationOverNatsDemo {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
-        ICSClient csNatsClient = ChargingStationNatsClient.newBuilder()
+        ChargingStationNatsClient csNatsClient = ChargingStationNatsClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .withCsServiceInterface(new CSServiceEndpointImpl())
@@ -74,7 +75,7 @@ public class ChargingStationOverNatsDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsEndpoint().sendBootNotificationRequest(bootRequest);
+        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsServiceEndpoint().sendBootNotificationRequest(bootRequest);
 
 
         /*

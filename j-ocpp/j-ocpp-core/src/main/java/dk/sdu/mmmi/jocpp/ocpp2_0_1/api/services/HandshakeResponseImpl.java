@@ -19,7 +19,7 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
     private HandshakeResult handshakeResult;
 
     @JsonProperty("ocppVersion")
-    private HandshakeOcppVersion ocppVersion;
+    private OcppVersion ocppVersion;
 
     @JsonProperty("endpoint")
     private String endpoint;
@@ -44,7 +44,7 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
 
     @JsonProperty("ocppVersion")
     @Override
-    public HandshakeOcppVersion getOcppVersion() {
+    public OcppVersion getOcppVersion() {
         return ocppVersion;
     }
 
@@ -70,7 +70,7 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
     public static final class HandshakeResponseImplBuilder {
         private String reason;
         private HandshakeResult handshakeResult;
-        private HandshakeOcppVersion ocppVersion;
+        private OcppVersion ocppVersion;
         private String endpoint;
 
         private HandshakeResponseImplBuilder() {
@@ -90,7 +90,7 @@ public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
             return this;
         }
 
-        public HandshakeResponseImplBuilder withOcppVersion(HandshakeOcppVersion ocppVersion) {
+        public HandshakeResponseImplBuilder withOcppVersion(OcppVersion ocppVersion) {
             this.ocppVersion = ocppVersion;
             return this;
         }

@@ -17,7 +17,7 @@ public class HandshakeRequestImpl implements ICsmsService.HandshakeRequest {
     private String identity;
 
     @JsonProperty("ocppVersion")
-    private HandshakeOcppVersion ocppVersion;
+    private OcppVersion ocppVersion;
 
     @JsonProperty("identity")
     @Override
@@ -27,7 +27,7 @@ public class HandshakeRequestImpl implements ICsmsService.HandshakeRequest {
 
     @JsonProperty("ocppVersion")
     @Override
-    public HandshakeOcppVersion getOcppVersion() {
+    public OcppVersion getOcppVersion() {
         return ocppVersion;
     }
 
@@ -57,7 +57,7 @@ public class HandshakeRequestImpl implements ICsmsService.HandshakeRequest {
 
     public static final class HandshakeInfoImplBuilder {
         private String identity;
-        private HandshakeOcppVersion ocppVersion;
+        private OcppVersion ocppVersion;
 
         private HandshakeInfoImplBuilder() {
         }
@@ -71,7 +71,7 @@ public class HandshakeRequestImpl implements ICsmsService.HandshakeRequest {
             return this;
         }
 
-        public HandshakeInfoImplBuilder withOcppVersion(HandshakeOcppVersion ocppVersion) {
+        public HandshakeInfoImplBuilder withOcppVersion(OcppVersion ocppVersion) {
             this.ocppVersion = ocppVersion;
             return this;
         }

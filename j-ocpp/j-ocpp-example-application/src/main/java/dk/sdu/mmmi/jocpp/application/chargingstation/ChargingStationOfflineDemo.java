@@ -2,10 +2,9 @@ package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.application.csms.CsmsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationLocalClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.OCPPSessionInMemory;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.LocalServiceDiscovery;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
@@ -22,27 +21,32 @@ import java.util.UUID;
 public class ChargingStationOfflineDemo {
     private static final String quitToken = "q";
 
+    // This is the ID used to locate the CSMS.
+    private static final String CSMS_ID = "ewiicsms";
+
+    // This is the ID used to locate the CS.
+    // This must be hard coded or configured directly on the charging station's firmware...
+    private static final String CS_ID = "f8125503-8d0f-467f-abad-b830ca6782e2";
+
+    private static void registerServices() {
+        ICsmsServiceEndpoint csmsEndpoint = new CsmsServiceEndpoint();
+
+        LocalServiceDiscovery.getInstance().registerCsEndpoint(CS_ID, new CSServiceEndpointImpl());
+        LocalServiceDiscovery.getInstance().registerCsmsEndpoint(CS_ID, csmsEndpoint);
+    }
+
+
     public static void main(String[] args) {
         /**
          * (1) Register a reference to a local ICsmsService in a discovery service.
          */
-        String csmsId = "ewiicsms"; // This can be retrieved from a local config. This value is looked up in the LocalServiceDiscovery.
-        ICsmsService csmsService = new ICsmsService() {
-            @Override
-            public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
-                return new CsmsServiceEndpoint(handshakeRequest);
-            }
-        };
-        LocalServiceDiscovery.getInstance().registerCsms(csmsId, csmsService);
+        registerServices();
 
         /*
          * (2) Instantiate the CS client API to communicate between CS <-> CSMS.
+         *     Connect the CS client to the CSMS before sending requests.
          */
-        String csId = "f8125503-8d0f-467f-abad-b830ca6782e2"; // This has to be hard coded or configured directly on the charging station's firmware...
-        ICSClient csNatsClient = new ChargingStationLocalClient(csId, csmsId, new CSServiceEndpointImpl());
-
-        // Connect the CS client to the CSMS before sending requests.
-        csNatsClient.connect();
+        IOCPPSession csClient = OCPPSessionInMemory.connect(CS_ID, CSMS_ID, LocalServiceDiscovery.getInstance());
 
         /*
          * (3) Build the BootNotificationRequest (payload) object to be sent to the CSMS.
@@ -69,7 +73,7 @@ public class ChargingStationOfflineDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsEndpoint().sendBootNotificationRequest(bootRequest);
+        ICallResult<BootNotificationResponse> response = csClient.getCsmsServiceEndpoint().sendBootNotificationRequest(bootRequest);
         System.out.println(response);
 
 

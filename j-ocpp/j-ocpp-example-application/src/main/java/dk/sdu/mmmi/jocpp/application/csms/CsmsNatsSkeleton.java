@@ -7,6 +7,8 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService.HandshakeRequest;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService.HandshakeResponse;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
@@ -34,7 +36,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
+public class CsmsNatsSkeleton implements ICsmsServer {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -121,7 +123,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
                 HandshakeResponse accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
                         .withHandshakeResult(HandshakeResult.ACCEPTED)
                         .withEndpoint(routeResolver.getRequestRoute())
-                        .withOcppVersion(HandshakeOcppVersion.OCPP_201)
+                        .withOcppVersion(OcppVersion.OCPP_201)
                         .build();
 
                 String jsonResponse = mapper.writeValueAsString(accepted);
@@ -483,7 +485,6 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
                 });
     }
 
-    @Override
     public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
         if (this.endpoints.containsKey(handshakeRequest.getIdentity())) {
             logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getIdentity()));
@@ -493,7 +494,7 @@ public class CsmsNatsSkeleton implements ICsmsServer, ICsmsService {
 
         logger.info(String.format("Creating new endpoint for CS with identity: %s",
                 handshakeRequest.getIdentity()));
-        ICsmsServiceEndpoint csmsServiceEndpoint = new CsmsServiceEndpoint(handshakeRequest);
+        ICsmsServiceEndpoint csmsServiceEndpoint = new CsmsServiceEndpoint();
         this.endpoints.put(handshakeRequest.getIdentity(), csmsServiceEndpoint);
 
         return csmsServiceEndpoint;

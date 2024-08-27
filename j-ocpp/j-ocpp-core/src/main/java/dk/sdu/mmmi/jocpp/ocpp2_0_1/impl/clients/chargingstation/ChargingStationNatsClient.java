@@ -31,8 +31,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class ChargingStationNatsClient implements ICSClient {
+public class ChargingStationNatsClient implements IOCPPSession {
     private final IMessageRouteResolver routeResolver;
+    private final SessionInfoImpl sessionInfo;
     private ICsmsServiceEndpoint csmsProxy;
     private IRequestHandlerRegistry requestDispatchers;
     private ICsServiceEndpoint csServiceEndpoint;
@@ -48,58 +49,56 @@ public class ChargingStationNatsClient implements ICSClient {
         this.routeResolver = routeResolver;
         this.natsOptions = natsOptions;
         this.requestDispatchers = new OCPPOverNatsDispatcher(routeResolver);
+        this.sessionInfo = new SessionInfoImpl();
+        sessionInfo.connectionURI = natsOptions.getServers().get(0).toString();
+        sessionInfo.csId = routeResolver.getCsIdentity();
+        sessionInfo.csmsId = routeResolver.getCsmsIdentity();
+        sessionInfo.ocppVersion = OcppVersion.OCPP_201;
+        sessionInfo.transportType = "NATS.io";
     }
 
     public Connection getNatsConnection() {
         return natsConnection;
     }
 
-    @Override
-    public void connect() {
+    public IOCPPSession connect() {
         try {
             this.natsConnection = Nats.connect(this.natsOptions);
             initRequestDispatchers();
 
-            // TODO: Send handshake to external server
-            ICsmsService csmsServiceProxy = new ICsmsService() {
+            this.csmsProxy = connect(HandshakeRequestImpl.HandshakeInfoImplBuilder.newBuilder()
+                    .withIdentity(routeResolver.getCsIdentity())
+                    .withOcppVersion(OcppVersion.OCPP_201)
+                    .build());
+
+            IOCPPSession session = new IOCPPSession() {
+
                 @Override
-                public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
-                    String connectSubject = routeResolver.getConnectRoute();
-
+                public void disconnect() {
                     try {
-                        // Serialize the handshake
-                        ObjectMapper mapper = JacksonUtil.getDefault();
-                        String jsonPayload = mapper.writeValueAsString(handshakeRequest);
-
-                        // Send the handshake
-                        logger.info(String.format("Sending handshake on subject %s : %s", connectSubject,
-                                jsonPayload));
-                        CompletableFuture<Message> futureResponse =
-                                natsConnection.requestWithTimeout(connectSubject,
-                                        jsonPayload.getBytes(StandardCharsets.UTF_8), Duration.ofSeconds(30));
-
-                        // Get the handshake response
-                        Message msgResponse = futureResponse.get();
-                        String respJsonPayload = new String(msgResponse.getData(), StandardCharsets.UTF_8);
-
-                        HandshakeResponse handshakeResponse = mapper.readValue(respJsonPayload, HandshakeResponseImpl.class);
-                        logger.info(String.format("Handshake response: %s", respJsonPayload));
-
-                        return new CsmsProxyNatsIO(natsConnection, routeResolver);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    } catch (ExecutionException e) {
-                        throw new RuntimeException(e);
+                        natsConnection.close();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 }
+
+                @Override
+                public ICsmsServiceEndpoint getCsmsServiceEndpoint() {
+                    return csmsProxy;
+                }
+
+                @Override
+                public ICsServiceEndpoint getCsServiceEndpoint() {
+                    return csServiceEndpoint;
+                }
+
+                @Override
+                public SessionInfo getSessionInfo() {
+                    return sessionInfo;
+                }
             };
 
-            this.csmsProxy = csmsServiceProxy.connect(HandshakeRequestImpl.HandshakeInfoImplBuilder.newBuilder()
-                    .withIdentity(routeResolver.getCsIdentity())
-                    .withOcppVersion(HandshakeOcppVersion.OCPP_201)
-                    .build());
+            return session;
 
         } catch (IOException | InterruptedException e ) {
             logger.severe(e.getMessage());
@@ -235,14 +234,6 @@ public class ChargingStationNatsClient implements ICSClient {
                 });
     }
 
-    @Override
-    public ICsmsServiceEndpoint getCsmsEndpoint() {
-        return this.csmsProxy;
-    }
-
-    public ICsServiceEndpoint getCsEndpoint() {
-        return this.csServiceEndpoint;
-    }
 
     /**
      * This operation is NOT part of OCPP 2.0.1.
@@ -254,8 +245,60 @@ public class ChargingStationNatsClient implements ICSClient {
         return this.routeResolver;
     }
 
+    public ICsmsServiceEndpoint connect(ICsmsService.HandshakeRequest handshakeRequest) {
+        String connectSubject = routeResolver.getConnectRoute();
+
+        try {
+            // Serialize the handshake
+            ObjectMapper mapper = JacksonUtil.getDefault();
+            String jsonPayload = mapper.writeValueAsString(handshakeRequest);
+
+            // Send the handshake
+            logger.info(String.format("Sending handshake on subject %s : %s", connectSubject,
+                    jsonPayload));
+            CompletableFuture<Message> futureResponse =
+                    natsConnection.requestWithTimeout(connectSubject,
+                            jsonPayload.getBytes(StandardCharsets.UTF_8), Duration.ofSeconds(30));
+
+            // Get the handshake response
+            Message msgResponse = futureResponse.get();
+            String respJsonPayload = new String(msgResponse.getData(), StandardCharsets.UTF_8);
+
+            ICsmsService.HandshakeResponse handshakeResponse = mapper.readValue(respJsonPayload, HandshakeResponseImpl.class);
+            logger.info(String.format("Handshake response: %s", respJsonPayload));
+
+            return new CsmsProxyNatsIO(natsConnection, routeResolver);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static ChargingStationNatsIOClientBuilder newBuilder() {
         return new ChargingStationNatsIOClientBuilder();
+    }
+
+    @Override
+    public void disconnect() {
+
+    }
+
+    @Override
+    public ICsmsServiceEndpoint getCsmsServiceEndpoint() {
+        return this.csmsProxy;
+    }
+
+    @Override
+    public ICsServiceEndpoint getCsServiceEndpoint() {
+        return csServiceEndpoint;
+    }
+
+    @Override
+    public SessionInfo getSessionInfo() {
+        return sessionInfo;
     }
 
     public static class ChargingStationNatsIOClientBuilder {

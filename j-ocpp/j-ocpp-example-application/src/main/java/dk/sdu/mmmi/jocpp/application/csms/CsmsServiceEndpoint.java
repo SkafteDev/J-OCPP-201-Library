@@ -23,15 +23,7 @@ public class CsmsServiceEndpoint implements ICsmsServiceEndpoint {
      * Only a single request can be serviced at any given moment.
      */
 
-    private final ICsmsService.HandshakeRequest handshakeRequest;
-
-    public CsmsServiceEndpoint(ICsmsService.HandshakeRequest handshakeRequest) {
-        this.handshakeRequest = handshakeRequest;
-    }
-
-    public ICsmsService.HandshakeRequest getHandshakeInfo() {
-        return handshakeRequest;
-    }
+    public CsmsServiceEndpoint() {}
 
     @Override
     public ICallResult<AuthorizeResponse> sendAuthorizeRequest(ICall<AuthorizeRequest> req) {

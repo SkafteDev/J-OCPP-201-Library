@@ -15,22 +15,22 @@ import java.util.Map;
  * ocpp2.0
  * ocpp2.0.1
  */
-public enum HandshakeOcppVersion {
+public enum OcppVersion {
     OCPP_12("ocpp1.2"),
     OCPP_15("ocpp1.5"),
     OCPP_16("ocpp1.6"),
     OCPP_20("ocpp2.0"),
     OCPP_201("ocpp2.0.1");
     private final String value;
-    private final static Map<String, HandshakeOcppVersion> CONSTANTS = new HashMap<>();
+    private final static Map<String, OcppVersion> CONSTANTS = new HashMap<>();
 
     static {
-        for (HandshakeOcppVersion c: values()) {
+        for (OcppVersion c: values()) {
             CONSTANTS.put(c.value, c);
         }
     }
 
-    HandshakeOcppVersion(String value) {
+    OcppVersion(String value) {
         this.value = value;
     }
 
@@ -45,8 +45,8 @@ public enum HandshakeOcppVersion {
     }
 
     @JsonCreator
-    public static HandshakeOcppVersion fromValue(String value) {
-        HandshakeOcppVersion constant = CONSTANTS.get(value);
+    public static OcppVersion fromValue(String value) {
+        OcppVersion constant = CONSTANTS.get(value);
         if (constant == null) {
             throw new IllegalArgumentException(value);
         } else {

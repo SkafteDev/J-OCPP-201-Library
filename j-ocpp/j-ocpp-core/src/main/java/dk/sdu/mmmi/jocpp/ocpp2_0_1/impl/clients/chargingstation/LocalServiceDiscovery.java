@@ -2,6 +2,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ public class LocalServiceDiscovery {
 
     private final Map<String, ICsmsService> csmsServices = new HashMap<>();
     private final Map<String, ICsServiceEndpoint> csEndpoints = new HashMap<>();
+    private final Map<String, ICsmsServiceEndpoint> csmsEndpoints = new HashMap<>();
 
     private LocalServiceDiscovery() {
     }
@@ -91,7 +93,7 @@ public class LocalServiceDiscovery {
      * Has no effect if the ID is not registered.
      * @param csId
      */
-    public void unregisterCs(String csId) {
+    public void unregisterCsEndpoint(String csId) {
         this.csEndpoints.remove(csId);
     }
 
@@ -109,5 +111,48 @@ public class LocalServiceDiscovery {
         }
 
         return csEndpoints.get(csId);
+    }
+
+
+
+    /**
+     * Registers the CSMS endpoint by the provided CS ID.
+     *
+     * Throws a RuntimeException if the ID is already in use.
+     * @param csId
+     * @param csmsEndpoint
+     */
+    public void registerCsmsEndpoint(String csId, ICsmsServiceEndpoint csmsEndpoint) {
+        if (csmsEndpoints.containsKey(csId)) {
+            throw new RuntimeException(String.format("CS id already used: %s", csId));
+        }
+
+        this.csmsEndpoints.put(csId, csmsEndpoint);
+    }
+
+    /**
+     * Unregisters the CSMS endpoint associated by the CS ID.
+     *
+     * Has no effect if the ID is not registered.
+     * @param csId
+     */
+    public void unregisterCsmsEndpoint(String csId) {
+        this.csmsEndpoints.remove(csId);
+    }
+
+
+    /**
+     * Returns the CSMS endpoint associated with the CS ID.
+     *
+     * Returns null if the ID is not registered.
+     * @param csId
+     * @return
+     */
+    public ICsmsServiceEndpoint getCsmsEndpoint(String csId) {
+        if (!csmsEndpoints.containsKey(csId)) {
+            return null;
+        }
+
+        return csmsEndpoints.get(csId);
     }
 }

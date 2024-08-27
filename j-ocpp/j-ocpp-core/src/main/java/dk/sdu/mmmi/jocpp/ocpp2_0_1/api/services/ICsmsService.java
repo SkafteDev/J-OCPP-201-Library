@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services;
 
 public interface ICsmsService {
-    ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest);
+    IOCPPSession connect(HandshakeRequest handshakeRequest);
 
     interface HandshakeRequest {
 
@@ -11,7 +11,7 @@ public interface ICsmsService {
         String getIdentity();
 
 
-        HandshakeOcppVersion getOcppVersion();
+        OcppVersion getOcppVersion();
     }
 
     interface HandshakeResponse {
@@ -25,7 +25,7 @@ public interface ICsmsService {
          */
         String getEndPoint();
 
-        HandshakeOcppVersion getOcppVersion();
+        OcppVersion getOcppVersion();
 
         /**
          * Optional description of the response.
