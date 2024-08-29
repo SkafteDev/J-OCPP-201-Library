@@ -332,9 +332,10 @@ public class CsmsNatsSkeleton {
     }
 
     private IOCPPSession connect(IHandshakeRequest handshakeRequest) {
-        if (sessionManager.sessionExists(handshakeRequest.getCsIdentity())) {
-            logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getCsIdentity()));
-            return sessionManager.getSession(handshakeRequest.getCsIdentity());
+        String csIdentity = handshakeRequest.getCsIdentity();
+        if (sessionManager.sessionExists(csIdentity)) {
+            logger.warning(String.format("CS with identity %s already connected. Ignoring.", csIdentity));
+            return sessionManager.getSession(csIdentity);
         }
 
 
@@ -354,7 +355,8 @@ public class CsmsNatsSkeleton {
 
             @Override
             public IChargingStation getChargingStation() {
-                return new CsOverNatsIoProxy(natsConnection, routeResolver);
+                IMessageRouteResolver proxyRouteResolver = new NatsMessageRouteResolver(operatorId, csmsId, csIdentity);
+                return new CsOverNatsIoProxy(natsConnection, proxyRouteResolver);
             }
 
             @Override
@@ -372,7 +374,7 @@ public class CsmsNatsSkeleton {
         };
 
         // Register the session.
-        sessionManager.registerSession(handshakeRequest.getCsIdentity(), ocppSession);
+        sessionManager.registerSession(csIdentity, ocppSession);
 
         return ocppSession;
     }
