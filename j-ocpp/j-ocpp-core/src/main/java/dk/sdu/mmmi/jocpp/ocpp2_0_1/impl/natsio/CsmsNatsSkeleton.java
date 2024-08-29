@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.jocpp.application.csms;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
-public class CsmsNatsSkeleton implements ICsmsServer {
+public class CsmsNatsSkeleton {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final String operatorId;
@@ -62,7 +62,6 @@ public class CsmsNatsSkeleton implements ICsmsServer {
         }
     }
 
-    @Override
     public void serve() {
         // Handshake handler (not part of the OCPP specification).
         // The handshake was created as a mechanism to:

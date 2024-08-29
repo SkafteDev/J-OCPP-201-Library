@@ -3,6 +3,7 @@ package dk.sdu.mmmi.jocpp.application.csms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.CsmsNatsSkeleton;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionManagerImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
@@ -37,7 +38,7 @@ public class CSMSOverNatsDemo {
     public static void main(String[] args) {
         logger.info("Booting Charging Station Management System...");
         String csmsId = args[0];
-        ICsmsServer server = boot(csmsId);
+        CsmsNatsSkeleton server = boot(csmsId);
         logger.info("Booting complete.");
 
         server.serve();   // Handle incoming messages.
@@ -52,7 +53,7 @@ public class CSMSOverNatsDemo {
         System.exit(0);
     }
 
-    private static ICsmsServer boot(String csmsId) {
+    private static CsmsNatsSkeleton boot(String csmsId) {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
         BrokerConfig brokerConfig = brokerContext.getConfigFromCsmsId(csmsId);
@@ -70,7 +71,7 @@ public class CSMSOverNatsDemo {
         sessionManager.addListener(session -> logger.info(String.format("New session established: %s", session.getSessionInfo())));
         ICsms csms = new CsmsImpl(sessionManager);
 
-        ICsmsServer server = new CsmsNatsSkeleton(brokerConfig, natsOptions, csms, sessionManager);
+        CsmsNatsSkeleton server = new CsmsNatsSkeleton(brokerConfig, natsOptions, csms, sessionManager);
 
         return server;
     }
