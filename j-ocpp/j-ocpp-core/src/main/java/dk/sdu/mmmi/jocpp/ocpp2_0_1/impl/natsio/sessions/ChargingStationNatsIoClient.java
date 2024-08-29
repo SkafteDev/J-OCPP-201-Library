@@ -196,7 +196,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
                         // Lookup the method and invoke it.
                         Method method = methodMap.get(messageType);
                         try {
-                            Map<String, String> headers = Collections.emptyMap();
+                            Headers headers = Headers.emptyHeader();
                             return (ICallResult<TResponse>) method.invoke(csService, headers, message);
                         } catch (IllegalAccessException e) {
                             throw new RuntimeException(e);
