@@ -69,7 +69,10 @@ public class CSMSOverNatsDemo {
 
         ISessionManager sessionManager = new SessionManagerImpl();
         sessionManager.addListener(session -> logger.info(String.format("New session established: %s", session.getSessionInfo())));
-        ICsms csms = new CsmsImpl(sessionManager);
+        CsmsImpl csms = new CsmsImpl(sessionManager);
+        new Thread(() -> {
+            csms.startSmartChargingControlLoop(Duration.ofSeconds(15));
+        }).start();
 
         CsmsNatsSkeleton server = new CsmsNatsSkeleton(brokerConfig, natsOptions, csms, sessionManager);
 
