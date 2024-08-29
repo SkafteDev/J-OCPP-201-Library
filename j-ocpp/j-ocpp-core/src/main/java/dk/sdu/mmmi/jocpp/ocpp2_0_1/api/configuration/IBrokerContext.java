@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
 
 public interface IBrokerContext {
 

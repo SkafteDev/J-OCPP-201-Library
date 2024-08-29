@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import org.yaml.snakeyaml.Yaml;

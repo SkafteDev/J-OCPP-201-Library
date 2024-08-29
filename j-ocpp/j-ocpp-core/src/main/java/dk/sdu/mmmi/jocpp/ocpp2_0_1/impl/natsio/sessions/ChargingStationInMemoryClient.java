@@ -1,7 +1,8 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.sessions;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.LocalServiceDiscovery;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.LocalServiceDiscovery;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionInfoImpl;
 
 public class ChargingStationInMemoryClient implements IOCPPSession {
 

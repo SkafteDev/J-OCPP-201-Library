@@ -1,8 +1,8 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
 
 import java.util.HashMap;
 import java.util.Map;

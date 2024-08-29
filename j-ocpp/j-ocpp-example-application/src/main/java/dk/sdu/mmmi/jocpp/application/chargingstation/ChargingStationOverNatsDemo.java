@@ -3,8 +3,8 @@ package dk.sdu.mmmi.jocpp.application.chargingstation;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsClient;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.sessions.ChargingStationNatsIoClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
@@ -38,7 +38,7 @@ public class ChargingStationOverNatsDemo {
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
         // Build and connect the CS client to the CSMS before sending requests.
-        IOCPPSession ocppSession = ChargingStationNatsClient.newBuilder()
+        IOCPPSession ocppSession = ChargingStationNatsIoClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .withCsServiceInterface(new CSImpl())

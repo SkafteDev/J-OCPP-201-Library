@@ -1,8 +1,10 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeRequest;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.OcppVersion;
 
 import java.util.Objects;
 

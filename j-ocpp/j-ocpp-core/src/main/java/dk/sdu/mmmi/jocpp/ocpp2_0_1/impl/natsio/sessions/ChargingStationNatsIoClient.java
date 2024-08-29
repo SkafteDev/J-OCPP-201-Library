@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.sessions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,9 +9,12 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionInfoImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsDispatcher;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsmsOverNatsIoProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeRequestImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeResponseImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionInfoImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.util.JacksonUtil;
@@ -33,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class ChargingStationNatsClient implements IOCPPSession {
+public class ChargingStationNatsIoClient implements IOCPPSession {
     private final IMessageRouteResolver routeResolver;
     private final SessionInfoImpl sessionInfo;
     private ICsms csmsProxy;
@@ -41,12 +44,12 @@ public class ChargingStationNatsClient implements IOCPPSession {
     private IChargingStation csService;
     private Connection natsConnection;
 
-    private static final Logger logger = Logger.getLogger(ChargingStationNatsClient.class.getName());
+    private static final Logger logger = Logger.getLogger(ChargingStationNatsIoClient.class.getName());
     private final Options natsOptions;
 
-    public ChargingStationNatsClient(IChargingStation csService,
-                                     IMessageRouteResolver routeResolver,
-                                     Options natsOptions) {
+    public ChargingStationNatsIoClient(IChargingStation csService,
+                                       IMessageRouteResolver routeResolver,
+                                       Options natsOptions) {
         this.csService = csService;
         this.routeResolver = routeResolver;
         this.natsOptions = natsOptions;
@@ -242,7 +245,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
             IHandshakeResponse handshakeResponse = mapper.readValue(respJsonPayload, HandshakeResponseImpl.class);
             logger.info(String.format("Handshake response: %s", respJsonPayload));
 
-            return new CsmsProxyNatsIO(natsConnection, routeResolver);
+            return new CsmsOverNatsIoProxy(natsConnection, routeResolver);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
@@ -300,7 +303,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
             return this;
         }
 
-        public ChargingStationNatsClient build() {
+        public ChargingStationNatsIoClient build() {
             if (csId == null) throw new IllegalArgumentException("Charging Station ID must not be null. Provide a Charging Station Id.");
             if (configs == null) throw new IllegalArgumentException("BrokerContext must not be null. Provide a BrokerContext.");
 
@@ -319,10 +322,10 @@ public class ChargingStationNatsClient implements IOCPPSession {
 
             IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-            ChargingStationNatsClient chargingStationNatsClient = new ChargingStationNatsClient(csService, csRouteResolver, natsOptions);
-            chargingStationNatsClient.connect();
+            ChargingStationNatsIoClient chargingStationNatsIoClient = new ChargingStationNatsIoClient(csService, csRouteResolver, natsOptions);
+            chargingStationNatsIoClient.connect();
 
-            return chargingStationNatsClient;
+            return chargingStationNatsIoClient;
 
         }
     }

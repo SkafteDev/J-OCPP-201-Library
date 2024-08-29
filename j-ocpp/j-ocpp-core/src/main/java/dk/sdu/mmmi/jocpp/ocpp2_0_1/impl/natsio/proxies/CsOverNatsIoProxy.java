@@ -1,11 +1,11 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsIORequester;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsIORequester;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
@@ -13,12 +13,12 @@ import io.nats.client.Connection;
 
 import java.util.logging.Logger;
 
-public class ChargingStationNatsIOProxy implements IChargingStation {
-    private final Logger logger = Logger.getLogger(ChargingStationNatsIOProxy.class.getName());
+public class CsOverNatsIoProxy implements IChargingStation {
+    private final Logger logger = Logger.getLogger(CsOverNatsIoProxy.class.getName());
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;
 
-    public ChargingStationNatsIOProxy(Connection natsConnection, IMessageRouteResolver routeResolver) {
+    public CsOverNatsIoProxy(Connection natsConnection, IMessageRouteResolver routeResolver) {
         this.natsConnection = natsConnection;
         this.routeResolver = routeResolver;
     }

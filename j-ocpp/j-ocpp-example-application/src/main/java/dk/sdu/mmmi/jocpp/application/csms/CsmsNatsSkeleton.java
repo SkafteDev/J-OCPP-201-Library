@@ -9,12 +9,14 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeRequest;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeResponse;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionInfoImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.NatsMessageRouteResolver;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsDispatcher;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionInfoImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsOverNatsIoProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.NatsMessageRouteResolver;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeRequestImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeResponseImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.util.JacksonUtil;
@@ -353,7 +355,7 @@ public class CsmsNatsSkeleton implements ICsmsServer {
 
             @Override
             public IChargingStation getChargingStation() {
-                return new ChargingStationNatsIOProxy(natsConnection, routeResolver);
+                return new CsOverNatsIoProxy(natsConnection, routeResolver);
             }
 
             @Override

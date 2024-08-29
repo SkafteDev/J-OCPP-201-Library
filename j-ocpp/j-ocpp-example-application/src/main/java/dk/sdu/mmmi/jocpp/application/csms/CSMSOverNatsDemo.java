@@ -2,11 +2,10 @@ package dk.sdu.mmmi.jocpp.application.csms;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionManagerImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionManagerImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
 import io.nats.client.Options;
 
 import java.net.URL;

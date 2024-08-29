@@ -1,8 +1,8 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.NatsMessageRouteResolver;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.NatsMessageRouteResolver;
 
 import java.util.List;
 import java.util.Optional;

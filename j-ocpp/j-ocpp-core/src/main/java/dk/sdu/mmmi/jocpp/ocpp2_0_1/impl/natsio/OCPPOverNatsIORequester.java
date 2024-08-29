@@ -1,7 +1,7 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.deserializers.CallResultDeserializer;

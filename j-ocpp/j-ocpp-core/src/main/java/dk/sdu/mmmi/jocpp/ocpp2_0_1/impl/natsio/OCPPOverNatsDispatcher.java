@@ -1,4 +1,4 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients;
+package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
