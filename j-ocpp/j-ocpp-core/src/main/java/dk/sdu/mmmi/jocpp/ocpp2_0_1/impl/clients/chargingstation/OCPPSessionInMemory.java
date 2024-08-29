@@ -4,12 +4,11 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 
 public class OCPPSessionInMemory implements IOCPPSession {
 
-    private final LocalServiceDiscovery serviceDiscovery;
     private ICsmsServiceEndpoint csmsEndpoint;
     private ICsServiceEndpoint csEndpoint;
     private final SessionInfoImpl sessionInfo;
 
-    public OCPPSessionInMemory(String csId, String csmsId, LocalServiceDiscovery serviceDiscovery) {
+    private OCPPSessionInMemory(String csId, String csmsId) {
         this.sessionInfo = new SessionInfoImpl();
         this.sessionInfo.connectionState = SessionInfo.ConnectionState.DISCONNECTED;
         this.sessionInfo.connectionURI = "N/A";
@@ -17,11 +16,10 @@ public class OCPPSessionInMemory implements IOCPPSession {
         this.sessionInfo.ocppVersion = OcppVersion.OCPP_201;
         this.sessionInfo.csId = csId;
         this.sessionInfo.csmsId = csmsId;
-        this.serviceDiscovery = serviceDiscovery;
     }
 
     public static IOCPPSession connect(String csId, String csmsId, LocalServiceDiscovery serviceDiscovery) {
-        OCPPSessionInMemory ocppSessionInMemory = new OCPPSessionInMemory(csId, csmsId, serviceDiscovery);
+        OCPPSessionInMemory ocppSessionInMemory = new OCPPSessionInMemory(csId, csmsId);
 
         ocppSessionInMemory.sessionInfo.connectionState = SessionInfo.ConnectionState.CONNECTING;
         ocppSessionInMemory.csEndpoint = serviceDiscovery.getCsEndpoint(ocppSessionInMemory.sessionInfo.getCsId());

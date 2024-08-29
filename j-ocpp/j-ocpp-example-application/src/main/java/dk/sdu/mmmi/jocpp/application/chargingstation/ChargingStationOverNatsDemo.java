@@ -42,13 +42,12 @@ public class ChargingStationOverNatsDemo {
         URL resource = ClassLoader.getSystemResource("brokerContext.yml");
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
-        ChargingStationNatsClient csNatsClient = ChargingStationNatsClient.newBuilder()
+        // Build and connect the CS client to the CSMS before sending requests.
+        IOCPPSession csNatsClient = ChargingStationNatsClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .withCsServiceInterface(new CSServiceEndpointImpl())
                 .build();
-        // Connect the CS client to the CSMS before sending requests.
-        csNatsClient.connect();
 
         /*
          * (3) Build the BootNotificationRequest (payload) object to be sent to the CSMS.

@@ -61,8 +61,9 @@ public class ChargingStationNatsClient implements IOCPPSession {
         return natsConnection;
     }
 
-    public IOCPPSession connect() {
+    private void connect() {
         try {
+            sessionInfo.connectionState = SessionInfo.ConnectionState.CONNECTING;
             this.natsConnection = Nats.connect(this.natsOptions);
             initRequestDispatchers();
 
@@ -70,35 +71,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
                     .withIdentity(routeResolver.getCsIdentity())
                     .withOcppVersion(OcppVersion.OCPP_201)
                     .build());
-
-            IOCPPSession session = new IOCPPSession() {
-
-                @Override
-                public void disconnect() {
-                    try {
-                        natsConnection.close();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                @Override
-                public ICsmsServiceEndpoint getCsmsServiceEndpoint() {
-                    return csmsProxy;
-                }
-
-                @Override
-                public ICsServiceEndpoint getCsServiceEndpoint() {
-                    return csServiceEndpoint;
-                }
-
-                @Override
-                public SessionInfo getSessionInfo() {
-                    return sessionInfo;
-                }
-            };
-
-            return session;
+            sessionInfo.connectionState = SessionInfo.ConnectionState.CONNECTED;
 
         } catch (IOException | InterruptedException e ) {
             logger.severe(e.getMessage());
@@ -283,7 +256,12 @@ public class ChargingStationNatsClient implements IOCPPSession {
 
     @Override
     public void disconnect() {
-
+        try {
+            natsConnection.close();
+            sessionInfo.connectionState = SessionInfo.ConnectionState.DISCONNECTED;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -340,7 +318,10 @@ public class ChargingStationNatsClient implements IOCPPSession {
 
             IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-            return new ChargingStationNatsClient(csServiceEndpoint, csRouteResolver, natsOptions);
+            ChargingStationNatsClient chargingStationNatsClient = new ChargingStationNatsClient(csServiceEndpoint, csRouteResolver, natsOptions);
+            chargingStationNatsClient.connect();
+
+            return chargingStationNatsClient;
 
         }
     }
