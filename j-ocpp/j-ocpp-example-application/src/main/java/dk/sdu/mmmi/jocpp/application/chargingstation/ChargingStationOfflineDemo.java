@@ -14,6 +14,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 
+import java.time.Duration;
 import java.util.*;
 
 public class ChargingStationOfflineDemo {
@@ -29,7 +30,10 @@ public class ChargingStationOfflineDemo {
     private static void registerServices() {
         ISessionManager sessionManager = new SessionManagerImpl();
         sessionManager.addListener(session -> System.out.println(String.format("New session established: %s", session.getSessionInfo())));
-        ICsms csms = new CsmsImpl(sessionManager);
+        CsmsImpl csms = new CsmsImpl(sessionManager);
+        new Thread(() -> {
+            csms.startSmartChargingControlLoop(Duration.ofSeconds(15));
+        }).start();
 
         LocalServiceDiscovery.getInstance().registerSessionManager(CSMS_ID, sessionManager);
         LocalServiceDiscovery.getInstance().registerCs(CS_ID, new CSImpl());
