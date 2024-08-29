@@ -9,8 +9,11 @@ public class SessionManagerImpl implements ISessionManager {
     // Key = csId.
     private final Map<String, IOCPPSession> sessions;
 
+    private final List<ISessionRegistrationListener> sessionRegistrationListeners;
+
     public SessionManagerImpl() {
         this.sessions = new HashMap<>();
+        this.sessionRegistrationListeners = new LinkedList<>();
     }
 
     @Override
@@ -20,6 +23,7 @@ public class SessionManagerImpl implements ISessionManager {
         }
 
         sessions.put(csId, session);
+        onSessionRegistered(session);
     }
 
     @Override
@@ -40,5 +44,25 @@ public class SessionManagerImpl implements ISessionManager {
     @Override
     public boolean sessionExists(String csId) {
         return sessions.containsKey(csId);
+    }
+
+    @Override
+    public void addListener(ISessionRegistrationListener listener) {
+        if (sessionRegistrationListeners.contains(listener)) {
+            return;
+        }
+
+        sessionRegistrationListeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(ISessionRegistrationListener listener) {
+        sessionRegistrationListeners.remove(listener);
+    }
+
+    private void onSessionRegistered(IOCPPSession session) {
+        for (ISessionRegistrationListener l : sessionRegistrationListeners) {
+            l.onSessionRegistered(session);
+        }
     }
 }

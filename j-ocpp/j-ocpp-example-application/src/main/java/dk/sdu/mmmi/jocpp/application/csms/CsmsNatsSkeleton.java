@@ -27,6 +27,7 @@ import io.nats.client.Options;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 public class CsmsNatsSkeleton implements ICsmsServer {
@@ -61,15 +62,155 @@ public class CsmsNatsSkeleton implements ICsmsServer {
 
     @Override
     public void serve() {
-        addConnectionHandler();
+        // Handshake handler (not part of the OCPP specification).
+        // The handshake was created as a mechanism to:
+        //  (1) Let the CS know if the CSMS is online
+        //  (2) Let the CSMS decide whether to accept the subsequent requests from the CS.
+        // This behavior is implicitly described in the specification -
+        //  - 'OCPP 2.0.1: Part 4 - JSON over WebSockets implementation guide' when using WebSocket as transport.
 
-        // TODO: Add handlers for all incoming message types.
-        addBootNotificationHandler();
-        addStatusNotificationHandler();
-        addHeartbeatHandler();
+        addHandshakeHandler();
+
+        // Authorize Request/Response
+        addHandler(OCPPMessageType.AuthorizeRequest,
+                AuthorizeRequest.class,
+                AuthorizeResponse.class,
+                csmsService::sendAuthorizeRequest);
+
+        // Boot Notification Request/Response
+        addHandler(OCPPMessageType.BootNotificationRequest,
+                BootNotificationRequest.class,
+                BootNotificationResponse.class,
+                csmsService::sendBootNotificationRequest);
+
+        // Cleared Charging Limit Request/Response
+        addHandler(OCPPMessageType.ClearedChargingLimitRequest,
+                ClearedChargingLimitRequest.class,
+                ClearedChargingLimitResponse.class,
+                csmsService::sendClearedChargingLimitRequest);
+
+        // Firmware Status Notification Request/Response
+        addHandler(OCPPMessageType.FirmwareStatusNotificationRequest,
+                FirmwareStatusNotificationRequest.class,
+                FirmwareStatusNotificationResponse.class,
+                csmsService::sendFirmwareStatusNotificationRequest);
+
+        // Get 15118 EV Certificate Request/Response
+        addHandler(OCPPMessageType.Get15118EVCertificateRequest,
+                Get15118EVCertificateRequest.class,
+                Get15118EVCertificateResponse.class,
+                csmsService::sendGet15118EVCertificateRequest);
+
+        // Get Certificate Status Request/Response
+        addHandler(OCPPMessageType.GetCertificateStatusRequest,
+                GetCertificateStatusRequest.class,
+                GetCertificateStatusResponse.class,
+                csmsService::sendGetCertificateStatusRequest);
+
+        // Heartbeat Request/Response
+        addHandler(OCPPMessageType.HeartbeatRequest,
+                HeartbeatRequest.class,
+                HeartbeatResponse.class,
+                csmsService::sendHeartbeatRequest);
+
+        // Log Status Notification Request/Response
+        addHandler(OCPPMessageType.LogStatusNotificationRequest,
+                LogStatusNotificationRequest.class,
+                LogStatusNotificationResponse.class,
+                csmsService::sendLogStatusNotificationRequest);
+
+        // Notify Charging Limit Request/Response
+        addHandler(OCPPMessageType.NotifyChargingLimitRequest,
+                NotifyChargingLimitRequest.class,
+                NotifyChargingLimitResponse.class,
+                csmsService::sendNotifyChargingLimitRequest);
+
+        // Notify Customer Information Request/Response
+        addHandler(OCPPMessageType.NotifyCustomerInformationRequest,
+                NotifyCustomerInformationRequest.class,
+                NotifyCustomerInformationResponse.class,
+                csmsService::sendNotifyCustomerInformationRequest);
+
+        // Notify Display Messages Request/Response
+        addHandler(OCPPMessageType.NotifyDisplayMessagesRequest,
+                NotifyDisplayMessagesRequest.class,
+                NotifyDisplayMessagesResponse.class,
+                csmsService::sendNotifyDisplayMessagesRequest);
+
+        // Notify EV Charging Needs Request/Response
+        addHandler(OCPPMessageType.NotifyEVChargingNeedsRequest,
+                NotifyEVChargingNeedsRequest.class,
+                NotifyEVChargingNeedsResponse.class,
+                csmsService::sendNotifyEVChargingNeedsRequest);
+
+        // Notify EV Charging Schedule Request/Response
+        addHandler(OCPPMessageType.NotifyEVChargingScheduleRequest,
+                NotifyEVChargingScheduleRequest.class,
+                NotifyEVChargingScheduleResponse.class,
+                csmsService::sendNotifyEVChargingScheduleRequest);
+
+        // Notify Event Request/Response
+        addHandler(OCPPMessageType.NotifyEventRequest,
+                NotifyEventRequest.class,
+                NotifyEventResponse.class,
+                csmsService::sendNotifyEventRequest);
+
+        // Notify Monitoring Report Request/Response
+        addHandler(OCPPMessageType.NotifyMonitoringReportRequest,
+                NotifyMonitoringReportRequest.class,
+                NotifyMonitoringReportResponse.class,
+                csmsService::sendNotifyMonitoringReportRequest);
+
+        // Notify Report Request/Response
+        addHandler(OCPPMessageType.NotifyReportRequest,
+                NotifyReportRequest.class,
+                NotifyReportResponse.class,
+                csmsService::sendNotifyReportRequest);
+
+        // Publish Firmware Request/Response
+        addHandler(OCPPMessageType.PublishFirmwareRequest,
+                PublishFirmwareRequest.class,
+                PublishFirmwareResponse.class,
+                csmsService::sendPublishFirmwareRequest);
+
+        // Report Charging Profiles Request/Response
+        addHandler(OCPPMessageType.ReportChargingProfilesRequest,
+                ReportChargingProfilesRequest.class,
+                ReportChargingProfilesResponse.class,
+                csmsService::sendReportChargingProfilesRequest);
+
+        // Reservation Status Update Request/Response
+        addHandler(OCPPMessageType.ReservationStatusUpdateRequest,
+                ReservationStatusUpdateRequest.class,
+                ReservationStatusUpdateResponse.class,
+                csmsService::sendReservationStatusUpdateRequest);
+
+        // Security Event Notification Request/Response
+        addHandler(OCPPMessageType.SecurityEventNotificationRequest,
+                SecurityEventNotificationRequest.class,
+                SecurityEventNotificationResponse.class,
+                csmsService::sendSecurityEventNotificationRequest);
+
+        // Sign Certificate Request/Response
+        addHandler(OCPPMessageType.SignCertificateRequest,
+                SignCertificateRequest.class,
+                SignCertificateResponse.class,
+                csmsService::sendSignCertificateRequest);
+
+        // Status Notification Request/Response
+        addHandler(OCPPMessageType.StatusNotificationRequest,
+                StatusNotificationRequest.class,
+                StatusNotificationResponse.class,
+                csmsService::sendStatusNotificationRequest);
+
+        // Transaction Event Request/Response
+        addHandler(OCPPMessageType.TransactionEventRequest,
+                TransactionEventRequest.class,
+                TransactionEventResponse.class,
+                csmsService::sendTransactionEventRequest);
     }
 
-    private void addConnectionHandler() {
+    private void addHandshakeHandler() {
         // Connect handler
         Dispatcher dispatcher = natsConnection.createDispatcher(handshakeReq -> {
             String replyTo = handshakeReq.getReplyTo();
@@ -154,68 +295,42 @@ public class CsmsNatsSkeleton implements ICsmsServer {
         return true;
     }
 
-    private void addBootNotificationHandler() {
-        ocppServer.addRequestHandler(OCPPMessageType.BootNotificationRequest,
-                new OCPPOverNatsIORequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class, natsConnection) {
+    /**
+     * Generic handler method for registering OCPP over NATS.io
+     * @param messageType
+     * @param requestClass
+     * @param responseClass
+     * @param serviceMethod
+     * @param <TRequest>
+     * @param <TResponse>
+     */
+    private <TRequest, TResponse> void addHandler(
+            OCPPMessageType messageType,
+            Class<TRequest> requestClass,
+            Class<TResponse> responseClass,
+            BiFunction<Headers, ICall<TRequest>, ICallResult<TResponse>> serviceMethod) {
+
+        ocppServer.addRequestHandler(messageType,
+                new OCPPOverNatsIORequestHandler<>(requestClass, responseClass, natsConnection) {
                     @Override
                     public String getRequestSubject() {
-                        return routeResolver.getRoute(OCPPMessageType.BootNotificationRequest);
+                        return routeResolver.getRoute(messageType);
                     }
 
                     @Override
-                    public ICallResult<BootNotificationResponse> handle(ICall<BootNotificationRequest> message, String subject) {
-                        // Register the charging station within the registry.
+                    public ICallResult<TResponse> handle(ICall<TRequest> message, String subject) {
                         String[] subjectHierarchy = subject.split("\\.");
                         String csId = subjectHierarchy[5];
 
                         Headers headers = Headers.emptyHeader();
                         headers.put(Headers.HeaderEnum.CS_ID.getValue(), csId);
-                        return csmsService.sendBootNotificationRequest(headers, message);
+
+                        return serviceMethod.apply(headers, message);
                     }
                 });
     }
 
-    private void addStatusNotificationHandler() {
-        ocppServer.addRequestHandler(OCPPMessageType.StatusNotificationRequest,
-                new OCPPOverNatsIORequestHandler<>(StatusNotificationRequest.class, StatusNotificationResponse.class, natsConnection) {
-                    @Override
-                    public String getRequestSubject() {
-                        return routeResolver.getRoute(OCPPMessageType.StatusNotificationRequest);
-                    }
-
-                    @Override
-                    public ICallResult<StatusNotificationResponse> handle(ICall<StatusNotificationRequest> message, String subject) {
-                        String[] subjectHierarchy = subject.split("\\.");
-                        String csId = subjectHierarchy[5];
-
-                        Headers headers = Headers.emptyHeader();
-                        headers.put(Headers.HeaderEnum.CS_ID.getValue(), csId);
-                        return csmsService.sendStatusNotificationRequest(headers, message);
-                    }
-                });
-    }
-
-    private void addHeartbeatHandler() {
-        ocppServer.addRequestHandler(OCPPMessageType.HeartbeatRequest,
-                new OCPPOverNatsIORequestHandler<>(HeartbeatRequest.class, HeartbeatResponse.class, natsConnection) {
-                    @Override
-                    public String getRequestSubject() {
-                        return routeResolver.getRoute(OCPPMessageType.HeartbeatRequest);
-                    }
-
-                    @Override
-                    public ICallResult<HeartbeatResponse> handle(ICall<HeartbeatRequest> message, String subject) {
-                        String[] subjectHierarchy = subject.split("\\.");
-                        String csId = subjectHierarchy[5];
-
-                        Headers headers = Headers.emptyHeader();
-                        headers.put(Headers.HeaderEnum.CS_ID.getValue(), csId);
-                        return csmsService.sendHeartbeatRequest(headers, message);
-                    }
-                });
-    }
-
-    public IOCPPSession connect(HandshakeRequest handshakeRequest) {
+    private IOCPPSession connect(HandshakeRequest handshakeRequest) {
         if (sessionManager.sessionExists(handshakeRequest.getIdentity())) {
             logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getIdentity()));
             return sessionManager.getSession(handshakeRequest.getIdentity());

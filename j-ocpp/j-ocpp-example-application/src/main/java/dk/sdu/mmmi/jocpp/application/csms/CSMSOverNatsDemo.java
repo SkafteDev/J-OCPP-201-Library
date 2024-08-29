@@ -2,6 +2,7 @@ package dk.sdu.mmmi.jocpp.application.csms;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionManagerImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
@@ -67,6 +68,7 @@ public class CSMSOverNatsDemo {
                 .build();
 
         ISessionManager sessionManager = new SessionManagerImpl();
+        sessionManager.addListener(session -> logger.info(String.format("New session established: %s", session.getSessionInfo())));
         ICsms csms = new CsmsImpl(sessionManager);
 
         ICsmsServer server = new CsmsNatsSkeleton(brokerConfig, natsOptions, csms, sessionManager);

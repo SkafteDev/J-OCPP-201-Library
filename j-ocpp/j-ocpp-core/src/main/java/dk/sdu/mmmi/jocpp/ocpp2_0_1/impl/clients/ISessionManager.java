@@ -15,4 +15,14 @@ public interface ISessionManager {
     Collection<String> getSessionIds();
 
     boolean sessionExists(String csId);
+
+    void addListener(ISessionRegistrationListener listener);
+    void removeListener(ISessionRegistrationListener listener);
+
+    /*
+     * Notification handlers
+     */
+    interface ISessionRegistrationListener {
+        void onSessionRegistered(IOCPPSession session);
+    }
 }

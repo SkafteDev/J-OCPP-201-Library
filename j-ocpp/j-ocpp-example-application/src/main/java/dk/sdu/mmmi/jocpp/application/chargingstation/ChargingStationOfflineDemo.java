@@ -28,6 +28,7 @@ public class ChargingStationOfflineDemo {
 
     private static void registerServices() {
         ISessionManager sessionManager = new SessionManagerImpl();
+        sessionManager.addListener(session -> System.out.println(String.format("New session established: %s", session.getSessionInfo())));
         ICsms csms = new CsmsImpl(sessionManager);
 
         LocalServiceDiscovery.getInstance().registerSessionManager(CSMS_ID, sessionManager);

@@ -35,6 +35,17 @@ public class SessionInfoImpl implements IOCPPSession.SessionInfo {
         return ocppVersion;
     }
 
+    @Override
+    public String toString() {
+        return "SessionInfoImpl{" +
+                "csId='" + csId + '\'' +
+                ", csmsId='" + csmsId + '\'' +
+                ", connectionURI='" + connectionURI + '\'' +
+                ", transportType='" + transportType + '\'' +
+                ", ocppVersion=" + ocppVersion +
+                '}';
+    }
+
     public static final class SessionInfoImplBuilder {
         private String csId;
         private String csmsId;

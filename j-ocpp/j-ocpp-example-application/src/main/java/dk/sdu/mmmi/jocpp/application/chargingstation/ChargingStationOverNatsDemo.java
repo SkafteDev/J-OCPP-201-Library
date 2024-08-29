@@ -9,10 +9,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootNotificationRequest;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootNotificationResponse;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootReasonEnum;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.ChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 
 import java.net.URL;
 import java.util.*;
@@ -75,9 +72,23 @@ public class ChargingStationOverNatsDemo {
         Headers headers = Headers.emptyHeader();
         ICallResult<BootNotificationResponse> response = ocppSession.getCsms().sendBootNotificationRequest(headers, bootRequest);
 
+        /*
+         * (6) Send another request from CS -> CSMS.
+         */
+        ICall<ClearedChargingLimitRequest> call = CallImpl.<ClearedChargingLimitRequest>newBuilder()
+                .asAction(OCPPMessageType.ClearedChargingLimitRequest.getAction())
+                .withMessageId(UUID.randomUUID().toString())
+                .withPayLoad(ClearedChargingLimitRequest.builder()
+                        .withEvseId(0)
+                        .withChargingLimitSource(ChargingLimitSourceEnum.EMS)
+                        .build())
+                .build();
+        ICallResult<ClearedChargingLimitResponse> result = ocppSession.getCsms().sendClearedChargingLimitRequest(Headers.emptyHeader(), call);
+        System.out.println(result);
+
 
         /*
-         * (6) Prevent the program for exiting to simulate that the CS is now awaiting requests from the CSMS.
+         * (7) Prevent the program for exiting to simulate that the CS is now awaiting requests from the CSMS.
          */
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;
