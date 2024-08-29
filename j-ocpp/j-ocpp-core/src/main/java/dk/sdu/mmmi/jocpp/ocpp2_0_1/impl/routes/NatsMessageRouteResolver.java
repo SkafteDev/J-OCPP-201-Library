@@ -6,7 +6,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MessageRouteResolverImpl implements IMessageRouteResolver {
+public class NatsMessageRouteResolver implements IMessageRouteResolver {
 
     private static final String OPERATOR_ID_TOKEN = "{operatorid}";
     private static final String CSMS_ID_TOKEN = "{csmsid}";
@@ -33,7 +33,7 @@ public class MessageRouteResolverImpl implements IMessageRouteResolver {
      * @param csId       The Charging Station ID. For example, a UUID or another identifier that can be used to identify a
      *                   Charging Station.
      */
-    public MessageRouteResolverImpl(String operatorId, String csmsId, String csId) {
+    public NatsMessageRouteResolver(String operatorId, String csmsId, String csId) {
         this.operatorId = operatorId;
         this.csmsId = csmsId;
         this.csId = csId;

@@ -1,11 +1,12 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsServiceEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
@@ -79,7 +80,7 @@ public class ChargingStationServiceTest {
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
         String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
 
-        ICsServiceEndpoint csmsClientApi = new ChargingStationNatsIOProxy(getNatsConnection(brokerUrl), routeResolver);
+        IChargingStation csmsClientApi = new ChargingStationNatsIOProxy(getNatsConnection(brokerUrl), routeResolver);
 
         ChargingProfile chargingProfile = getChargingProfile();
 
@@ -94,8 +95,8 @@ public class ChargingStationServiceTest {
                 .withPayLoad(payload)
                 .build();
 
-
-        ICallResult<SetChargingProfileResponse> callResultMessage = csmsClientApi.sendSetChargingProfileRequest(call);
+        Headers headers = Headers.emptyHeader();
+        ICallResult<SetChargingProfileResponse> callResultMessage = csmsClientApi.sendSetChargingProfileRequest(headers, call);
 
         System.out.println(callResultMessage);
     }

@@ -1,22 +1,20 @@
 package dk.sdu.mmmi.jocpp.application.chargingstation;
 
-import dk.sdu.mmmi.jocpp.application.csms.CsmsServiceEndpoint;
+import dk.sdu.mmmi.jocpp.application.csms.CsmsImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.OCPPSessionInMemory;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ChargingStationInMemoryClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionManagerImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.LocalServiceDiscovery;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootNotificationRequest;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootNotificationResponse;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootReasonEnum;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.ChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 
 public class ChargingStationOfflineDemo {
     private static final String quitToken = "q";
@@ -29,10 +27,12 @@ public class ChargingStationOfflineDemo {
     private static final String CS_ID = "f8125503-8d0f-467f-abad-b830ca6782e2";
 
     private static void registerServices() {
-        ICsmsServiceEndpoint csmsEndpoint = new CsmsServiceEndpoint();
+        ISessionManager sessionManager = new SessionManagerImpl();
+        ICsms csms = new CsmsImpl(sessionManager);
 
-        LocalServiceDiscovery.getInstance().registerCsEndpoint(CS_ID, new CSServiceEndpointImpl());
-        LocalServiceDiscovery.getInstance().registerCsmsEndpoint(CS_ID, csmsEndpoint);
+        LocalServiceDiscovery.getInstance().registerSessionManager(CSMS_ID, sessionManager);
+        LocalServiceDiscovery.getInstance().registerCs(CS_ID, new CSImpl());
+        LocalServiceDiscovery.getInstance().registerCsms(CS_ID, csms);
     }
 
 
@@ -46,7 +46,7 @@ public class ChargingStationOfflineDemo {
          * (2) Instantiate the CS client API to communicate between CS <-> CSMS.
          *     Connect the CS client to the CSMS before sending requests.
          */
-        IOCPPSession csClient = OCPPSessionInMemory.connect(CS_ID, CSMS_ID, LocalServiceDiscovery.getInstance());
+        IOCPPSession ocppSession = ChargingStationInMemoryClient.connect(CS_ID, CSMS_ID, LocalServiceDiscovery.getInstance());
 
         /*
          * (3) Build the BootNotificationRequest (payload) object to be sent to the CSMS.
@@ -73,12 +73,27 @@ public class ChargingStationOfflineDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csClient.getCsmsServiceEndpoint().sendBootNotificationRequest(bootRequest);
+        Headers headers = Headers.emptyHeader();
+        ICallResult<BootNotificationResponse> response = ocppSession.getCsms().sendBootNotificationRequest(headers, bootRequest);
         System.out.println(response);
+
+        /*
+         * (6) Send another request from CS -> CSMS.
+         */
+        ICall<ClearedChargingLimitRequest> call = CallImpl.<ClearedChargingLimitRequest>newBuilder()
+                        .asAction(OCPPMessageType.ClearedChargingLimitRequest.getAction())
+                        .withMessageId(UUID.randomUUID().toString())
+                        .withPayLoad(ClearedChargingLimitRequest.builder()
+                                .withEvseId(0)
+                                .withChargingLimitSource(ChargingLimitSourceEnum.EMS)
+                                .build())
+                        .build();
+        ICallResult<ClearedChargingLimitResponse> result = ocppSession.getCsms().sendClearedChargingLimitRequest(Headers.emptyHeader(), call);
+        System.out.println(result);
 
 
         /*
-         * (6) Prevent the program for exiting to simulate that the CS is now awaiting requests from the CSMS.
+         * (7) Prevent the program for exiting to simulate that the CS is now awaiting requests from the CSMS.
          */
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;

@@ -1,6 +1,9 @@
 package dk.sdu.mmmi.jocpp.application.csms;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionManagerImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
 import io.nats.client.Options;
@@ -38,7 +41,6 @@ public class CSMSOverNatsDemo {
         logger.info("Booting complete.");
 
         server.serve();   // Handle incoming messages.
-        server.startSmartChargingControlLoop(Duration.ofSeconds(15)); // Start the smart charging control loop.
 
         System.out.printf("%nPress '%s' to exit.%n", quitToken);
         String readLine = null;
@@ -64,7 +66,10 @@ public class CSMSOverNatsDemo {
                 })
                 .build();
 
-        ICsmsServer server = new CsmsNatsSkeleton(brokerConfig, natsOptions);
+        ISessionManager sessionManager = new SessionManagerImpl();
+        ICsms csms = new CsmsImpl(sessionManager);
+
+        ICsmsServer server = new CsmsNatsSkeleton(brokerConfig, natsOptions, csms, sessionManager);
 
         return server;
     }

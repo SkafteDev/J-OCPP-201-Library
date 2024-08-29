@@ -9,18 +9,14 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService.HandshakeRequest;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService.HandshakeResponse;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.exceptions.OCPPRequestException;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionInfoImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.managementsystem.ChargingStationNatsIOProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.devicemodel.ChargingStationDeviceModel;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.NatsMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallError;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallErrorImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.util.JacksonUtil;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 import io.nats.client.Connection;
@@ -30,35 +26,28 @@ import io.nats.client.Options;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 
 public class CsmsNatsSkeleton implements ICsmsServer {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
-
     private final String operatorId;
     private final String csmsId;
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;
-    private final Map<String, ChargingStationDeviceModel> chargingStationRegistry;
-
-    private final Map<String, ICsmsServiceEndpoint> endpoints;
-
+    private final ICsms csmsService;
     private final IRequestHandlerRegistry ocppServer;
+    private final ISessionManager sessionManager;
 
-    public CsmsNatsSkeleton(BrokerConfig brokerConfig, Options natsOptions) {
+    public CsmsNatsSkeleton(BrokerConfig brokerConfig, Options natsOptions, ICsms csms, ISessionManager sessionManager) {
         this.natsConnection = getNatsIoConnection(natsOptions);
         this.operatorId = brokerConfig.getOperatorId();
         this.csmsId = brokerConfig.getCsmsId();
-        this.routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, "*");
-        this.chargingStationRegistry = new HashMap<>();
-        this.endpoints = new HashMap<>();
-
+        this.routeResolver = new NatsMessageRouteResolver(operatorId, csmsId, "*");
+        this.csmsService = csms;
         this.ocppServer = new OCPPOverNatsDispatcher(routeResolver);
+        this.sessionManager = sessionManager;
     }
 
     private Connection getNatsIoConnection(Options natsOptions) {
@@ -117,9 +106,9 @@ public class CsmsNatsSkeleton implements ICsmsServer {
                  */
                 logger.info(String.format("Handshake accepted. Instantiating endpoint for CS: %s",
                         handshakeRequest.getIdentity()));
-                ICsmsServiceEndpoint endpoint = connect(handshakeRequest);
+                IOCPPSession session = connect(handshakeRequest);
 
-                MessageRouteResolverImpl routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, handshakeRequest.getIdentity());
+                NatsMessageRouteResolver routeResolver = new NatsMessageRouteResolver(operatorId, csmsId, handshakeRequest.getIdentity());
                 HandshakeResponse accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
                         .withHandshakeResult(HandshakeResult.ACCEPTED)
                         .withEndpoint(routeResolver.getRequestRoute())
@@ -165,234 +154,6 @@ public class CsmsNatsSkeleton implements ICsmsServer {
         return true;
     }
 
-    @Override
-    public void startSmartChargingControlLoop(Duration interval) {
-        // Control loop
-        while (true) {
-            long startTime = System.currentTimeMillis();
-            logger.info(String.format("Running Smart Charging control loop with interval=%s seconds.",
-                    interval.toSeconds()));
-
-            // Regular control flow
-            logger.info("Calculating ChargingProfiles.");
-            Map<String, ChargingProfile> profileMap = calculateChargingProfiles();
-            logger.info("Finished calculation of ChargingProfiles.");
-            emitChargingProfiles(profileMap);
-
-            // Calculate the time spent controlling.
-            Duration elapsed = Duration.ofMillis(System.currentTimeMillis() - startTime);
-            logger.info(String.format("Completed control loop in %s seconds.", elapsed.toSeconds()));
-
-            try {
-                // If we spent more time than 'allowed' during the control loop, set the interval to 0.
-                Duration waitTimeBeforeNextLoop = interval.minus(elapsed).toMillis() >= 0 ? interval.minus(elapsed) : Duration.ZERO;
-                logger.info(String.format("Waiting %s seconds before proceeding to next control iteration.",
-                        waitTimeBeforeNextLoop.toSeconds()));
-                Thread.sleep(waitTimeBeforeNextLoop.toMillis());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void emitChargingProfiles(Map<String, ChargingProfile> profileMap) {
-        if (profileMap.isEmpty()) return; // No need to emit anything.
-
-        logger.info("Emitting ChargingProfiles to Charging Stations.");
-        for (Map.Entry<String, ChargingProfile> entry : profileMap.entrySet()) {
-            String csId = entry.getKey();
-            ChargingProfile chargingProfile = entry.getValue();
-
-            SetChargingProfileRequest payload = SetChargingProfileRequest.builder()
-                    .withEvseId(0)
-                    .withChargingProfile(chargingProfile)
-                    .build();
-
-            ICall<SetChargingProfileRequest> call = CallImpl.<SetChargingProfileRequest>newBuilder()
-                    .asAction(OCPPMessageType.SetChargingProfileRequest.getAction())
-                    .withMessageId(UUID.randomUUID().toString())
-                    .withPayLoad(payload)
-                    .build();
-
-            try {
-                IMessageRouteResolver routeResolver = new MessageRouteResolverImpl(operatorId, csmsId, csId);
-                ICsServiceEndpoint csProxy = new ChargingStationNatsIOProxy(natsConnection, routeResolver);
-                ICallResult<SetChargingProfileResponse> callResult = csProxy.sendSetChargingProfileRequest(call);
-
-                logger.info(String.format("Received response '%s' with payload %s",
-                        SetChargingProfileResponse.class.getName(), callResult.getPayload().toString()));
-            } catch (OCPPRequestException e) {
-                logger.info(String.format("Error occurred while sending the request or receiving the response. %s",
-                        e.getMessage()));
-            }
-        }
-    }
-
-    /**
-     * Returns a map of Charging Station IDs and for each, a generated Charging Profile.
-     *
-     * @return
-     */
-    private Map<String, ChargingProfile> calculateChargingProfiles() {
-        Map<String, ChargingProfile> profileMap = new HashMap<>();
-
-        try {
-            // Simulate a long-running task (calculating charging profiles)
-            double taskLength = Math.random() * 30d;
-            Thread.sleep((int) taskLength);
-
-            for (String csIdentifier : endpoints.keySet()) {
-                ChargingProfile chargingProfile = getChargingProfile();
-                profileMap.put(csIdentifier, chargingProfile);
-            }
-        } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        return profileMap;
-    }
-
-    private ChargingProfile getChargingProfile() {
-        return ChargingProfile.builder()
-                .withId(1)
-                .withStackLevel(0)
-                .withChargingProfilePurpose(ChargingProfilePurposeEnum.CHARGING_STATION_MAX_PROFILE)
-                .withChargingProfileKind(ChargingProfileKindEnum.ABSOLUTE)
-                .withChargingSchedule(
-                        List.of(
-                                ChargingSchedule.builder()
-                                        .withId(1)
-                                        .withStartSchedule(ZonedDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                        .withChargingRateUnit(ChargingRateUnitEnum.W)
-                                        /*
-                                         * From this point is the limit for each hour in the day
-                                         */
-                                        .withChargingSchedulePeriod(List.of(
-                                                // From 00:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(0 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 01:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(1 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 02:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(2 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 03:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(3 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 04:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(4 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 05:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(5 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 06:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(6 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 07:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(7 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 08:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(8 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 09:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(9 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 10:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(10 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 11:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(11 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 12:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(12 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 13:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(13 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 14:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(14 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 15:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(15 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 16:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(16 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 17:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(17 * 60 * 60)
-                                                        .withLimit(0d)
-                                                        .build(),
-                                                // From 18:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(18 * 60 * 60)
-                                                        .withLimit(0d)
-                                                        .build(),
-                                                // From 19:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(19 * 60 * 60)
-                                                        .withLimit(0d)
-                                                        .build(),
-                                                // From 20:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(20 * 60 * 60)
-                                                        .withLimit(0d)
-                                                        .build(),
-                                                // From 21:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(21 * 60 * 60)
-                                                        .withLimit(0d)
-                                                        .build(),
-                                                // From 22:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(22 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build(),
-                                                // From 23:00
-                                                ChargingSchedulePeriod.builder()
-                                                        .withStartPeriod(23 * 60 * 60)
-                                                        .withLimit(11_000d)
-                                                        .build()
-                                        )).build()
-                        ))
-                .build();
-    }
-
     private void addBootNotificationHandler() {
         ocppServer.addRequestHandler(OCPPMessageType.BootNotificationRequest,
                 new OCPPOverNatsIORequestHandler<>(BootNotificationRequest.class, BootNotificationResponse.class, natsConnection) {
@@ -407,20 +168,9 @@ public class CsmsNatsSkeleton implements ICsmsServer {
                         String[] subjectHierarchy = subject.split("\\.");
                         String csId = subjectHierarchy[5];
 
-                        // Register the charging station within the registry.
-                        if (endpoints.containsKey(csId)) {
-                            logger.info(String.format("Dispatching BootNotificationRequest: %s", csId));
-                            return endpoints.get(csId).sendBootNotificationRequest(message);
-                        } else {
-                            logger.info(String.format("Dispatch error. CS '%s' is not connected.", csId));
-                            ICallError callError = CallErrorImpl.newCallErrorBuilder()
-                                    .withMessageId(message.getMessageId())
-                                    .withErrorCode(ErrorCode.GENERIC_ERROR)
-                                    .withErrorDescription("Not connected.")
-                                    .build();
-
-                            return callError;
-                        }
+                        Headers headers = Headers.emptyHeader();
+                        headers.put(Headers.HeaderEnum.CS_ID.getValue(), csId);
+                        return csmsService.sendBootNotificationRequest(headers, message);
                     }
                 });
     }
@@ -438,19 +188,9 @@ public class CsmsNatsSkeleton implements ICsmsServer {
                         String[] subjectHierarchy = subject.split("\\.");
                         String csId = subjectHierarchy[5];
 
-                        if (endpoints.containsKey(csId)) {
-                            logger.info(String.format("Dispatching StatusNotificationRequest: %s", csId));
-                            return endpoints.get(csId).sendStatusNotificationRequest(message);
-                        } else {
-                            logger.info(String.format("Dispatch error. CS '%s' is not connected.", csId));
-                            ICallError callError = CallErrorImpl.newCallErrorBuilder()
-                                    .withMessageId(message.getMessageId())
-                                    .withErrorCode(ErrorCode.GENERIC_ERROR)
-                                    .withErrorDescription("Not connected.")
-                                    .build();
-
-                            return callError;
-                        }
+                        Headers headers = Headers.emptyHeader();
+                        headers.put(Headers.HeaderEnum.CS_ID.getValue(), csId);
+                        return csmsService.sendStatusNotificationRequest(headers, message);
                     }
                 });
     }
@@ -468,35 +208,56 @@ public class CsmsNatsSkeleton implements ICsmsServer {
                         String[] subjectHierarchy = subject.split("\\.");
                         String csId = subjectHierarchy[5];
 
-                        if (endpoints.containsKey(csId)) {
-                            logger.info(String.format("Dispatching HeartbeatRequest: %s", csId));
-                            return endpoints.get(csId).sendHeartbeatRequest(message);
-                        } else {
-                            logger.info(String.format("Dispatch error. CS '%s' is not connected.", csId));
-                            ICallError callError = CallErrorImpl.newCallErrorBuilder()
-                                    .withMessageId(message.getMessageId())
-                                    .withErrorCode(ErrorCode.GENERIC_ERROR)
-                                    .withErrorDescription("Not connected.")
-                                    .build();
-
-                            return callError;
-                        }
+                        Headers headers = Headers.emptyHeader();
+                        headers.put(Headers.HeaderEnum.CS_ID.getValue(), csId);
+                        return csmsService.sendHeartbeatRequest(headers, message);
                     }
                 });
     }
 
-    public ICsmsServiceEndpoint connect(HandshakeRequest handshakeRequest) {
-        if (this.endpoints.containsKey(handshakeRequest.getIdentity())) {
+    public IOCPPSession connect(HandshakeRequest handshakeRequest) {
+        if (sessionManager.sessionExists(handshakeRequest.getIdentity())) {
             logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getIdentity()));
-
-            return this.endpoints.get(handshakeRequest.getIdentity());
+            return sessionManager.getSession(handshakeRequest.getIdentity());
         }
 
-        logger.info(String.format("Creating new endpoint for CS with identity: %s",
-                handshakeRequest.getIdentity()));
-        ICsmsServiceEndpoint csmsServiceEndpoint = new CsmsServiceEndpoint();
-        this.endpoints.put(handshakeRequest.getIdentity(), csmsServiceEndpoint);
 
-        return csmsServiceEndpoint;
+        /*
+         * Create session object.
+         */
+        IOCPPSession ocppSession = new IOCPPSession() {
+            @Override
+            public void disconnect() {
+                // Nothing to do here, because the NATS.io dispatcher serves all incoming requests.
+            }
+
+            @Override
+            public ICsms getCsms() {
+                return csmsService;
+            }
+
+            @Override
+            public IChargingStation getChargingStation() {
+                return new ChargingStationNatsIOProxy(natsConnection, routeResolver);
+            }
+
+            @Override
+            public SessionInfo getSessionInfo() {
+                SessionInfo sInfo = SessionInfoImpl.SessionInfoImplBuilder.newBuilder()
+                        .withCsId(handshakeRequest.getIdentity())
+                        .withCsmsId(csmsId)
+                        .withConnectionURI(natsConnection.getConnectedUrl())
+                        .withTransportType("NATS.io")
+                        .withOcppVersion(OcppVersion.OCPP_201)
+                        .build();
+
+                return sInfo;
+            }
+        };
+
+        // Register the session.
+        sessionManager.registerSession(handshakeRequest.getIdentity(), ocppSession);
+
+        return ocppSession;
     }
 }

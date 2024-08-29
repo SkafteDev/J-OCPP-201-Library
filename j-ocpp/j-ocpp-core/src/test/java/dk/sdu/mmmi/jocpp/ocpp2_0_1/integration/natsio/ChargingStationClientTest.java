@@ -1,7 +1,8 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
@@ -27,6 +28,8 @@ import java.net.URL;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -81,12 +84,13 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsmsServiceEndpoint csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
+        ICsms csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
 
         ICall<BootNotificationRequest> bootNotificationRequest = createBootNotificationRequest();
 
+        Headers headers = Headers.emptyHeader();
         ICallResult<BootNotificationResponse> bootNotificationResponse =
-                csClient.sendBootNotificationRequest(bootNotificationRequest);
+                csClient.sendBootNotificationRequest(headers, bootNotificationRequest);
 
         if (bootNotificationResponse == null) {
             fail("Received 'null' response.");
@@ -122,12 +126,13 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsmsServiceEndpoint csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
+        ICsms csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
 
         ICall<StatusNotificationRequest> statusNotificationRequest = createStatusNotificationRequest();
 
+        Headers headers = Headers.emptyHeader();
         ICallResult<StatusNotificationResponse> statusNotificationResponse =
-                csClient.sendStatusNotificationRequest(statusNotificationRequest);
+                csClient.sendStatusNotificationRequest(headers, statusNotificationRequest);
 
         if (statusNotificationResponse == null) {
             fail("Received 'null' response.");
@@ -149,12 +154,13 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsmsServiceEndpoint csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
+        ICsms csClient = new CsmsProxyNatsIO(natsConnection, routeResolver);
 
         ICall<HeartbeatRequest> heartbeatRequest = createHeartbeatRequest();
 
+        Headers headers = Headers.emptyHeader();
         ICallResult<HeartbeatResponse> heartbeatResponse =
-                csClient.sendHeartbeatRequest(heartbeatRequest);
+                csClient.sendHeartbeatRequest(headers, heartbeatRequest);
 
         // MessageId's of request/response must be equal for tracability.
         assertEquals(heartbeatRequest.getMessageId(), heartbeatResponse.getMessageId());

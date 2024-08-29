@@ -3,13 +3,14 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionInfoImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
@@ -25,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -34,27 +36,28 @@ import java.util.logging.Logger;
 public class ChargingStationNatsClient implements IOCPPSession {
     private final IMessageRouteResolver routeResolver;
     private final SessionInfoImpl sessionInfo;
-    private ICsmsServiceEndpoint csmsProxy;
+    private ICsms csmsProxy;
     private IRequestHandlerRegistry requestDispatchers;
-    private ICsServiceEndpoint csServiceEndpoint;
+    private IChargingStation csService;
     private Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationNatsClient.class.getName());
     private final Options natsOptions;
 
-    public ChargingStationNatsClient(ICsServiceEndpoint csServiceEndpoint,
+    public ChargingStationNatsClient(IChargingStation csService,
                                      IMessageRouteResolver routeResolver,
                                      Options natsOptions) {
-        this.csServiceEndpoint = csServiceEndpoint;
+        this.csService = csService;
         this.routeResolver = routeResolver;
         this.natsOptions = natsOptions;
         this.requestDispatchers = new OCPPOverNatsDispatcher(routeResolver);
-        this.sessionInfo = new SessionInfoImpl();
-        sessionInfo.connectionURI = natsOptions.getServers().get(0).toString();
-        sessionInfo.csId = routeResolver.getCsIdentity();
-        sessionInfo.csmsId = routeResolver.getCsmsIdentity();
-        sessionInfo.ocppVersion = OcppVersion.OCPP_201;
-        sessionInfo.transportType = "NATS.io";
+        this.sessionInfo = SessionInfoImpl.SessionInfoImplBuilder.newBuilder()
+                    .withCsId(routeResolver.getCsIdentity())
+                    .withCsmsId(routeResolver.getCsmsIdentity())
+                    .withOcppVersion(OcppVersion.OCPP_201)
+                    .withTransportType("NATS.io")
+                    .withConnectionURI(natsOptions.getServers().get(0).toString())
+                .build();
     }
 
     public Connection getNatsConnection() {
@@ -63,7 +66,6 @@ public class ChargingStationNatsClient implements IOCPPSession {
 
     private void connect() {
         try {
-            sessionInfo.connectionState = SessionInfo.ConnectionState.CONNECTING;
             this.natsConnection = Nats.connect(this.natsOptions);
             initRequestDispatchers();
 
@@ -71,7 +73,6 @@ public class ChargingStationNatsClient implements IOCPPSession {
                     .withIdentity(routeResolver.getCsIdentity())
                     .withOcppVersion(OcppVersion.OCPP_201)
                     .build());
-            sessionInfo.connectionState = SessionInfo.ConnectionState.CONNECTED;
 
         } catch (IOException | InterruptedException e ) {
             logger.severe(e.getMessage());
@@ -128,46 +129,46 @@ public class ChargingStationNatsClient implements IOCPPSession {
 
         // Initialize methodMap with methods from CsServiceEndpoint
         try {
-            Class<?> endpointClass = ICsServiceEndpoint.class;
-            methodMap.put(OCPPMessageType.CancelReservationRequest, endpointClass.getMethod("sendCancelReservationRequest", ICall.class));
-            methodMap.put(OCPPMessageType.CertificateSignedRequest, endpointClass.getMethod("sendCertificateSignedRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ChangeAvailabilityRequest, endpointClass.getMethod("sendChangeAvailabilityRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ClearCacheRequest, endpointClass.getMethod("sendClearCacheRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ClearChargingProfileRequest, endpointClass.getMethod("sendClearChargingProfileRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ClearDisplayMessageRequest, endpointClass.getMethod("sendClearDisplayMessageRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ClearVariableMonitoringRequest, endpointClass.getMethod("sendClearVariableMonitoringRequest", ICall.class));
-            methodMap.put(OCPPMessageType.CostUpdatedRequest, endpointClass.getMethod("sendCostUpdatedRequest", ICall.class));
-            methodMap.put(OCPPMessageType.CustomerInformationRequest, endpointClass.getMethod("sendCustomerInformationRequest", ICall.class));
-            methodMap.put(OCPPMessageType.DeleteCertificateRequest, endpointClass.getMethod("sendDeleteCertificateRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetBaseReportRequest, endpointClass.getMethod("sendGetBaseReportRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetChargingProfilesRequest, endpointClass.getMethod("sendGetChargingProfilesRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetCompositeScheduleRequest, endpointClass.getMethod("sendGetCompositeScheduleRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetDisplayMessagesRequest, endpointClass.getMethod("sendGetDisplayMessagesRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetInstalledCertificateIdsRequest, endpointClass.getMethod("sendGetInstalledCertificateIdsRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetLocalListVersionRequest, endpointClass.getMethod("sendGetLocalListVersionRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetLogRequest, endpointClass.getMethod("sendGetLogRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetMonitoringReportRequest, endpointClass.getMethod("sendGetMonitoringReportRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetReportRequest, endpointClass.getMethod("sendGetReportRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetTransactionStatusRequest, endpointClass.getMethod("sendGetTransactionStatusRequest", ICall.class));
-            methodMap.put(OCPPMessageType.GetVariablesRequest, endpointClass.getMethod("sendGetVariablesRequest", ICall.class));
-            methodMap.put(OCPPMessageType.InstallCertificateRequest, endpointClass.getMethod("sendInstallCertificateRequest", ICall.class));
-            methodMap.put(OCPPMessageType.MeterValuesRequest, endpointClass.getMethod("sendMeterValuesRequest", ICall.class));
-            methodMap.put(OCPPMessageType.RequestStartTransactionRequest, endpointClass.getMethod("sendRequestStartTransactionRequest", ICall.class));
-            methodMap.put(OCPPMessageType.RequestStopTransactionRequest, endpointClass.getMethod("sendRequestStopTransactionRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ReserveNowRequest, endpointClass.getMethod("sendReserveNowRequest", ICall.class));
-            methodMap.put(OCPPMessageType.ResetRequest, endpointClass.getMethod("sendResetRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SendLocalListRequest, endpointClass.getMethod("sendSendLocalListRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetChargingProfileRequest, endpointClass.getMethod("sendSetChargingProfileRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetDisplayMessageRequest, endpointClass.getMethod("sendSetDisplayMessageRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetMonitoringBaseRequest, endpointClass.getMethod("sendSetMonitoringBaseRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetMonitoringLevelRequest, endpointClass.getMethod("sendSetMonitoringLevelRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetNetworkProfileRequest, endpointClass.getMethod("sendSetNetworkProfileRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetVariableMonitoringRequest, endpointClass.getMethod("sendSetVariableMonitoringRequest", ICall.class));
-            methodMap.put(OCPPMessageType.SetVariablesRequest, endpointClass.getMethod("sendSetVariablesRequest", ICall.class));
-            methodMap.put(OCPPMessageType.TriggerMessageRequest, endpointClass.getMethod("sendTriggerMessageRequest", ICall.class));
-            methodMap.put(OCPPMessageType.UnlockConnectorRequest, endpointClass.getMethod("sendUnlockConnectorRequest", ICall.class));
-            methodMap.put(OCPPMessageType.UnpublishFirmwareRequest, endpointClass.getMethod("sendUnpublishFirmwareRequest", ICall.class));
-            methodMap.put(OCPPMessageType.UpdateFirmwareRequest, endpointClass.getMethod("sendUpdateFirmwareRequest", ICall.class));
+            Class<?> endpointClass = IChargingStation.class;
+            methodMap.put(OCPPMessageType.CancelReservationRequest, endpointClass.getMethod("sendCancelReservationRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.CertificateSignedRequest, endpointClass.getMethod("sendCertificateSignedRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ChangeAvailabilityRequest, endpointClass.getMethod("sendChangeAvailabilityRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ClearCacheRequest, endpointClass.getMethod("sendClearCacheRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ClearChargingProfileRequest, endpointClass.getMethod("sendClearChargingProfileRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ClearDisplayMessageRequest, endpointClass.getMethod("sendClearDisplayMessageRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ClearVariableMonitoringRequest, endpointClass.getMethod("sendClearVariableMonitoringRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.CostUpdatedRequest, endpointClass.getMethod("sendCostUpdatedRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.CustomerInformationRequest, endpointClass.getMethod("sendCustomerInformationRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.DeleteCertificateRequest, endpointClass.getMethod("sendDeleteCertificateRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetBaseReportRequest, endpointClass.getMethod("sendGetBaseReportRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetChargingProfilesRequest, endpointClass.getMethod("sendGetChargingProfilesRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetCompositeScheduleRequest, endpointClass.getMethod("sendGetCompositeScheduleRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetDisplayMessagesRequest, endpointClass.getMethod("sendGetDisplayMessagesRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetInstalledCertificateIdsRequest, endpointClass.getMethod("sendGetInstalledCertificateIdsRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetLocalListVersionRequest, endpointClass.getMethod("sendGetLocalListVersionRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetLogRequest, endpointClass.getMethod("sendGetLogRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetMonitoringReportRequest, endpointClass.getMethod("sendGetMonitoringReportRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetReportRequest, endpointClass.getMethod("sendGetReportRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetTransactionStatusRequest, endpointClass.getMethod("sendGetTransactionStatusRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.GetVariablesRequest, endpointClass.getMethod("sendGetVariablesRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.InstallCertificateRequest, endpointClass.getMethod("sendInstallCertificateRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.MeterValuesRequest, endpointClass.getMethod("sendMeterValuesRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.RequestStartTransactionRequest, endpointClass.getMethod("sendRequestStartTransactionRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.RequestStopTransactionRequest, endpointClass.getMethod("sendRequestStopTransactionRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ReserveNowRequest, endpointClass.getMethod("sendReserveNowRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.ResetRequest, endpointClass.getMethod("sendResetRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SendLocalListRequest, endpointClass.getMethod("sendSendLocalListRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetChargingProfileRequest, endpointClass.getMethod("sendSetChargingProfileRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetDisplayMessageRequest, endpointClass.getMethod("sendSetDisplayMessageRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetMonitoringBaseRequest, endpointClass.getMethod("sendSetMonitoringBaseRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetMonitoringLevelRequest, endpointClass.getMethod("sendSetMonitoringLevelRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetNetworkProfileRequest, endpointClass.getMethod("sendSetNetworkProfileRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetVariableMonitoringRequest, endpointClass.getMethod("sendSetVariableMonitoringRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.SetVariablesRequest, endpointClass.getMethod("sendSetVariablesRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.TriggerMessageRequest, endpointClass.getMethod("sendTriggerMessageRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.UnlockConnectorRequest, endpointClass.getMethod("sendUnlockConnectorRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.UnpublishFirmwareRequest, endpointClass.getMethod("sendUnpublishFirmwareRequest", Headers.class, ICall.class));
+            methodMap.put(OCPPMessageType.UpdateFirmwareRequest, endpointClass.getMethod("sendUpdateFirmwareRequest", Headers.class, ICall.class));
         }
         catch(NoSuchMethodException ex) {
             logger.severe(ex.toString());
@@ -177,14 +178,14 @@ public class ChargingStationNatsClient implements IOCPPSession {
         ocppMessageMap.forEach((messageType, classes) -> {
             Class<?> requestClass = classes[0];
             Class<?> responseClass = classes[1];
-            registerHandler(messageType, requestClass, responseClass, methodMap, this.csServiceEndpoint);
+            registerHandler(messageType, requestClass, responseClass, methodMap, this.csService);
         });
     }
 
     private <TRequest, TResponse> void registerHandler(OCPPMessageType messageType, Class<TRequest> requestClass,
                                                        Class<TResponse> responseClass,
                                                        Map<OCPPMessageType, Method> methodMap,
-                                                       ICsServiceEndpoint endpoint) {
+                                                       IChargingStation csService) {
         requestDispatchers.addRequestHandler(messageType,
                 new OCPPOverNatsIORequestHandler<>(requestClass, responseClass, natsConnection) {
                     @Override
@@ -192,7 +193,8 @@ public class ChargingStationNatsClient implements IOCPPSession {
                         // Lookup the method and invoke it.
                         Method method = methodMap.get(messageType);
                         try {
-                            return (ICallResult<TResponse>) method.invoke(endpoint, message);
+                            Map<String, String> headers = Collections.emptyMap();
+                            return (ICallResult<TResponse>) method.invoke(csService, headers, message);
                         } catch (IllegalAccessException e) {
                             throw new RuntimeException(e);
                         } catch (InvocationTargetException e) {
@@ -218,7 +220,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
         return this.routeResolver;
     }
 
-    public ICsmsServiceEndpoint connect(ICsmsService.HandshakeRequest handshakeRequest) {
+    public ICsms connect(ICsmsService.HandshakeRequest handshakeRequest) {
         String connectSubject = routeResolver.getConnectRoute();
 
         try {
@@ -258,20 +260,19 @@ public class ChargingStationNatsClient implements IOCPPSession {
     public void disconnect() {
         try {
             natsConnection.close();
-            sessionInfo.connectionState = SessionInfo.ConnectionState.DISCONNECTED;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public ICsmsServiceEndpoint getCsmsServiceEndpoint() {
+    public ICsms getCsms() {
         return this.csmsProxy;
     }
 
     @Override
-    public ICsServiceEndpoint getCsServiceEndpoint() {
-        return csServiceEndpoint;
+    public IChargingStation getChargingStation() {
+        return csService;
     }
 
     @Override
@@ -282,15 +283,15 @@ public class ChargingStationNatsClient implements IOCPPSession {
     public static class ChargingStationNatsIOClientBuilder {
         private String csId;
         private IBrokerContext configs;
-        private ICsServiceEndpoint csServiceEndpoint;
+        private IChargingStation csService;
 
         public ChargingStationNatsIOClientBuilder withCsId(String csId) {
             this.csId = csId;
             return this;
         }
 
-        public ChargingStationNatsIOClientBuilder withCsServiceInterface(ICsServiceEndpoint csServiceEndpoint) {
-            this.csServiceEndpoint = csServiceEndpoint;
+        public ChargingStationNatsIOClientBuilder withCsServiceInterface(IChargingStation csService) {
+            this.csService = csService;
             return this;
         }
 
@@ -318,7 +319,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
 
             IMessageRouteResolver csRouteResolver = configs.getChargingStationRouteResolver(csId);
 
-            ChargingStationNatsClient chargingStationNatsClient = new ChargingStationNatsClient(csServiceEndpoint, csRouteResolver, natsOptions);
+            ChargingStationNatsClient chargingStationNatsClient = new ChargingStationNatsClient(csService, csRouteResolver, natsOptions);
             chargingStationNatsClient.connect();
 
             return chargingStationNatsClient;

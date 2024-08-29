@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.clients.ICSClient;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation.ChargingStationNatsClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration.BrokerContextLoader;
@@ -15,9 +15,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.BootReasonEnum;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.ChargingStation;
 
 import java.net.URL;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * This example demonstrates the use case of:
@@ -43,10 +41,10 @@ public class ChargingStationOverNatsDemo {
         IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
 
         // Build and connect the CS client to the CSMS before sending requests.
-        IOCPPSession csNatsClient = ChargingStationNatsClient.newBuilder()
+        IOCPPSession ocppSession = ChargingStationNatsClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
-                .withCsServiceInterface(new CSServiceEndpointImpl())
+                .withCsServiceInterface(new CSImpl())
                 .build();
 
         /*
@@ -74,7 +72,8 @@ public class ChargingStationOverNatsDemo {
         /*
          * (5) Send the BootNotificationRequest and block until receiving a BootNotificationResponse.
          */
-        ICallResult<BootNotificationResponse> response = csNatsClient.getCsmsServiceEndpoint().sendBootNotificationRequest(bootRequest);
+        Headers headers = Headers.emptyHeader();
+        ICallResult<BootNotificationResponse> response = ocppSession.getCsms().sendBootNotificationRequest(headers, bootRequest);
 
 
         /*

@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.configuration;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.MessageRouteResolverImpl;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.routes.NatsMessageRouteResolver;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +31,7 @@ public class BrokerContext implements IBrokerContext {
             throw new ChargingStationIdNotFoundException("The Charging Station Id was not found within the file. Make sure to provide a valid id contained within the file.");
         }
 
-        return new MessageRouteResolverImpl(
+        return new NatsMessageRouteResolver(
                 matchingEntry.get().getOperatorId(),
                 matchingEntry.get().getCsmsId(),
                 csId
@@ -79,7 +79,7 @@ public class BrokerContext implements IBrokerContext {
             throw new ChargingStationManagementSystemIdNotFoundException(String.format("The Charging Station Management Id csmsId=%s was not found within the file. Make sure to provide a valid id contained within the file.", csmsId));
         }
 
-        return new MessageRouteResolverImpl(
+        return new NatsMessageRouteResolver(
                 matchingEntry.get().getOperatorId(),
                 matchingEntry.get().getCsmsId(),
                 "*"

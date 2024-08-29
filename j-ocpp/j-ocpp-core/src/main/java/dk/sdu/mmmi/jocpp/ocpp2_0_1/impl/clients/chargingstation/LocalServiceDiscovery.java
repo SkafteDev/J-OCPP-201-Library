@@ -1,8 +1,8 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.chargingstation;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsServiceEndpoint;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsServiceEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,9 +13,10 @@ import java.util.Map;
 public class LocalServiceDiscovery {
     private static LocalServiceDiscovery instance;
 
-    private final Map<String, ICsmsService> csmsServices = new HashMap<>();
-    private final Map<String, ICsServiceEndpoint> csEndpoints = new HashMap<>();
-    private final Map<String, ICsmsServiceEndpoint> csmsEndpoints = new HashMap<>();
+    private final Map<String, ICsms> csmsServices = new HashMap<>();
+    private final Map<String, IChargingStation> csServices = new HashMap<>();
+
+    private final Map<String, ISessionManager> sessionManagers = new HashMap<>();
 
     private LocalServiceDiscovery() {
     }
@@ -36,7 +37,7 @@ public class LocalServiceDiscovery {
      * @param csmsId
      * @param csms
      */
-    public void registerCsms(String csmsId, ICsmsService csms) {
+    public void registerCsms(String csmsId, ICsms csms) {
         if (csmsServices.containsKey(csmsId)) {
             throw new RuntimeException(String.format("CSMS id already used: %s", csmsId));
         }
@@ -62,7 +63,7 @@ public class LocalServiceDiscovery {
      * @param csmsId
      * @return
      */
-    public ICsmsService getCsms(String csmsId) {
+    public ICsms getCsms(String csmsId) {
         if (!csmsServices.containsKey(csmsId)) {
             return null;
         }
@@ -77,14 +78,14 @@ public class LocalServiceDiscovery {
      *
      * Throws a RuntimeException if the ID is already in use.
      * @param csId
-     * @param csEndpoint
+     * @param csService
      */
-    public void registerCsEndpoint(String csId, ICsServiceEndpoint csEndpoint) {
-        if (csEndpoints.containsKey(csId)) {
+    public void registerCs(String csId, IChargingStation csService) {
+        if (csServices.containsKey(csId)) {
             throw new RuntimeException(String.format("CS id already used: %s", csId));
         }
 
-        this.csEndpoints.put(csId, csEndpoint);
+        this.csServices.put(csId, csService);
     }
 
     /**
@@ -93,8 +94,8 @@ public class LocalServiceDiscovery {
      * Has no effect if the ID is not registered.
      * @param csId
      */
-    public void unregisterCsEndpoint(String csId) {
-        this.csEndpoints.remove(csId);
+    public void unregisterCs(String csId) {
+        this.csServices.remove(csId);
     }
 
 
@@ -105,54 +106,31 @@ public class LocalServiceDiscovery {
      * @param csId
      * @return
      */
-    public ICsServiceEndpoint getCsEndpoint(String csId) {
-        if (!csEndpoints.containsKey(csId)) {
+    public IChargingStation getCs(String csId) {
+        if (!csServices.containsKey(csId)) {
             return null;
         }
 
-        return csEndpoints.get(csId);
+        return csServices.get(csId);
     }
 
-
-
-    /**
-     * Registers the CSMS endpoint by the provided CS ID.
-     *
-     * Throws a RuntimeException if the ID is already in use.
-     * @param csId
-     * @param csmsEndpoint
-     */
-    public void registerCsmsEndpoint(String csId, ICsmsServiceEndpoint csmsEndpoint) {
-        if (csmsEndpoints.containsKey(csId)) {
-            throw new RuntimeException(String.format("CS id already used: %s", csId));
+    public void registerSessionManager(String sessionManagerId, ISessionManager sessionManager) {
+        if (sessionManagers.containsKey(sessionManagerId)) {
+            throw new RuntimeException(String.format("Session manager id already used: %s", sessionManagerId));
         }
 
-        this.csmsEndpoints.put(csId, csmsEndpoint);
+        this.sessionManagers.put(sessionManagerId, sessionManager);
     }
 
-    /**
-     * Unregisters the CSMS endpoint associated by the CS ID.
-     *
-     * Has no effect if the ID is not registered.
-     * @param csId
-     */
-    public void unregisterCsmsEndpoint(String csId) {
-        this.csmsEndpoints.remove(csId);
+    public void unregisterSessionManager(String sessionManagerId) {
+        this.sessionManagers.remove(sessionManagerId);
     }
 
-
-    /**
-     * Returns the CSMS endpoint associated with the CS ID.
-     *
-     * Returns null if the ID is not registered.
-     * @param csId
-     * @return
-     */
-    public ICsmsServiceEndpoint getCsmsEndpoint(String csId) {
-        if (!csmsEndpoints.containsKey(csId)) {
+    public ISessionManager getSessionManager(String sessionManagerId) {
+        if (!sessionManagers.containsKey(sessionManagerId)) {
             return null;
         }
 
-        return csmsEndpoints.get(csId);
+        return sessionManagers.get(sessionManagerId);
     }
 }
