@@ -7,8 +7,8 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService.HandshakeRequest;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsService.HandshakeResponse;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeRequest;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeResponse;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.ISessionManager;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.clients.SessionInfoImpl;
@@ -222,7 +222,7 @@ public class CsmsNatsSkeleton implements ICsmsServer {
             ObjectMapper mapper = JacksonUtil.getDefault();
 
             try {
-                HandshakeRequest handshakeRequest = mapper.readValue(json, HandshakeRequestImpl.class);
+                IHandshakeRequest handshakeRequest = mapper.readValue(json, HandshakeRequestImpl.class);
                 /*
                  * Handshake validation
                  */
@@ -246,11 +246,11 @@ public class CsmsNatsSkeleton implements ICsmsServer {
                  * Create the endpoint and add it to the internal connections.
                  */
                 logger.info(String.format("Handshake accepted. Instantiating endpoint for CS: %s",
-                        handshakeRequest.getIdentity()));
+                        handshakeRequest.getCsIdentity()));
                 IOCPPSession session = connect(handshakeRequest);
 
-                NatsMessageRouteResolver routeResolver = new NatsMessageRouteResolver(operatorId, csmsId, handshakeRequest.getIdentity());
-                HandshakeResponse accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
+                NatsMessageRouteResolver routeResolver = new NatsMessageRouteResolver(operatorId, csmsId, handshakeRequest.getCsIdentity());
+                IHandshakeResponse accepted = HandshakeResponseImpl.HandshakeResponseImplBuilder.aHandshakeResponseImpl()
                         .withHandshakeResult(HandshakeResult.ACCEPTED)
                         .withEndpoint(routeResolver.getRequestRoute())
                         .withOcppVersion(OcppVersion.OCPP_201)
@@ -284,9 +284,9 @@ public class CsmsNatsSkeleton implements ICsmsServer {
         dispatcher.subscribe(connectSubject);
     }
 
-    private boolean validate(HandshakeRequest handshakeRequest) {
+    private boolean validate(IHandshakeRequest handshakeRequest) {
         try {
-            Objects.requireNonNull(handshakeRequest.getIdentity());
+            Objects.requireNonNull(handshakeRequest.getCsIdentity());
             Objects.requireNonNull(handshakeRequest.getOcppVersion());
         } catch (NullPointerException e) {
             return false;
@@ -330,10 +330,10 @@ public class CsmsNatsSkeleton implements ICsmsServer {
                 });
     }
 
-    private IOCPPSession connect(HandshakeRequest handshakeRequest) {
-        if (sessionManager.sessionExists(handshakeRequest.getIdentity())) {
-            logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getIdentity()));
-            return sessionManager.getSession(handshakeRequest.getIdentity());
+    private IOCPPSession connect(IHandshakeRequest handshakeRequest) {
+        if (sessionManager.sessionExists(handshakeRequest.getCsIdentity())) {
+            logger.warning(String.format("CS with identity %s already connected. Ignoring.", handshakeRequest.getCsIdentity()));
+            return sessionManager.getSession(handshakeRequest.getCsIdentity());
         }
 
 
@@ -359,7 +359,7 @@ public class CsmsNatsSkeleton implements ICsmsServer {
             @Override
             public SessionInfo getSessionInfo() {
                 SessionInfo sInfo = SessionInfoImpl.SessionInfoImplBuilder.newBuilder()
-                        .withCsId(handshakeRequest.getIdentity())
+                        .withCsId(handshakeRequest.getCsIdentity())
                         .withCsmsId(csmsId)
                         .withConnectionURI(natsConnection.getConnectedUrl())
                         .withTransportType("NATS.io")
@@ -371,7 +371,7 @@ public class CsmsNatsSkeleton implements ICsmsServer {
         };
 
         // Register the session.
-        sessionManager.registerSession(handshakeRequest.getIdentity(), ocppSession);
+        sessionManager.registerSession(handshakeRequest.getCsIdentity(), ocppSession);
 
         return ocppSession;
     }

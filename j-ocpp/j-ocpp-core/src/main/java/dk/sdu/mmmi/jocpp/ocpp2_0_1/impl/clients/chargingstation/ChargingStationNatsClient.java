@@ -220,7 +220,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
         return this.routeResolver;
     }
 
-    public ICsms connect(ICsmsService.HandshakeRequest handshakeRequest) {
+    public ICsms connect(IHandshakeRequest handshakeRequest) {
         String connectSubject = routeResolver.getConnectRoute();
 
         try {
@@ -239,7 +239,7 @@ public class ChargingStationNatsClient implements IOCPPSession {
             Message msgResponse = futureResponse.get();
             String respJsonPayload = new String(msgResponse.getData(), StandardCharsets.UTF_8);
 
-            ICsmsService.HandshakeResponse handshakeResponse = mapper.readValue(respJsonPayload, HandshakeResponseImpl.class);
+            IHandshakeResponse handshakeResponse = mapper.readValue(respJsonPayload, HandshakeResponseImpl.class);
             logger.info(String.format("Handshake response: %s", respJsonPayload));
 
             return new CsmsProxyNatsIO(natsConnection, routeResolver);

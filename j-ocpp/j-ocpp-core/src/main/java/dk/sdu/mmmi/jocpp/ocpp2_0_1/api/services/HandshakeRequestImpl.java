@@ -11,7 +11,7 @@ import java.util.Objects;
         "identity",
         "ocppVersion"
 })
-public class HandshakeRequestImpl implements ICsmsService.HandshakeRequest {
+public class HandshakeRequestImpl implements IHandshakeRequest {
 
     @JsonProperty("identity")
     private String identity;
@@ -21,7 +21,7 @@ public class HandshakeRequestImpl implements ICsmsService.HandshakeRequest {
 
     @JsonProperty("identity")
     @Override
-    public String getIdentity() {
+    public String getCsIdentity() {
         return identity;
     }
 

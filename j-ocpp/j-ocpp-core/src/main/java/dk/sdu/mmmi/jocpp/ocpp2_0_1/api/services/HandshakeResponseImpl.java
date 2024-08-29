@@ -13,7 +13,7 @@ import java.util.Objects;
         "endpoint",
         "reason"
 })
-public class HandshakeResponseImpl implements ICsmsService.HandshakeResponse {
+public class HandshakeResponseImpl implements IHandshakeResponse {
 
     @JsonProperty("handshakeResult")
     private HandshakeResult handshakeResult;
