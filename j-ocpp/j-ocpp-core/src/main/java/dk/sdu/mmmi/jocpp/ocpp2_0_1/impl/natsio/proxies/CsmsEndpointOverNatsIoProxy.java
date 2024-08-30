@@ -3,7 +3,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsIORequester;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -13,7 +13,7 @@ import io.nats.client.Connection;
 
 import java.util.logging.Logger;
 
-public class CsmsOverNatsIoProxy implements ICsms {
+public class CsmsEndpointOverNatsIoProxy implements ICsmsEndpoint {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -21,7 +21,7 @@ public class CsmsOverNatsIoProxy implements ICsms {
 
     private final IMessageRouteResolver routeResolver;
 
-    public CsmsOverNatsIoProxy(Connection natsConnection, IMessageRouteResolver routingResolver) {
+    public CsmsEndpointOverNatsIoProxy(Connection natsConnection, IMessageRouteResolver routingResolver) {
         this.natsConnection = natsConnection;
         this.routeResolver = routingResolver;
     }

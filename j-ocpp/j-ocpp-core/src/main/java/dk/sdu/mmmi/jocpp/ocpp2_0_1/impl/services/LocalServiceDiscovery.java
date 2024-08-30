@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
 
 import java.util.HashMap;
@@ -13,8 +13,8 @@ import java.util.Map;
 public class LocalServiceDiscovery {
     private static LocalServiceDiscovery instance;
 
-    private final Map<String, ICsms> csmsServices = new HashMap<>();
-    private final Map<String, IChargingStation> csServices = new HashMap<>();
+    private final Map<String, ICsmsEndpoint> csmsServices = new HashMap<>();
+    private final Map<String, ICsEndpoint> csServices = new HashMap<>();
 
     private final Map<String, ISessionManager> sessionManagers = new HashMap<>();
 
@@ -37,7 +37,7 @@ public class LocalServiceDiscovery {
      * @param csmsId
      * @param csms
      */
-    public void registerCsms(String csmsId, ICsms csms) {
+    public void registerCsms(String csmsId, ICsmsEndpoint csms) {
         if (csmsServices.containsKey(csmsId)) {
             throw new RuntimeException(String.format("CSMS id already used: %s", csmsId));
         }
@@ -63,7 +63,7 @@ public class LocalServiceDiscovery {
      * @param csmsId
      * @return
      */
-    public ICsms getCsms(String csmsId) {
+    public ICsmsEndpoint getCsms(String csmsId) {
         if (!csmsServices.containsKey(csmsId)) {
             return null;
         }
@@ -80,7 +80,7 @@ public class LocalServiceDiscovery {
      * @param csId
      * @param csService
      */
-    public void registerCs(String csId, IChargingStation csService) {
+    public void registerCs(String csId, ICsEndpoint csService) {
         if (csServices.containsKey(csId)) {
             throw new RuntimeException(String.format("CS id already used: %s", csId));
         }
@@ -106,7 +106,7 @@ public class LocalServiceDiscovery {
      * @param csId
      * @return
      */
-    public IChargingStation getCs(String csId) {
+    public ICsEndpoint getCs(String csId) {
         if (!csServices.containsKey(csId)) {
             return null;
         }

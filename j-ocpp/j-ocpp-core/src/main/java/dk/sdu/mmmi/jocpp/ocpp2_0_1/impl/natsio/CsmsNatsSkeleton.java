@@ -10,11 +10,9 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.*;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeRequest;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IHandshakeResponse;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionInfoImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsOverNatsIoProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.NatsMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeRequestImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeResponseImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -39,11 +37,11 @@ public class CsmsNatsSkeleton {
     private final String csmsId;
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;
-    private final ICsms csmsService;
+    private final ICsmsEndpoint csmsService;
     private final IRequestHandlerRegistry ocppServer;
     private final ISessionManager sessionManager;
 
-    public CsmsNatsSkeleton(BrokerConfig brokerConfig, Options natsOptions, ICsms csms, ISessionManager sessionManager) {
+    public CsmsNatsSkeleton(BrokerConfig brokerConfig, Options natsOptions, ICsmsEndpoint csms, ISessionManager sessionManager) {
         this.natsConnection = getNatsIoConnection(natsOptions);
         this.operatorId = brokerConfig.getOperatorId();
         this.csmsId = brokerConfig.getCsmsId();
@@ -349,12 +347,12 @@ public class CsmsNatsSkeleton {
             }
 
             @Override
-            public ICsms getCsms() {
+            public ICsmsEndpoint getCsms() {
                 return csmsService;
             }
 
             @Override
-            public IChargingStation getChargingStation() {
+            public ICsEndpoint getChargingStation() {
                 IMessageRouteResolver proxyRouteResolver = new NatsMessageRouteResolver(operatorId, csmsId, csIdentity);
                 return new CsOverNatsIoProxy(natsConnection, proxyRouteResolver);
             }

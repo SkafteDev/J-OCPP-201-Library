@@ -6,8 +6,8 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionInfoImpl;
 
 public class ChargingStationInMemoryClient implements IOCPPSession {
 
-    private ICsms csmsService;
-    private IChargingStation csService;
+    private ICsmsEndpoint csmsService;
+    private ICsEndpoint csService;
     private final SessionInfoImpl sessionInfo;
 
     private ChargingStationInMemoryClient(String csId, String csmsId) {
@@ -38,12 +38,12 @@ public class ChargingStationInMemoryClient implements IOCPPSession {
     }
 
     @Override
-    public ICsms getCsms() {
+    public ICsmsEndpoint getCsms() {
         return csmsService;
     }
 
     @Override
-    public IChargingStation getChargingStation() {
+    public ICsEndpoint getChargingStation() {
         return csService;
     }
 

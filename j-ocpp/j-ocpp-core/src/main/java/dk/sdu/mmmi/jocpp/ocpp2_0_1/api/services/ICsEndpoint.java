@@ -4,7 +4,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 
-public interface IChargingStation {
+public interface ICsEndpoint {
     ICallResult<CancelReservationResponse> sendCancelReservationRequest(Headers headers, ICall<CancelReservationRequest> request);
     ICallResult<CertificateSignedResponse> sendCertificateSignedRequest(Headers headers, ICall<CertificateSignedRequest> request);
     ICallResult<ChangeAvailabilityResponse> sendChangeAvailabilityRequest(Headers headers, ICall<ChangeAvailabilityRequest> request);

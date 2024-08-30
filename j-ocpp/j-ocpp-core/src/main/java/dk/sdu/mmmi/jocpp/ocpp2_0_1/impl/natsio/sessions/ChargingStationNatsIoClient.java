@@ -11,7 +11,7 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsDispatcher;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsmsOverNatsIoProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsmsEndpointOverNatsIoProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeRequestImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.HandshakeResponseImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionInfoImpl;
@@ -29,7 +29,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -39,15 +38,15 @@ import java.util.logging.Logger;
 public class ChargingStationNatsIoClient implements IOCPPSession {
     private final IMessageRouteResolver routeResolver;
     private final SessionInfoImpl sessionInfo;
-    private ICsms csmsProxy;
+    private ICsmsEndpoint csmsProxy;
     private IRequestHandlerRegistry requestDispatchers;
-    private IChargingStation csService;
+    private ICsEndpoint csService;
     private Connection natsConnection;
 
     private static final Logger logger = Logger.getLogger(ChargingStationNatsIoClient.class.getName());
     private final Options natsOptions;
 
-    public ChargingStationNatsIoClient(IChargingStation csService,
+    public ChargingStationNatsIoClient(ICsEndpoint csService,
                                        IMessageRouteResolver routeResolver,
                                        Options natsOptions) {
         this.csService = csService;
@@ -132,7 +131,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
 
         // Initialize methodMap with methods from CsServiceEndpoint
         try {
-            Class<?> endpointClass = IChargingStation.class;
+            Class<?> endpointClass = ICsEndpoint.class;
             methodMap.put(OCPPMessageType.CancelReservationRequest, endpointClass.getMethod("sendCancelReservationRequest", Headers.class, ICall.class));
             methodMap.put(OCPPMessageType.CertificateSignedRequest, endpointClass.getMethod("sendCertificateSignedRequest", Headers.class, ICall.class));
             methodMap.put(OCPPMessageType.ChangeAvailabilityRequest, endpointClass.getMethod("sendChangeAvailabilityRequest", Headers.class, ICall.class));
@@ -188,7 +187,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
     private <TRequest, TResponse> void registerHandler(OCPPMessageType messageType, Class<TRequest> requestClass,
                                                        Class<TResponse> responseClass,
                                                        Map<OCPPMessageType, Method> methodMap,
-                                                       IChargingStation csService) {
+                                                       ICsEndpoint csService) {
         requestDispatchers.addRequestHandler(messageType,
                 new OCPPOverNatsIORequestHandler<>(requestClass, responseClass, natsConnection) {
                     @Override
@@ -223,7 +222,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
         return this.routeResolver;
     }
 
-    public ICsms connect(IHandshakeRequest handshakeRequest) {
+    public ICsmsEndpoint connect(IHandshakeRequest handshakeRequest) {
         String connectSubject = routeResolver.getConnectRoute();
 
         try {
@@ -245,7 +244,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
             IHandshakeResponse handshakeResponse = mapper.readValue(respJsonPayload, HandshakeResponseImpl.class);
             logger.info(String.format("Handshake response: %s", respJsonPayload));
 
-            return new CsmsOverNatsIoProxy(natsConnection, routeResolver);
+            return new CsmsEndpointOverNatsIoProxy(natsConnection, routeResolver);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
@@ -269,12 +268,12 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
     }
 
     @Override
-    public ICsms getCsms() {
+    public ICsmsEndpoint getCsms() {
         return this.csmsProxy;
     }
 
     @Override
-    public IChargingStation getChargingStation() {
+    public ICsEndpoint getChargingStation() {
         return csService;
     }
 
@@ -286,14 +285,14 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
     public static class ChargingStationNatsIOClientBuilder {
         private String csId;
         private IBrokerContext configs;
-        private IChargingStation csService;
+        private ICsEndpoint csService;
 
         public ChargingStationNatsIOClientBuilder withCsId(String csId) {
             this.csId = csId;
             return this;
         }
 
-        public ChargingStationNatsIOClientBuilder withCsServiceInterface(IChargingStation csService) {
+        public ChargingStationNatsIOClientBuilder withCsServiceInterface(ICsEndpoint csService) {
             this.csService = csService;
             return this;
         }

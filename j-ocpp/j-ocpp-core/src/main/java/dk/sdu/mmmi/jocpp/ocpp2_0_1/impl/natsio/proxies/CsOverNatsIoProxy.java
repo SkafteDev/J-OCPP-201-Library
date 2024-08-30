@@ -2,7 +2,7 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsIORequester;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.exceptions.OCPPRequestException;
@@ -13,7 +13,7 @@ import io.nats.client.Connection;
 
 import java.util.logging.Logger;
 
-public class CsOverNatsIoProxy implements IChargingStation {
+public class CsOverNatsIoProxy implements ICsEndpoint {
     private final Logger logger = Logger.getLogger(CsOverNatsIoProxy.class.getName());
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;

@@ -1,107 +1,121 @@
-package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
+package dk.sdu.mmmi.jocpp.application.csms;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsDispatcher;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsOverNatsIoProxy;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallResultImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
-import io.nats.client.Connection;
-import io.nats.client.Nats;
-import io.nats.client.Options;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.fail;
+public class CsmsController {
 
-public class ChargingStationServiceTest {
-    private static final String CS_ID = "ce2b8b0e-db26-4643-a705-c848fab64327";
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private IRequestHandlerRegistry csService;
+    private final ISessionManager sessionManager;
 
-    @BeforeEach
-    void setup_chargingstation_and_connect_to_nats() {
-        URL resource = getResource("BrokerContexts/brokerContext.yml");
-        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
-        String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
-        Connection natsConnection = getNatsConnection(brokerUrl);
-        IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
-
-        csService = new OCPPOverNatsDispatcher(routeResolver);
-        csService.addRequestHandler(OCPPMessageType.SetChargingProfileRequest,
-                new SetChargingProfileRequestHandler(csService.getMsgRouteResolver(), natsConnection));
+    public CsmsController(ISessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
-    private static URL getResource(String resourceFile) {
-        ClassLoader classLoader = ChargingStationServiceTest.class.getClassLoader();
-        URL resourceUrl = classLoader.getResource(resourceFile);
-
-        if (resourceUrl == null) {
-            fail(String.format("Could not read input resource file: %s. Ensure that the file exists.", resourceFile));
-        }
-
-        return resourceUrl;
-    }
-
-    private static Connection getNatsConnection(String natsConnectionString) {
-        Options natsOptions = Options.builder()
-                .server(natsConnectionString)
-                .connectionTimeout(Duration.ofMinutes(2))
-                .build();
+    /**
+     * Returns a map of Charging Station IDs and for each, a generated Charging Profile.
+     *
+     * @return
+     */
+    private Map<String, ChargingProfile> calculateChargingProfiles() {
+        Map<String, ChargingProfile> profileMap = new HashMap<>();
 
         try {
-            return Nats.connect(natsOptions);
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            // Simulate a long-running task (calculating charging profiles)
+            double taskLength = Math.random() * 30d;
+            Thread.sleep((int) taskLength);
+
+            for (String csIdentifier : sessionManager.getSessionIds()) {
+                ChargingProfile chargingProfile = getChargingProfile();
+                profileMap.put(csIdentifier, chargingProfile);
+            }
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        return profileMap;
+    }
+
+    public void startSmartChargingControlLoop(Duration interval) {
+        // Control loop
+        while (true) {
+            long startTime = System.currentTimeMillis();
+            logger.info(String.format("Running Smart Charging control loop with interval=%s seconds.",
+                    interval.toSeconds()));
+
+            // Regular control flow
+            logger.info("Calculating ChargingProfiles.");
+            Map<String, ChargingProfile> profileMap = calculateChargingProfiles();
+            logger.info("Finished calculation of ChargingProfiles.");
+            emitChargingProfiles(profileMap);
+
+            // Calculate the time spent controlling.
+            Duration elapsed = Duration.ofMillis(System.currentTimeMillis() - startTime);
+            logger.info(String.format("Completed control loop in %s seconds.", elapsed.toSeconds()));
+
+            try {
+                // If we spent more time than 'allowed' during the control loop, set the interval to 0.
+                Duration waitTimeBeforeNextLoop = interval.minus(elapsed).toMillis() >= 0 ? interval.minus(elapsed) : Duration.ZERO;
+                logger.info(String.format("Waiting %s seconds before proceeding to next control iteration.",
+                        waitTimeBeforeNextLoop.toSeconds()));
+                Thread.sleep(waitTimeBeforeNextLoop.toMillis());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    @Test
-    void integration_csms_to_cs_SetChargingProfileRequest() {
-        URL resource = getResource("BrokerContexts/brokerContext.yml");
-        IBrokerContext brokerContext = BrokerContextLoader.fromYAML(resource.getPath());
-        IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
-        String brokerUrl = brokerContext.getConfigFromCsId(CS_ID).getBrokerUrl();
+    private void emitChargingProfiles(Map<String, ChargingProfile> profileMap) {
+        if (profileMap.isEmpty()) return; // No need to emit anything.
 
-        ICsEndpoint csmsClientApi = new CsOverNatsIoProxy(getNatsConnection(brokerUrl), routeResolver);
+        logger.info("Emitting ChargingProfiles to Charging Stations.");
+        for (Map.Entry<String, ChargingProfile> entry : profileMap.entrySet()) {
+            String csId = entry.getKey();
+            ChargingProfile chargingProfile = entry.getValue();
 
-        ChargingProfile chargingProfile = getChargingProfile();
+            SetChargingProfileRequest payload = SetChargingProfileRequest.builder()
+                    .withEvseId(0)
+                    .withChargingProfile(chargingProfile)
+                    .build();
 
-        SetChargingProfileRequest payload = SetChargingProfileRequest.builder()
-                .withEvseId(0)
-                .withChargingProfile(chargingProfile)
-                .build();
+            ICall<SetChargingProfileRequest> call = CallImpl.<SetChargingProfileRequest>newBuilder()
+                    .asAction(OCPPMessageType.SetChargingProfileRequest.getAction())
+                    .withMessageId(UUID.randomUUID().toString())
+                    .withPayLoad(payload)
+                    .build();
 
-        ICall<SetChargingProfileRequest> call = CallImpl.<SetChargingProfileRequest>newBuilder()
-                .asAction(OCPPMessageType.SetChargingProfileRequest.getAction())
-                .withMessageId("xxxyyyzzz123")
-                .withPayLoad(payload)
-                .build();
+            try {
+                IOCPPSession session = sessionManager.getSession(csId);
+                Headers headers = Headers.emptyHeader();
+                ICallResult<SetChargingProfileResponse> callResult = session.getChargingStation().sendSetChargingProfileRequest(headers, call);
 
-        Headers headers = Headers.emptyHeader();
-        ICallResult<SetChargingProfileResponse> callResultMessage = csmsClientApi.sendSetChargingProfileRequest(headers, call);
-
-        System.out.println(callResultMessage);
+                logger.info(String.format("Received response '%s' with payload %s",
+                        SetChargingProfileResponse.class.getName(), callResult.getPayload().toString()));
+            } catch (OCPPRequestException e) {
+                logger.info(String.format("Error occurred while sending the request or receiving the response. %s",
+                        e.getMessage()));
+            }
+        }
     }
 
-    private static ChargingProfile getChargingProfile() {
+    private ChargingProfile getChargingProfile() {
         return ChargingProfile.builder()
                 .withId(1)
                 .withStackLevel(0)
@@ -121,214 +135,124 @@ public class ChargingStationServiceTest {
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(0 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 01:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(1 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 02:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(2 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 03:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(3 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 04:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(4 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 05:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(5 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 06:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(6 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 07:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(7 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 08:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(8 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 09:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(9 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 10:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(10 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 11:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(11 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 12:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(12 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 13:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(13 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 14:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(14 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 15:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(15 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 16:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(16 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 17:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(17 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 18:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(18 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 19:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(19 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 20:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(20 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 21:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(21 * 60 * 60)
                                                         .withLimit(0d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 22:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(22 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build(),
                                                 // From 23:00
                                                 ChargingSchedulePeriod.builder()
                                                         .withStartPeriod(23 * 60 * 60)
                                                         .withLimit(11_000d)
-                                                        .withNumberPhases(1)
-                                                        .withPhaseToUse(1)
                                                         .build()
                                         )).build()
                         ))
                 .build();
-    }
-
-    public static class SetChargingProfileRequestHandler
-            extends OCPPOverNatsIORequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
-
-        private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
-
-        private final IMessageRouteResolver routeResolver;
-
-        public SetChargingProfileRequestHandler(IMessageRouteResolver routeResolver, Connection natsConnection) {
-            super(SetChargingProfileRequest.class, SetChargingProfileResponse.class, natsConnection);
-            this.routeResolver = routeResolver;
-        }
-
-        @Override
-        public ICallResult<SetChargingProfileResponse> handle(ICall<SetChargingProfileRequest> callMessage, String subject) {
-            logger.info("Handling inbound msg received on: " + subject);
-
-            // Do something with the payload...
-            // E.g. update the internal state...
-            SetChargingProfileRequest requestPayload = callMessage.getPayload();
-
-            logger.info("Inbound message handled..");
-
-            // Create response depending on the internal state...
-            SetChargingProfileResponse responsePayload = SetChargingProfileResponse.builder()
-                    .withStatus(ChargingProfileStatusEnum.ACCEPTED)
-                    .build();
-
-            ICallResult<SetChargingProfileResponse> callResult =
-                    CallResultImpl.<SetChargingProfileResponse>newBuilder()
-                            .withMessageId(callMessage.getMessageId()) // MessageId MUST be identical to the call.
-                            .withPayLoad(responsePayload)
-                            .build();
-
-            return callResult;
-        }
-
-        @Override
-        public String getRequestSubject() {
-            return routeResolver.getRoute(OCPPMessageType.SetChargingProfileRequest);
-        }
     }
 }

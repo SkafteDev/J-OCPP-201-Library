@@ -2,8 +2,8 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services;
 
 public interface IOCPPSession {
     void disconnect();
-    ICsms getCsms();
-    IChargingStation getChargingStation();
+    ICsmsEndpoint getCsms();
+    ICsEndpoint getChargingStation();
 
     SessionInfo getSessionInfo();
 

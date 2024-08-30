@@ -2,13 +2,13 @@ package dk.sdu.mmmi.jocpp.ocpp2_0_1.integration.natsio;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsms;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPOverNatsIORequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.OCPPOverNatsDispatcher;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsmsOverNatsIoProxy;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.proxies.CsmsEndpointOverNatsIoProxy;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -82,7 +82,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsms csClient = new CsmsOverNatsIoProxy(natsConnection, routeResolver);
+        ICsmsEndpoint csClient = new CsmsEndpointOverNatsIoProxy(natsConnection, routeResolver);
 
         ICall<BootNotificationRequest> bootNotificationRequest = createBootNotificationRequest();
 
@@ -124,7 +124,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsms csClient = new CsmsOverNatsIoProxy(natsConnection, routeResolver);
+        ICsmsEndpoint csClient = new CsmsEndpointOverNatsIoProxy(natsConnection, routeResolver);
 
         ICall<StatusNotificationRequest> statusNotificationRequest = createStatusNotificationRequest();
 
@@ -152,7 +152,7 @@ public class ChargingStationClientTest {
 
         IMessageRouteResolver routeResolver = brokerContext.getChargingStationRouteResolver(CS_ID);
 
-        ICsms csClient = new CsmsOverNatsIoProxy(natsConnection, routeResolver);
+        ICsmsEndpoint csClient = new CsmsEndpointOverNatsIoProxy(natsConnection, routeResolver);
 
         ICall<HeartbeatRequest> heartbeatRequest = createHeartbeatRequest();
 

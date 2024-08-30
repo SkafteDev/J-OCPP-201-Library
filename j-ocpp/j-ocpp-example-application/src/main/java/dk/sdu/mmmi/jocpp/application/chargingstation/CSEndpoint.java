@@ -1,7 +1,7 @@
 package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IChargingStation;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
@@ -17,8 +17,8 @@ import java.util.logging.Logger;
  * This class holds the implementation of a ChargingStation including
  * all the requests that it should be able to handle.
  */
-public class CSImpl implements IChargingStation {
-    private final Logger logger = Logger.getLogger(CSImpl.class.getName());
+public class CSEndpoint implements ICsEndpoint {
+    private final Logger logger = Logger.getLogger(CSEndpoint.class.getName());
 
     @Override
     public ICallResult<CancelReservationResponse> sendCancelReservationRequest(Headers headers, ICall<CancelReservationRequest> request) {
