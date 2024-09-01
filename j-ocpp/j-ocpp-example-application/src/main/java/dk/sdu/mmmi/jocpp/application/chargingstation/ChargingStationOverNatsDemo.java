@@ -3,9 +3,11 @@ package dk.sdu.mmmi.jocpp.application.chargingstation;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.sessions.ChargingStationNatsIoClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionManagerImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
@@ -41,11 +43,13 @@ public class ChargingStationOverNatsDemo {
          * (2) Instantiate the CS client API to communicate between CS <-> CSMS.
          *     Connect the CS client to the CSMS before sending requests.
          */
+        ISessionManager sessionManager = new SessionManagerImpl();
         IOCPPSession ocppSession = ChargingStationNatsIoClient.newBuilder()
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
-                .withCsServiceInterface(new CSEndpoint())
+                .withCsServiceInterface(new CSEndpoint(csId, sessionManager))
                 .build();
+        sessionManager.registerSession(csId, ocppSession);
 
         // (3) Run the CS controller (i.e. the logic of the CS).
         CsController csController = new CsController(ocppSession);

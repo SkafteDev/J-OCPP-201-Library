@@ -25,8 +25,8 @@ public class ChargingStationOfflineDemo {
     private static void registerServices() {
         ISessionManager sessionManager = new SessionManagerImpl();
         sessionManager.addListener(session -> System.out.println(String.format("New session established: %s", session.getSessionInfo())));
-        CsmsEndpoint csmsEndpoint = new CsmsEndpoint();
-        ICsEndpoint csEndpoint = new CSEndpoint();
+        CsmsEndpoint csmsEndpoint = new CsmsEndpoint(CSMS_ID, sessionManager);
+        ICsEndpoint csEndpoint = new CSEndpoint(CS_ID, sessionManager);
         CsmsController csmsController = new CsmsController(sessionManager);
         new Thread(() -> {
             csmsController.startSmartChargingControlLoop(Duration.ofSeconds(15));

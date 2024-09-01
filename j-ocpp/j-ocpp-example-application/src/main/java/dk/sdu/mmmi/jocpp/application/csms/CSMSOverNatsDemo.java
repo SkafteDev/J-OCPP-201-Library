@@ -68,7 +68,7 @@ public class CSMSOverNatsDemo {
 
         ISessionManager sessionManager = new SessionManagerImpl();
         sessionManager.addListener(session -> logger.info(String.format("New session established: %s", session.getSessionInfo())));
-        CsmsEndpoint csmsEndpoint = new CsmsEndpoint();
+        CsmsEndpoint csmsEndpoint = new CsmsEndpoint(csmsId, sessionManager);
         CsmsController csmsController = new CsmsController(sessionManager);
         new Thread(() -> {
             csmsController.startSmartChargingControlLoop(Duration.ofSeconds(15));

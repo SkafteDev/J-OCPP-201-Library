@@ -1,8 +1,9 @@
 package dk.sdu.mmmi.jocpp.application.chargingstation;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsEndpoint;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallError;
@@ -19,6 +20,13 @@ import java.util.logging.Logger;
  */
 public class CSEndpoint implements ICsEndpoint {
     private final Logger logger = Logger.getLogger(CSEndpoint.class.getName());
+    private final String csId;
+    private final ISessionManager sessionManager;
+
+    public CSEndpoint(String csId, ISessionManager sessionManager) {
+        this.csId = csId;
+        this.sessionManager = sessionManager;
+    }
 
     @Override
     public ICallResult<CancelReservationResponse> sendCancelReservationRequest(Headers headers, ICall<CancelReservationRequest> request) {

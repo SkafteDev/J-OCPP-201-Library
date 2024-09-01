@@ -24,8 +24,13 @@ import java.util.logging.Logger;
 public class CsmsEndpoint implements ICsmsEndpoint {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final String csmsId;
+    private final ISessionManager sessionManager;
 
-    public CsmsEndpoint() {}
+    public CsmsEndpoint(String csmsId, ISessionManager sessionManager) {
+        this.csmsId = csmsId;
+        this.sessionManager = sessionManager;
+    }
 
     @Override
     public ICallResult<AuthorizeResponse> sendAuthorizeRequest(Headers headers, ICall<AuthorizeRequest> req) {
