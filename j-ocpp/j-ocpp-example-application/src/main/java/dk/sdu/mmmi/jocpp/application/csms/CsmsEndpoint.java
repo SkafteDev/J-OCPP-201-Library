@@ -1,24 +1,20 @@
 package dk.sdu.mmmi.jocpp.application.csms;
 
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsEndpoint;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ICsmsEndpoint;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.exceptions.OCPPRequestException;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ErrorCode;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallError;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallErrorImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallResultImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
 import java.util.logging.Logger;
 
 public class CsmsEndpoint implements ICsmsEndpoint {
