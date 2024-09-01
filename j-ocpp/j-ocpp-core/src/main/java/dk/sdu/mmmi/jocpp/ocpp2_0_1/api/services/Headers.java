@@ -33,6 +33,13 @@ public class Headers {
         }
     }
 
+    public String getFirst(String header) {
+        Collection<String> values = this.headers.get(header);
+
+        return values == null ? null :
+                values.stream().findFirst().orElse(null);
+    }
+
     public void put(String header, Collection<String> values) {
         for (String val : values) {
             put(header, val);
