@@ -48,8 +48,8 @@ public class ChargingStationOverNatsDemo {
                 .withBrokerContext(brokerContext)
                 .withCsId(csId)
                 .withCsServiceInterface(new CSEndpoint(csId, sessionManager))
+                .withSessionManager(sessionManager)
                 .build();
-        sessionManager.registerSession(csId, ocppSession);
 
         // (3) Run the CS controller (i.e. the logic of the CS).
         CsController csController = new CsController(ocppSession);

@@ -286,6 +286,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
         private String csId;
         private IBrokerContext configs;
         private ICsEndpoint csService;
+        private ISessionManager sessionManager;
 
         public ChargingStationNatsIOClientBuilder withCsId(String csId) {
             this.csId = csId;
@@ -299,6 +300,11 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
 
         public ChargingStationNatsIOClientBuilder withBrokerContext(IBrokerContext configs) {
             this.configs = configs;
+            return this;
+        }
+
+        public ChargingStationNatsIOClientBuilder withSessionManager(ISessionManager sessionManager) {
+            this.sessionManager = sessionManager;
             return this;
         }
 
@@ -323,6 +329,8 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
 
             ChargingStationNatsIoClient chargingStationNatsIoClient = new ChargingStationNatsIoClient(csService, csRouteResolver, natsOptions);
             chargingStationNatsIoClient.connect();
+
+            sessionManager.registerSession(csId, chargingStationNatsIoClient);
 
             return chargingStationNatsIoClient;
 

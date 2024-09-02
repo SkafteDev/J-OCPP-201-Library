@@ -40,7 +40,7 @@ public class ChargingStationOfflineDemo {
 
     public static void main(String[] args) {
         /**
-         * (1) Register a reference to a local ICsmsService in a discovery service.
+         * (1) Register a reference to a local ICsmsService.
          */
         ISessionManager sessionManager = new SessionManagerImpl();
         sessionManager.addListener(session -> System.out.println(String.format("New session established: %s", session.getSessionInfo())));
@@ -55,7 +55,6 @@ public class ChargingStationOfflineDemo {
          * (2) Instantiate the CS client API to communicate between CS <-> CSMS.
          *     Connect the CS client to the CSMS before sending requests.
          */
-        //IOCPPSession ocppSession = InMemoryOCPPSession.connect(CS_ID, CSMS_ID, LocalServiceDiscovery.getInstance());
         IOCPPSession ocppSession = InMemoryOCPPSession.connect(CS_ID, CSMS_ID, sessionManager, csmsEndpoint, csEndpoint);
 
         // (3) Run the CS controller (i.e. the logic of the CS).

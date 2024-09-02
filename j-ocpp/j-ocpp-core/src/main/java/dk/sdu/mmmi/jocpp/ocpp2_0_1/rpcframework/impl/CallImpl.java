@@ -34,6 +34,14 @@ public class CallImpl<T> implements ICall<T> {
         return new CallMessageBuilder<T>();
     }
 
+    @Override
+    public String toString() {
+        return "CallImpl{" +
+                "action='" + action + '\'' +
+                ", payload=" + payload +
+                ", messageId='" + messageId + '\'' +
+                '}';
+    }
 
     public static class CallMessageBuilder<T> {
 
