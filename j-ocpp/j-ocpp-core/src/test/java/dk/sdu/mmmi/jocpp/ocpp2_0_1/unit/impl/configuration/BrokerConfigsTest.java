@@ -8,6 +8,8 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -88,5 +90,20 @@ class BrokerConfigsTest {
         }
 
         return resourceUrl;
+    }
+
+    @Test
+    void unit_get_all_csmsIds_within_context() {
+        URL resource = getResource(resourceFile);
+
+        IBrokerContext configs = BrokerContextLoader.fromYAML(resource.getPath());
+        Collection<String> csmsIds = configs.getCsmsIds();
+
+        Collection<String> expected = Set.of(
+                "Clever CSMS",
+                "EWII CSMS"
+        );
+
+        assertEquals(expected, csmsIds);
     }
 }

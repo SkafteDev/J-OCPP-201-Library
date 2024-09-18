@@ -4,8 +4,10 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.NatsMessageRouteResolver;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BrokerContext implements IBrokerContext {
     private List<BrokerConfig> brokerContext;
@@ -66,6 +68,13 @@ public class BrokerContext implements IBrokerContext {
         }
 
         return matchingEntry.get();
+    }
+
+    @Override
+    public Collection<String> getCsmsIds() {
+        return brokerContext.stream()
+                .map(BrokerConfig::getCsmsId) // Extract csmsId from each BrokerConfig
+                .collect(Collectors.toSet()); // Collect into a Set to ensure uniqueness
     }
 
     @Override
