@@ -1,20 +1,26 @@
+/*
+ * Copyright (c) 2024 SDU Center for Energy Informatics, University of Southern Denmark.
+ * All rights reserved.
+ *
+ * Author: Christian Skafte Beck Clausen (csbc@mmmi.sdu.dk)
+ *
+ *  This code is proprietary and confidential.
+ *  Unauthorized copying of this file, via any medium, is strictly prohibited unless permission
+ *  is granted by SDU Center for Energy Informatics, University of Southern Denmark.
+ */
+
 package dk.sdu.mmmi.jocpp.application.chargingstation;
 
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.Headers;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.IOCPPSession;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.services.ISessionManager;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.sessions.ChargingStationNatsIoClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.configuration.IBrokerContext;
+import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.sessions.ChargingStationNatsIoClient;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionManagerImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallImpl;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
 
 import java.net.URL;
-import java.util.*;
+import java.util.Objects;
+import java.util.Scanner;
 
 /**
  * This example demonstrates the use case of:
