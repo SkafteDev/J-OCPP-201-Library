@@ -18,12 +18,13 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.services.SessionManagerImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerConfig;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.impl.natsio.configuration.BrokerContextLoader;
 import io.nats.client.Options;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.net.URL;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.logging.Logger;
 
 /**
  * This example demonstrates the use case of:
@@ -41,7 +42,7 @@ import java.util.logging.Logger;
  *      - SetChargingProfileRequest
  */
 public class CSMSOverNatsDemo {
-    private static final Logger logger = Logger.getLogger(CSMSOverNatsDemo.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CSMSOverNatsDemo.class.getName());
 
     private static final String quitToken = "q";
 

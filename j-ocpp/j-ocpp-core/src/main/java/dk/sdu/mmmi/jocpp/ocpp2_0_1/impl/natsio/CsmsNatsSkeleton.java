@@ -34,16 +34,17 @@ import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Nats;
 import io.nats.client.Options;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.logging.Logger;
 
 public class CsmsNatsSkeleton {
 
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     private final String operatorId;
     private final String csmsId;
     private final Connection natsConnection;
@@ -66,7 +67,7 @@ public class CsmsNatsSkeleton {
         try {
             return Nats.connect(natsOptions);
         } catch (IOException | InterruptedException e) {
-            logger.severe(e.getMessage());
+            logger.error(e.getMessage());
             throw new RuntimeException("Failed to connect to Nats.IO.", e);
         }
     }
@@ -343,7 +344,7 @@ public class CsmsNatsSkeleton {
     private IOCPPSession connect(IHandshakeRequest handshakeRequest) {
         String csIdentity = handshakeRequest.getCsIdentity();
         if (sessionManager.sessionExists(csIdentity)) {
-            logger.warning(String.format("CS with identity %s already connected. Ignoring.", csIdentity));
+            logger.warn(String.format("CS with identity %s already connected. Ignoring.", csIdentity));
             return sessionManager.getSession(csIdentity);
         }
 

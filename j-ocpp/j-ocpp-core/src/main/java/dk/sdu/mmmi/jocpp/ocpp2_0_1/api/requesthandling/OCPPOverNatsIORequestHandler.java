@@ -12,7 +12,6 @@
 package dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICall;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.deserializers.CallDeserializer;
@@ -21,12 +20,13 @@ import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
 import io.nats.client.impl.NatsMessage;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 
 public abstract class OCPPOverNatsIORequestHandler<TRequest, TResponse> implements OCPPRequestHandler<TRequest, TResponse> {
-    private final Logger logger = Logger.getLogger(OCPPOverNatsIORequestHandler.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OCPPOverNatsIORequestHandler.class.getName());
 
     // Store the payload type for the inbound request. Needed for serialization.
     private final Class<TRequest> inboundPayloadType;

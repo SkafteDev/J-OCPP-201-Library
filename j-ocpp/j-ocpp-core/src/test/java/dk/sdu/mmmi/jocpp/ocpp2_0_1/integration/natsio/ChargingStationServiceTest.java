@@ -31,6 +31,8 @@ import io.nats.client.Nats;
 import io.nats.client.Options;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
@@ -38,7 +40,6 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -304,7 +305,7 @@ public class ChargingStationServiceTest {
     public static class SetChargingProfileRequestHandler
             extends OCPPOverNatsIORequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
 
-        private final Logger logger = Logger.getLogger(SetChargingProfileRequestHandler.class.getName());
+        private final Logger logger = LoggerFactory.getLogger(SetChargingProfileRequestHandler.class.getName());
 
         private final IMessageRouteResolver routeResolver;
 

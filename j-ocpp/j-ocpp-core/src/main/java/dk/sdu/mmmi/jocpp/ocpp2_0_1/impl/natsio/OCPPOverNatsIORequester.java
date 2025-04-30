@@ -21,17 +21,18 @@ import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.impl.Headers;
 import io.nats.client.impl.NatsMessage;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
 
 public class OCPPOverNatsIORequester<TRequest, TResponse> {
 
-    private final Logger logger = Logger.getLogger(OCPPOverNatsIORequester.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(OCPPOverNatsIORequester.class.getName());
     private final Class<TRequest> outboundPayloadType;
     private final Class<TResponse> inboundPayloadType;
     private Duration timeout = Duration.ofSeconds(30); // Default timeout
@@ -114,16 +115,16 @@ public class OCPPOverNatsIORequester<TRequest, TResponse> {
             return callResult;
         } catch (InterruptedException | ExecutionException e) {
             // TODO: Handle if the CompletableFuture is interrupted or fails.
-            logger.severe(e.getMessage());
+            logger.error(e.getMessage());
             throw new OCPPRequestException(e.getMessage(), e.getCause());
         } catch (JsonProcessingException e) {
             // TODO: Handle if the deserialization fails for CallResult, try and deserialize to CallError
-            logger.severe(e.getMessage());
+            logger.error(e.getMessage());
             throw new OCPPRequestException(e.getMessage(), e.getCause());
         } catch (CancellationException e) {
             // TODO: Handle if the CompletableFuture got cancelled. This can happen if there are no subscribers to
             //  handle the request.
-            logger.severe("The request got cancelled. This exception may happen if there are no subscribers to handle" +
+            logger.error("The request got cancelled. This exception may happen if there are no subscribers to handle" +
                     " the request.");
             throw new OCPPRequestException(e.getMessage(), e.getCause());
         }

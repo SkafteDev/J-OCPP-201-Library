@@ -34,6 +34,8 @@ import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.Nats;
 import io.nats.client.Options;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +46,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
 
 public class ChargingStationNatsIoClient implements IOCPPSession {
     private final IMessageRouteResolver routeResolver;
@@ -54,7 +55,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
     private ICsEndpoint csService;
     private Connection natsConnection;
 
-    private static final Logger logger = Logger.getLogger(ChargingStationNatsIoClient.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ChargingStationNatsIoClient.class.getName());
     private final Options natsOptions;
 
     public ChargingStationNatsIoClient(ICsEndpoint csService,
@@ -88,7 +89,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
                     .build());
 
         } catch (IOException | InterruptedException e ) {
-            logger.severe(e.getMessage());
+            logger.error(e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -184,7 +185,7 @@ public class ChargingStationNatsIoClient implements IOCPPSession {
             methodMap.put(OCPPMessageType.UpdateFirmwareRequest, endpointClass.getMethod("sendUpdateFirmwareRequest", Headers.class, ICall.class));
         }
         catch(NoSuchMethodException ex) {
-            logger.severe(ex.toString());
+            logger.error(ex.toString());
         }
 
         // Register each NATS.io dispatcher with the concrete interface method.

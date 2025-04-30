@@ -22,15 +22,16 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.api.ICallResult;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallErrorImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.rpcframework.impl.CallResultImpl;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.schemas.json.*;
+import org.slf4j.LoggerFactory;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 /**
  * This class holds the implementation of a ChargingStation including
  * all the requests that it should be able to handle.
  */
 public class CSEndpoint implements ICsEndpoint {
-    private final Logger logger = Logger.getLogger(CSEndpoint.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(CSEndpoint.class.getName());
     private final String csId;
     private final ISessionManager sessionManager;
 

@@ -15,13 +15,14 @@ import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.OCPPMessageType;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.IRequestHandlerRegistry;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.requesthandling.OCPPRequestHandler;
 import dk.sdu.mmmi.jocpp.ocpp2_0_1.api.routes.IMessageRouteResolver;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class OCPPOverNatsDispatcher implements IRequestHandlerRegistry {
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     private final IMessageRouteResolver msgRouteResolver;
 
     protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;
@@ -34,7 +35,7 @@ public class OCPPOverNatsDispatcher implements IRequestHandlerRegistry {
     @Override
     public <TRequest, TResponse> void addRequestHandler(OCPPMessageType requestType, OCPPRequestHandler<TRequest, TResponse> requestHandler) {
         if (requestHandlers.containsKey(requestType)) {
-            logger.warning(String.format("Request handler for OCPPMessageType=%s already exists. Aborting.",
+            logger.warn(String.format("Request handler for OCPPMessageType=%s already exists. Aborting.",
                     requestType.getValue()));
             return;
         }
@@ -47,7 +48,7 @@ public class OCPPOverNatsDispatcher implements IRequestHandlerRegistry {
     @Override
     public void removeRequestHandler(OCPPMessageType requestType) {
         if (!requestHandlers.containsKey(requestType)) {
-            logger.warning(String.format("Request handler for OCPPMessageType=%s does not exists. Aborting.",
+            logger.warn(String.format("Request handler for OCPPMessageType=%s does not exists. Aborting.",
                     requestType.getValue()));
         }
 
