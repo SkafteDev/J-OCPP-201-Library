@@ -305,7 +305,7 @@ public class ChargingStationServiceTest {
     public static class SetChargingProfileRequestHandler
             extends OCPPOverNatsIORequestHandler<SetChargingProfileRequest, SetChargingProfileResponse> {
 
-        private final Logger logger = LoggerFactory.getLogger(SetChargingProfileRequestHandler.class.getName());
+        private static final Logger logger = LoggerFactory.getLogger(SetChargingProfileRequestHandler.class.getName());
 
         private final IMessageRouteResolver routeResolver;
 

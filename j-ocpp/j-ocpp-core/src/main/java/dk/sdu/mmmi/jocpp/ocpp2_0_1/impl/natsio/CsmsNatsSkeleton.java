@@ -44,7 +44,7 @@ import java.util.function.BiFunction;
 
 public class CsmsNatsSkeleton {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    private static final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     private final String operatorId;
     private final String csmsId;
     private final Connection natsConnection;

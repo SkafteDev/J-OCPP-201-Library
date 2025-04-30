@@ -31,7 +31,7 @@ import org.slf4j.Logger;
  * all the requests that it should be able to handle.
  */
 public class CSEndpoint implements ICsEndpoint {
-    private final Logger logger = LoggerFactory.getLogger(CSEndpoint.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CSEndpoint.class.getName());
     private final String csId;
     private final ISessionManager sessionManager;
 

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 public class CsOverNatsIoProxy implements ICsEndpoint {
-    private final Logger logger = LoggerFactory.getLogger(CsOverNatsIoProxy.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CsOverNatsIoProxy.class.getName());
     private final Connection natsConnection;
     private final IMessageRouteResolver routeResolver;
 

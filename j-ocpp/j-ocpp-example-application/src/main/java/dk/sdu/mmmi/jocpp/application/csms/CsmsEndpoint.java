@@ -31,7 +31,7 @@ import java.time.ZonedDateTime;
 
 public class CsmsEndpoint implements ICsmsEndpoint {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    private static final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     private final String csmsId;
     private final ISessionManager sessionManager;
 

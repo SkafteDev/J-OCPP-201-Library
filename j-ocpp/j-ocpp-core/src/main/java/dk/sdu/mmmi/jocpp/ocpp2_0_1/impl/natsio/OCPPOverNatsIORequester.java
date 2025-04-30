@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 
 public class OCPPOverNatsIORequester<TRequest, TResponse> {
 
-    private final Logger logger = LoggerFactory.getLogger(OCPPOverNatsIORequester.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OCPPOverNatsIORequester.class.getName());
     private final Class<TRequest> outboundPayloadType;
     private final Class<TResponse> inboundPayloadType;
     private Duration timeout = Duration.ofSeconds(30); // Default timeout
