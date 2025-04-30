@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OCPPOverNatsDispatcher implements IRequestHandlerRegistry {
-    private static final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    private static final Logger logger = LoggerFactory.getLogger(OCPPOverNatsDispatcher.class.getName());
     private final IMessageRouteResolver msgRouteResolver;
 
     protected Map<OCPPMessageType, OCPPRequestHandler<?, ?>> requestHandlers;

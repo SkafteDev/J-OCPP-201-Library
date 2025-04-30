@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 
 public class CsmsEndpointOverNatsIoProxy implements ICsmsEndpoint {
 
-    private static final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    private static final Logger logger = LoggerFactory.getLogger(CsmsEndpointOverNatsIoProxy.class.getName());
 
     private final Connection natsConnection;
 

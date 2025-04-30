@@ -33,7 +33,7 @@ import java.util.UUID;
 
 public class CsmsController {
 
-    private static final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    private static final Logger logger = LoggerFactory.getLogger(CsmsController.class.getName());
 
     private final ISessionManager sessionManager;
 
