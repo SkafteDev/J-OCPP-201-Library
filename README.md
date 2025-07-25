@@ -1,4 +1,4 @@
-# Java-based OCPP 2.0.1 Framework
+# Java-based OCPP 2.0.1 Library
 
 This repository contains a Java implementation of the Open Charge Point Protocol (OCPP) 2.0.1.  The project follows a broker based communication architecture and the provided examples use [NATS.io](https://nats.io) for message exchange.  The library itself is **transport agnostic** and can be integrated with any underlying transport such as MQTT, WebSocket or other message brokers.
 
